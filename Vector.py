@@ -585,7 +585,4 @@ class Matrix:
             v.append(Vector(*temp))
         return Matrix(*v)
 
-a = Matrix.identity(3)
-b = Vector(2, 3, 5)
-print(Matrix.randMfloat(2, 2, 0, 10))
 
