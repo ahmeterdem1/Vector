@@ -329,6 +329,7 @@ class Matrix:
         self.values = [k.values for k in args]
         self.dimension = f"{args[0].dimension}x{len(args)}"
 
+
     def __str__(self):
         return str(self.values)
 
@@ -398,8 +399,17 @@ class Matrix:
             for k in self.values:
                 v.append(Vector(*[l * arg for l in k]))
             return Matrix(*v)
-        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of int, float, Matrix")
-        assert self.dimension.split("x")[1] == arg.dimension.split("x")[0], Exception("DimensionError: for axb and cxd, b = c")
+        if type(arg) == Vector:
+            assert self.dimension.split("x")[0] == str(arg.dimension), Exception("DimensionError: dimensions of args must match")
+            for k in range(0, len(self.values)):
+                sum = 0
+                for l in range(0, len(arg.values)):
+                    sum += self.values[k][l] * arg.values[l]
+                v.append(sum)
+            return Vector(*v)
+
+        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of int, float, Matrix, Vector")
+        assert self.dimension.split("x")[1] == arg.dimension.split("x")[0], Exception("DimensionError: dimensions of args must match")
         for k in range(0, len(self.values)):
             n = list()
             for l in range(0, len(arg.values[0])):
@@ -540,4 +550,42 @@ class Matrix:
             end.append(temp)
         return Matrix(*[Vector(*k) for k in end]).transpose() / det
 
+    def identity(arg: int):
+        v = list()
+        for k in range(0, arg):
+            temp = [0] * arg
+            temp[k] = 1
+            v.append(Vector(*temp))
+        return Matrix(*v)
+
+    def randMint(m: int, n: int, a: int, b: int):
+        v = list()
+        for k in range(0, m):
+            temp = list()
+            for l in range(0, n):
+                temp.append(random.randint(a, b))
+            v.append(Vector(*temp))
+        return Matrix(*v)
+
+    def randMfloat(m: int, n: int, a: float, b: float):
+        v = list()
+        for k in range(0, m):
+            temp = list()
+            for l in range(0, n):
+                temp.append(random.uniform(a, b))
+            v.append(Vector(*temp))
+        return Matrix(*v)
+
+    def randMbool(m: int, n: int):
+        v = list()
+        for k in range(0, m):
+            temp = list()
+            for l in range(0, n):
+                temp.append(random.randint(0, 1))
+            v.append(Vector(*temp))
+        return Matrix(*v)
+
+a = Matrix.identity(3)
+b = Vector(2, 3, 5)
+print(Matrix.randMfloat(2, 2, 0, 10))
 
