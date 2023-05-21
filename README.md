@@ -106,7 +106,7 @@ Returns the determinant of the matrix m.
 
 Returns the transpose matrix of self
 
-### _Matrix_inverse()
+### _Matrix_.inverse()
 
 Returns the inverse matrix of self. Returns None if not invertible.
 
