@@ -11,7 +11,7 @@ vectors as arguments.
 Includes basic and some sophisticated operations on vectors.
 
 Addition, multiplication subtraction, division and operations alike are 
-implemented as overloads. Comparison operators compare the length od the
+implemented as overloads. Comparison operators compare the length of the
 vectors. Only exception is _==_ which returns True if and only if all the
 terms of the vectors are equal.
 
