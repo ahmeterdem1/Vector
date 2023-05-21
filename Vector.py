@@ -541,12 +541,3 @@ class Matrix:
         return Matrix(*[Vector(*k) for k in end]).transpose() / det
 
 
-
-
-
-a = Matrix(Vector(1, 0, 1), Vector(-1 ,0, -1), Vector(1, -1, 1))
-b = Matrix(Vector(1, 2), Vector(1, 3), Vector(1, 0))
-c = Matrix(Vector(1))
-
-print(c.inverse())
-
