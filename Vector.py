@@ -43,10 +43,6 @@ class Vector:
         assert type(arg) == Vector, Exception("TypeError: arg must be of type Vector")
         assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
         mul = [self.values[k] * arg.values[k] for k in range(0, self.dimension)]
-        for k in mul:
-            if math.isclose(k, 0):
-                index = mul.index(k)
-                mul[index] = 0
         sum = 0
         for k in mul:
             sum += k
@@ -533,7 +529,7 @@ class Matrix:
             return (1/self.values[0][0])
         det = Matrix.determinant(self)
         if not det:
-            return 0
+            return
         end = list()
         for k in range(0, len(self.values)):
             temp = list()
@@ -550,10 +546,10 @@ class Matrix:
             end.append(temp)
         return Matrix(*[Vector(*k) for k in end]).transpose() / det
 
-    def identity(arg: int):
+    def identity(dim: int):
         v = list()
-        for k in range(0, arg):
-            temp = [0] * arg
+        for k in range(0, dim):
+            temp = [0] * dim
             temp[k] = 1
             v.append(Vector(*temp))
         return Matrix(*v)
@@ -584,5 +580,4 @@ class Matrix:
                 temp.append(random.randint(0, 1))
             v.append(Vector(*temp))
         return Matrix(*v)
-
 
