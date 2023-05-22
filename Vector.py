@@ -646,5 +646,27 @@ class Matrix:
             sum *= a.values[k][k]
         return sum
 
-
+    def fast_inverse(self):
+        assert self.dimension.split("x")[0] == self.dimension.split("x")[1], Exception(
+            "DimensionError: Matrix must be a square")
+        if self.dimension == "1x1":
+            return (1 / self.values[0][0])
+        det = self.det_echelon()
+        if not det:
+            return
+        end = list()
+        for k in range(0, len(self.values)):
+            temp = list()
+            for l in range(0, len(self.values)):
+                sub = list()
+                for a in range(0, len(self.values)):
+                    n = list()
+                    for b in range(0, len(self.values)):
+                        if (not k == a) and (not l == b):
+                            n.append(self.values[a][b])
+                    if len(n) > 0:
+                        sub.append(Vector(*n))
+                temp.append(pow(-1, k + l) * Matrix(*sub).det_echelon())
+            end.append(temp)
+        return Matrix(*[Vector(*k) for k in end]).transpose() / det
 
