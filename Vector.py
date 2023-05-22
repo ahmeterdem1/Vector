@@ -16,6 +16,7 @@ class Vector:
                 a = a.replace(".", "")
                 a = a.replace("-", "")
                 a = a.replace("e", "")
+                a = a.replace("+", "")
             except:
                 pass
             assert (a.isnumeric() or type(a) == bool), Exception("VectorError: args must be of type float")
