@@ -126,3 +126,17 @@ Returns _mxn_ matrix of random floats selected from the interval (a, b).
 
 Returns _mxn_ matrix of random booleans.
 
+### _Matrix_.echelon()
+
+Returns reduced row echelon form of self. Also does reorganization on
+rows and multiplies one of them by -1 every 2 reorganization. This is
+for the determinant to remain unchanged.
+
+### _Matrix_.det_echelon()
+
+Returns determinant of self via _.echelon()_ method. This is faster
+than the other determinant method, which also loses time during type
+conversions. But this method does not return the exact value and has a
+very small error compared to the original determinant. This is due to
+floating point numbers and can be disregarded for most of the uses.
+
