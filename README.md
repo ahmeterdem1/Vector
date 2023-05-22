@@ -140,3 +140,10 @@ conversions. But this method does not return the exact value and has a
 very small error compared to the original determinant. This is due to
 floating point numbers and can be disregarded for most of the uses.
 
+### _Matrix_.fast_inverse()
+
+Returns the inverse matrix, faster. Implements echelon algorithm to
+calculate determinants. Otherwise, it's the same. The other inverse
+method is faster when working with smaller dimensional matrices. But
+as the dimension grows, speed of this algorithm gets faster many orders
+of magnitude rapidly.
