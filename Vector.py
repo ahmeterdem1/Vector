@@ -581,3 +581,70 @@ class Matrix:
             v.append(Vector(*temp))
         return Matrix(*v)
 
+    def echelon(self):
+        v = self.values.copy()
+        taken_list = list()
+        counter = 0
+        for k in range(0, len(self.values)):
+            for l in range(0, len(self.values[0])):
+                if not self.values[k][l] == 0 and l not in taken_list:
+                    v[l] = self.values[k]
+                    counter += 1
+                    if not l == k and counter % 2 == 0:
+                        v[l] = [-z for z in self.values[k]]
+                    else:
+                        v[l] = self.values[k]
+                    taken_list.append(l)
+                    break
+                elif not self.values[k][l] == 0 and l in taken_list:
+                    for m in range(l, len(self.values)):
+                        if m not in taken_list:
+                            v[m] = self.values[k]
+                            counter += 1
+                            if not m == k and counter % 2 == 0:
+                                v[m] = [-z for z in self.values[k]]
+        for k in range(0, len(self.values[0])):
+            if v[k][k] == 0:
+                continue
+            for l in range(0, len(self.values)):
+                if l == k:
+                    continue
+                try:
+                    factor = (v[l][k]) / (v[k][k])
+                    if abs(factor) < 0.0000000001:
+                        factor = 0
+                    factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
+                    v[l] = factored_list
+                except ZeroDivisionError:
+                    continue
+        taken_list = list()
+        end_list = v.copy()
+        for k in range(0, len(self.values)):
+            for l in range(0, len(self.values[0])):
+                if not v[k][l] == 0 and l not in taken_list:
+                    end_list[l] = v[k]
+                    counter += 1
+                    if not k == l and counter % 2 == 0:
+                        end_list[l] = [-z for z in v[k]]
+                    taken_list.append(l)
+                    break
+                elif not v[k][l] == 0 and l in taken_list:
+                    for m in range(l, len(self.values)):
+                        if m not in taken_list:
+                            end_list[m] = v[k]
+                            counter += 1
+                            if not m == l and counter % 2 == 0:
+                                end_list[m] = [-z for z in v[k]]
+        return Matrix(*[Vector(*k) for k in end_list])
+
+    def det_echelon(self):
+        a = self.echelon()
+        if not a.dimension.split("x")[0] == a.dimension.split("x")[1]:
+            return
+        sum = 1
+        for k in range(0, len(a.values)):
+            sum *= a.values[k][k]
+        return sum
+
+
+
