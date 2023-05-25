@@ -1,6 +1,38 @@
 import math
 import random
 
+class DimensionError(Exception):
+    def __init__(self, code):
+        if code == 0:
+            super().__init__("Dimensions must match")
+        elif code == 1:
+            super().__init__("Number of dimensions cannot be zero")
+        elif code == 2:
+            super().__init__("Matrix must be a square")
+
+class ArgTypeError(Exception):
+    def __init__(self, code):
+        if code == "f":
+            super().__init__("Args must be of type float")
+        elif code == "vif":
+            super().__init__("Arg must be of type Vector, int, float")
+        elif code == "if":
+            super().__init__("Arg must be of type int, float")
+        elif code == "v":
+            super().__init__("Arg must be of type Vector")
+        elif code == "i":
+            super().__init__("Args must be of type int")
+        elif code == "ifm":
+            super().__init__("Arg must be of type int, float, Matrix")
+        elif code == "ifmv":
+            super().__init__("Arg must be of type int, float, Matrix, Vector")
+        elif code == "m":
+            super().__init__("Arg must be of type Matrix")
+
+class ArgumentError(Exception):
+    "Not the correct amount of args"
+    pass
+
 class Vector:
     def __init__(self, *args):
         control_list = ["e-0", "e-1", "e-2", "e-3", "e-4", "e-5", "e-6", "e-7", "e-8", "e-9", "e0", "e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9"]
@@ -11,7 +43,8 @@ class Vector:
                 for k in range(0, len(control_list)):
                     factor = factor or (control_list[k] in a)
                 if not factor:
-                    assert (a.isnumeric()), Exception("VectorError: args must be of type float")
+                    if not (a.isnumeric()):
+                        raise ArgTypeError("f")
             try:
                 a = a.replace(".", "")
                 a = a.replace("-", "")
@@ -19,7 +52,8 @@ class Vector:
                 a = a.replace("+", "")
             except:
                 pass
-            assert (a.isnumeric() or type(a) == bool), Exception("VectorError: args must be of type float")
+            if not (a.isnumeric() or type(a) == bool):
+                raise ArgTypeError("f")
         self.dimension = len(args)
         self.values = [_ for _ in args]
 
@@ -29,20 +63,26 @@ class Vector:
     def __add__(self, arg):
         if type(arg) == int or type(arg) == float:
             return Vector(*[self.values[k] + arg for k in range(0, self.dimension)])
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector, int, float")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("vif")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         return Vector(*[self.values[k] + arg.values[k] for k in range(0, self.dimension)])
 
     def __sub__(self, arg):
         if type(arg) == int or type(arg) == float:
             return Vector(*[self.values[k] - arg for k in range(0, self.dimension)])
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector, int, float")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("vif")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         return Vector(*[self.values[k] - arg.values[k] for k in range(0, self.dimension)])
 
     def dot(self, arg):
-        assert type(arg) == Vector, Exception("TypeError: arg must be of type Vector")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("v")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         mul = [self.values[k] * arg.values[k] for k in range(0, self.dimension)]
         sum = 0
         for k in mul:
@@ -50,29 +90,36 @@ class Vector:
         return sum
 
     def __mul__(self, arg):
-        assert type(arg) == int or type(arg) == float, Exception("TypeError: arg must be of type int, float")
+        if not (type(arg) == int or type(arg) == float):
+            raise ArgTypeError("if")
         return Vector(*[self.values[k] * arg for k in range(0, self.dimension)])
 
     def __truediv__(self, arg):
-        assert type(arg) == int or type(arg) == float, Exception("TypeError: arg must be of type int, float")
+        if not (type(arg) == int or type(arg) == float):
+            raise ArgTypeError("if")
         return Vector(*[self.values[k] / arg for k in range(0, self.dimension)])
 
     def __floordiv__(self, arg):
-        assert type(arg) == int or type(arg) == float, Exception("TypeError: arg must be of type int, float")
+        if not (type(arg) == int or type(arg) == float):
+            raise ArgTypeError("if")
         return Vector(*[self.values[k] // arg for k in range(0, self.dimension)])
 
     def __iadd__(self, arg):
         if type(arg) == int or type(arg) == float:
             return Vector(*[self.values[k] + arg for k in range(0, self.dimension)])
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector, int, float")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("vif")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         return Vector(*[self.values[k] + arg.values[k] for k in range(0, self.dimension)])
 
     def __isub__(self, arg):
         if type(arg) == int or type(arg) == float:
             return Vector(*[self.values[k] - arg for k in range(0, self.dimension)])
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector, int, float")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("vif")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         return Vector(*[self.values[k] - arg.values[k] for k in range(0, self.dimension)])
 
     def __gt__(self, arg):
@@ -83,8 +130,10 @@ class Vector:
             if sum > arg * arg:
                 return True
             return False
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector, int, float")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("vif")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         sum = 0
         for k in self.values:
             sum += k*k
@@ -102,8 +151,10 @@ class Vector:
             if sum >= arg * arg:
                 return True
             return False
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector, int, float")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("vif")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         sum = 0
         for k in self.values:
             sum += k*k
@@ -121,8 +172,10 @@ class Vector:
             if sum > arg * arg:
                 return True
             return False
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector, int, float")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("vif")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         sum = 0
         for k in self.values:
             sum += k*k
@@ -140,8 +193,10 @@ class Vector:
             if sum <= arg * arg:
                 return True
             return False
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector, int, float")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("vif")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         sum = 0
         for k in self.values:
             sum += k*k
@@ -157,8 +212,10 @@ class Vector:
                 if not (k == arg):
                     return False
             return True
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector, int, float")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("vif")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         factor = True
         for k in self.values:
             for l in arg.values:
@@ -172,33 +229,45 @@ class Vector:
         return Vector(*[k for k in self.values])
 
     def __and__(self, arg):
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("v")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         return Vector(*[(self.values[k] and arg.values[k]) for k in range(0, self.dimension)])
 
     def __iand__(self, arg):
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("v")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         return Vector(*[(self.values[k] and arg.values[k]) for k in range(0, self.dimension)])
 
     def __or__(self, arg):
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("v")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         return Vector(*[(self.values[k] or arg.values[k]) for k in range(0, self.dimension)])
 
     def __ior__(self, arg):
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("v")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         return Vector(*[(self.values[k] or arg.values[k]) for k in range(0, self.dimension)])
 
     def __xor__(self, arg):
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("v")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         return Vector(*[(self.values[k] ^ arg.values[k]) for k in range(0, self.dimension)])
 
     def __ixor__(self, arg):
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("v")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         return Vector(*[(self.values[k] ^ arg.values[k]) for k in range(0, self.dimension)])
 
     def __invert__(self):
@@ -209,7 +278,8 @@ class Vector:
             temp = self.values.copy()
             temp.append(arg)
             return Vector(*temp)
-        assert (type(arg) == Vector), Exception("TypeError: arg must be of type Vector, int, float")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("vif")
         temp = self.values.copy()
         for k in arg.values:
             temp.append(k)
@@ -222,8 +292,10 @@ class Vector:
         return math.sqrt(sum)
 
     def proj(self, arg):
-        assert type(arg) == Vector, Exception("TypeError: arg must be of type Vector")
-        assert (self.dimension == arg.dimension), Exception("DimensionError: dimensions must match")
+        if not (type(arg) == Vector):
+            raise ArgTypeError("v")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         if not self.dimension:
             return 0
         dot = self.dot(arg)
@@ -242,8 +314,10 @@ class Vector:
     def spanify(*args):
         v_list = list()
         for k in args:
-            assert type(k) == Vector, Exception("TypeError: args must be of type Vector")
-            assert k.dimension == (len(args)), Exception("ArgumentError: not the correct amount of args")
+            if not (type(k) == Vector):
+                raise ArgTypeError("v")
+            if not (k.dimension == (len(args))):
+                raise ArgumentError
             v_list.append(k)
         for k in range(1, len(v_list)):
             temp = v_list[k]
@@ -261,25 +335,34 @@ class Vector:
         return True
 
     def randVint(dim: int, a: int, b: int):
-        assert type(dim) == int and type(a) == int and type(b) == int, Exception("TypeError: args must be of type int")
-        assert (dim > 0), Exception("DimensionError: number of dimensions cannot be zero")
+        if not (type(dim) == int and type(a) == int and type(b) == int):
+            raise ArgTypeError("i")
+        if not (dim > 0):
+            raise DimensionError(1)
         return Vector(*[random.randint(a, b) for k in range(0, dim)])
 
     def randVfloat(dim: int, a: float, b: float):
-        assert type(dim) == int and (type(a) == int or type(a) == float) and (type(b) == int or type(b) == float), Exception("TypeError: args must be of type int")
-        assert (dim > 0), Exception("DimensionError: number of dimensions cannot be zero")
+        if not (type(dim) == int and (type(a) == int or type(a) == float) and (type(b) == int or type(b) == float)):
+            raise ArgTypeError("if")
+        if not (dim > 0):
+            raise DimensionError(1)
         return Vector(*[random.uniform(a, b) for k in range(0, dim)])
 
     def randVbool(dim: int):
-        assert type(dim) == int, Exception("TypeError: arg must be of type int")
-        assert (dim > 0), Exception("DimensionError: number of dimensions cannot be zero")
+        if not (type(dim) == int):
+            raise ArgTypeError("i")
+        if not (dim > 0):
+            raise DimensionError(1)
         return Vector(*[random.randrange(0, 2) for k in range(0, dim)])
 
     def determinant(*args):
         for k in args:
-            assert (type(k) == Vector), Exception("TypeError: args must be of type Vector")
-            assert (args[0].dimension == k.dimension), Exception("DimensionError: dimensions must match")
-        assert (len(args) == args[0].dimension), Exception("ArgumentError: not the correct amount of args")
+            if not (type(k) == Vector):
+                raise ArgTypeError("v")
+            if not (args[0].dimension == k.dimension):
+                raise DimensionError(0)
+        if not (len(args) == args[0].dimension):
+            raise ArgumentError
         if len(args) == 2 and args[0].dimension == 2:
             return (args[0].values[0] * args[1].values[1]) - (args[0].values[1] * args[1].values[0])
 
@@ -297,11 +380,14 @@ class Vector:
 
     def cross(*args):
         for k in args:
-            assert (type(k) == Vector), Exception("TypeError: all inputs must be of type Vector")
-            assert (args[0].dimension == k.dimension), Exception("DimensionError: dimensions must match")
+            if not (type(k) == Vector):
+                raise ArgTypeError("v")
+            if not (args[0].dimension == k.dimension):
+                raise DimensionError(0)
         if len(args) == 2 and args[0].dimension == 2:
             return args[0].values[0] * args[1].values[1] - args[0].values[1] * args[1].values[0]
-        assert (len(args) == args[0].dimension - 1), Exception("ArgumentError: not the correct amount of args")
+        if not (len(args) == args[0].dimension - 1):
+            raise ArgumentError
 
         end_list = list()
         for k in range(0, args[0].dimension):
@@ -321,8 +407,10 @@ class Vector:
 class Matrix:
     def __init__(self, *args):
         for k in args:
-            assert type(k) == Vector, Exception("TypeError: args must be of type Vector")
-            assert k.dimension == args[0].dimension, Exception("DimensionError: dimension of args must be the same")
+            if not (type(k) == Vector):
+                raise ArgTypeError("v")
+            if not (args[0].dimension == k.dimension):
+                raise DimensionError(0)
         self.values = [k.values for k in args]
         self.dimension = f"{args[0].dimension}x{len(args)}"
 
@@ -336,8 +424,10 @@ class Matrix:
             for k in self.values:
                 v.append(Vector(*[l + arg for l in k]))
             return Matrix(*v)
-        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of int, float, Matrix")
-        assert self.dimension == arg.dimension, Exception("DimensionError: dimension of args must be the same")
+        if not (type(arg) == Matrix):
+            raise ArgTypeError("ifm")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         for k in range(0, len(self.values)):
             m = list()
             for l in range(0, len(self.values[0])):
@@ -351,8 +441,10 @@ class Matrix:
             for k in self.values:
                 v.append(Vector(*[l + arg for l in k]))
             return Matrix(*v)
-        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of int, float, Matrix")
-        assert self.dimension == arg.dimension, Exception("DimensionError: dimension of args must be the same")
+        if not (type(arg) == Matrix):
+            raise ArgTypeError("ifm")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         for k in range(0, len(self.values)):
             m = list()
             for l in range(0, len(self.values[0])):
@@ -366,8 +458,10 @@ class Matrix:
             for k in self.values:
                 v.append(Vector(*[l - arg for l in k]))
             return Matrix(*v)
-        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of int, float, Matrix")
-        assert self.dimension == arg.dimension, Exception("DimensionError: dimension of args must be the same")
+        if not (type(arg) == Matrix):
+            raise ArgTypeError("ifm")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         for k in range(0, len(self.values)):
             m = list()
             for l in range(0, len(self.values[0])):
@@ -381,8 +475,10 @@ class Matrix:
             for k in self.values:
                 v.append(Vector(*[l - arg for l in k]))
             return Matrix(*v)
-        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of int, float, Matrix")
-        assert self.dimension == arg.dimension, Exception("DimensionError: dimension of args must be the same")
+        if not (type(arg) == Matrix):
+            raise ArgTypeError("ifm")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         for k in range(0, len(self.values)):
             m = list()
             for l in range(0, len(self.values[0])):
@@ -397,7 +493,8 @@ class Matrix:
                 v.append(Vector(*[l * arg for l in k]))
             return Matrix(*v)
         if type(arg) == Vector:
-            assert self.dimension.split("x")[0] == str(arg.dimension), Exception("DimensionError: dimensions of args must match")
+            if not (self.dimension.split("x")[0] == str(arg.dimension)):
+                raise DimensionError(0)
             for k in range(0, len(self.values)):
                 sum = 0
                 for l in range(0, len(arg.values)):
@@ -405,8 +502,10 @@ class Matrix:
                 v.append(sum)
             return Vector(*v)
 
-        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of int, float, Matrix, Vector")
-        assert self.dimension.split("x")[1] == arg.dimension.split("x")[0], Exception("DimensionError: dimensions of args must match")
+        if not (type(arg) == Matrix):
+            raise ArgTypeError("ifmv")
+        if not (self.dimension.split("x")[1] == arg.dimension.split("x")[0]):
+            raise DimensionError(0)
         for k in range(0, len(self.values)):
             n = list()
             for l in range(0, len(arg.values[0])):
@@ -422,28 +521,33 @@ class Matrix:
 
     def __truediv__(self, arg):
         v = list()
-        assert type(arg) == int or type(arg) == float, Exception("TypeError: arg must be of type int, float")
+        if not (type(arg) == int or type(arg) == float):
+            raise ArgTypeError("if")
         for k in self.values:
             v.append(Vector(*[l / arg for l in k]))
         return Matrix(*v)
 
     def __floordiv__(self, arg):
         v = list()
-        assert type(arg) == int or type(arg) == float, Exception("TypeError: arg must be of type int, float")
+        if not (type(arg) == int or type(arg) == float):
+            raise ArgTypeError("if")
         for k in self.values:
             v.append(Vector(*[l // arg for l in k]))
         return Matrix(*v)
 
     def determinant(arg):
-        assert type(arg) == Matrix, Exception("TypeError: arg must be of type Matrix")
+        if not (type(arg) == Matrix):
+            raise ArgTypeError("m")
         if arg.dimension == "1x1":
             return arg.values[0][0]
         return Vector.determinant(*[Vector(*k) for k in arg.values])
 
     def __or__(self, arg):
         v = list()
-        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of int, float, Matrix")
-        assert self.dimension == arg.dimension, Exception("DimensionError: dimensions must be the same")
+        if not (type(arg) == Matrix):
+            raise ArgTypeError("ifm")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         for k in range(0, len(self.values)):
             m = list()
             for l in range(0, len(self.values[k])):
@@ -453,8 +557,10 @@ class Matrix:
 
     def __ior__(self, arg):
         v = list()
-        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of Matrix")
-        assert self.dimension == arg.dimension, Exception("DimensionError: dimensions must be the same")
+        if not (type(arg) == Matrix):
+            raise ArgTypeError("m")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         for k in range(0, len(self.values)):
             m = list()
             for l in range(0, len(self.values[k])):
@@ -464,8 +570,10 @@ class Matrix:
 
     def __and__(self, arg):
         v = list()
-        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of Matrix")
-        assert self.dimension == arg.dimension, Exception("DimensionError: dimensions must be the same")
+        if not (type(arg) == Matrix):
+            raise ArgTypeError("m")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         for k in range(0, len(self.values)):
             m = list()
             for l in range(0, len(self.values[k])):
@@ -475,8 +583,10 @@ class Matrix:
 
     def __iand__(self, arg):
         v = list()
-        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of Matrix")
-        assert self.dimension == arg.dimension, Exception("DimensionError: dimensions must be the same")
+        if not (type(arg) == Matrix):
+            raise ArgTypeError("m")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         for k in range(0, len(self.values)):
             m = list()
             for l in range(0, len(self.values[k])):
@@ -486,8 +596,10 @@ class Matrix:
 
     def __xor__(self, arg):
         v = list()
-        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of Matrix")
-        assert self.dimension == arg.dimension, Exception("DimensionError: dimensions must be the same")
+        if not (type(arg) == Matrix):
+            raise ArgTypeError("m")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         for k in range(0, len(self.values)):
             m = list()
             for l in range(0, len(self.values[k])):
@@ -497,8 +609,10 @@ class Matrix:
 
     def __ixor__(self, arg):
         v = list()
-        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of Matrix")
-        assert self.dimension == arg.dimension, Exception("DimensionError: dimensions must be the same")
+        if not (type(arg) == Matrix):
+            raise ArgTypeError("m")
+        if not (self.dimension == arg.dimension):
+            raise DimensionError(0)
         for k in range(0, len(self.values)):
             m = list()
             for l in range(0, len(self.values[k])):
@@ -510,7 +624,8 @@ class Matrix:
         return Matrix(*[Vector(*[int(not l) for l in k]) for k in self.values])
 
     def __eq__(self, arg):
-        assert type(arg) == Matrix, Exception("TypeError: type of arg must be of Matrix")
+        if not (type(arg) == Matrix):
+            raise ArgTypeError("m")
         if self.values == arg.values:
             return True
         return False
@@ -525,7 +640,8 @@ class Matrix:
         return Matrix(*v)
 
     def inverse(self):
-        assert self.dimension.split("x")[0] == self.dimension.split("x")[1], Exception("DimensionError: Matrix must be a square")
+        if not (self.dimension.split("x")[0] == self.dimension.split("x")[1]):
+            raise DimensionError(2)
         if self.dimension == "1x1":
             return (1/self.values[0][0])
         det = Matrix.determinant(self)
@@ -648,8 +764,8 @@ class Matrix:
         return sum
 
     def fast_inverse(self):
-        assert self.dimension.split("x")[0] == self.dimension.split("x")[1], Exception(
-            "DimensionError: Matrix must be a square")
+        if not (self.dimension.split("x")[0] == self.dimension.split("x")[1]):
+            raise DimensionError(2)
         if self.dimension == "1x1":
             return (1 / self.values[0][0])
         det = self.det_echelon()
