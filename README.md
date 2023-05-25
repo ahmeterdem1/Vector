@@ -147,3 +147,25 @@ calculate determinants. Otherwise, it's the same. The other inverse
 method is faster when working with smaller dimensional matrices. But
 as the dimension grows, speed of this algorithm gets faster many orders
 of magnitude rapidly.
+
+## Exceptions
+
+### DimensionError
+
+Anything related to dimensions of vectors and matrices. Raised in 
+Vector class when dimensions of operands don't match or 0 is given
+as a dimension to random vector generating functions.
+
+This error is raised in Matrix class when non-square matrices are
+passed into inverse calculating functions.
+
+### ArgTypeError
+
+Anything related to types of arguments. There are 8 modes of this
+exception depending on the conditions. These modes are defined by
+different combinations of types. For example type "i" is used for
+errors about arguments that should have been _only_ integers.
+
+### ArgumentError
+
+Raised when an incorrect amount of arguments is passed into functions.
