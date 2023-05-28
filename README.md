@@ -148,6 +148,11 @@ method is faster when working with smaller dimensional matrices. But
 as the dimension grows, speed of this algorithm gets faster many orders
 of magnitude rapidly.
 
+### Matrix.cramer(a, number)
+
+Applies Cramers rule to the equation system represented by the matrix _a_.
+_number_ indicates which variable to calculate. 
+
 ## Exceptions
 
 ### DimensionError
@@ -159,6 +164,9 @@ as a dimension to random vector generating functions.
 This error is raised in Matrix class when non-square matrices are
 passed into inverse calculating functions.
 
+**DimensionError(1) has been changed to RangeError, but is still
+in the code.**
+
 ### ArgTypeError
 
 Anything related to types of arguments. There are 8 modes of this
@@ -169,3 +177,7 @@ errors about arguments that should have been _only_ integers.
 ### ArgumentError
 
 Raised when an incorrect amount of arguments is passed into functions.
+
+### RangeError
+
+Raised when given arguments are out of required range.
