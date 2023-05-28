@@ -28,10 +28,17 @@ class ArgTypeError(Exception):
             super().__init__("Arg must be of type int, float, Matrix, Vector")
         elif code == "m":
             super().__init__("Arg must be of type Matrix")
+        elif code == "im":
+            super().__init__("Arg must be of type int, Matrix")
 
 class ArgumentError(Exception):
-    "Not the correct amount of args"
-    pass
+    def __init__(self):
+        super().__init__("Not the correct amount of args")
+
+class RangeError(Exception):
+    def __init__(self):
+        super().__init__("Argument out of range")
+
 
 class Vector:
     def __init__(self, *args):
@@ -338,21 +345,21 @@ class Vector:
         if not (type(dim) == int and type(a) == int and type(b) == int):
             raise ArgTypeError("i")
         if not (dim > 0):
-            raise DimensionError(1)
+            raise RangeError
         return Vector(*[random.randint(a, b) for k in range(0, dim)])
 
     def randVfloat(dim: int, a: float, b: float):
         if not (type(dim) == int and (type(a) == int or type(a) == float) and (type(b) == int or type(b) == float)):
             raise ArgTypeError("if")
         if not (dim > 0):
-            raise DimensionError(1)
+            raise RangeError
         return Vector(*[random.uniform(a, b) for k in range(0, dim)])
 
     def randVbool(dim: int):
         if not (type(dim) == int):
             raise ArgTypeError("i")
         if not (dim > 0):
-            raise DimensionError(1)
+            raise RangeError
         return Vector(*[random.randrange(0, 2) for k in range(0, dim)])
 
     def determinant(*args):
@@ -664,6 +671,8 @@ class Matrix:
         return Matrix(*[Vector(*k) for k in end]).transpose() / det
 
     def identity(dim: int):
+        if dim <= 0:
+            raise RangeError
         v = list()
         for k in range(0, dim):
             temp = [0] * dim
@@ -672,6 +681,8 @@ class Matrix:
         return Matrix(*v)
 
     def randMint(m: int, n: int, a: int, b: int):
+        if m <= 0 or n <= 0:
+            raise RangeError
         v = list()
         for k in range(0, m):
             temp = list()
@@ -681,6 +692,8 @@ class Matrix:
         return Matrix(*v)
 
     def randMfloat(m: int, n: int, a: float, b: float):
+        if m <= 0 or n <= 0:
+            raise RangeError
         v = list()
         for k in range(0, m):
             temp = list()
@@ -690,6 +703,8 @@ class Matrix:
         return Matrix(*v)
 
     def randMbool(m: int, n: int):
+        if m <= 0 or n <= 0:
+            raise RangeError
         v = list()
         for k in range(0, m):
             temp = list()
@@ -786,4 +801,33 @@ class Matrix:
                 temp.append(pow(-1, k + l) * Matrix(*sub).det_echelon())
             end.append(temp)
         return Matrix(*[Vector(*k) for k in end]).transpose() / det
+
+    def cramer(a, number: int):
+        if not type(a) == Matrix:
+            raise ArgTypeError("im")
+        if not number < len(a.values[0]) - 1 or number < 0:
+            raise RangeError
+        v = list()
+        for k in range(0, len(a.values)):
+            m = list()
+            for l in range(0, len(a.values[0]) - 1):
+                if not l == number:
+                    m.append(a.values[k][l])
+                else:
+                    m.append(a.values[k][len(a.values[0]) - 1])
+            v.append(Vector(*m))
+        first = Matrix(*v).det_echelon()
+        v.clear()
+        for k in range(0, len(a.values)):
+            m = list()
+            for l in range(0, len(a.values[0]) - 1):
+                m.append(a.values[k][l])
+            v.append(Vector(*m))
+        second = Matrix(*v).det_echelon()
+        try:
+            sol = first/second
+        except ZeroDivisionError:
+            sol = None
+        return sol
+
 
