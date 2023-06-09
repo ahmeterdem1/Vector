@@ -291,6 +291,15 @@ class Vector:
             self.values.append(k)
         self.dimension += arg.dimension
 
+    def pop(self, ord):
+        try:
+            self.values[ord]
+        except IndexError:
+            raise RangeError
+        popped = self.values.pop(ord)
+        self.dimension -= 1
+        return popped
+
     def length(self):
         sum = 0
         for k in self.values:
@@ -645,6 +654,17 @@ class Matrix:
         temp = self.dimension.split("x")
         temp[0] = str(int(temp[0]) + 1)
         self.dimension = "x".join(temp)
+
+    def pop(self, ord):
+        try:
+            self.values[ord]
+        except IndexError:
+            raise RangeError
+        popped = self.values.pop(ord)
+        temp = self.dimension.split("x")
+        temp[0] = str(int(temp[0]) - 1)
+        self.dimension = "x".join(temp)
+        return Vector(*popped)
 
     def transpose(self):
         v = list()
