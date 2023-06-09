@@ -282,15 +282,14 @@ class Vector:
 
     def append(self, arg):
         if type(arg) == int or type(arg) == float:
-            temp = self.values.copy()
-            temp.append(arg)
-            return Vector(*temp)
+            self.values.append(arg)
+            self.dimension += 1
+            return
         if not (type(arg) == Vector):
             raise ArgTypeError("vif")
-        temp = self.values.copy()
         for k in arg.values:
-            temp.append(k)
-        return Vector(*temp)
+            self.values.append(k)
+        self.dimension += arg.dimension
 
     def length(self):
         sum = 0
@@ -636,6 +635,16 @@ class Matrix:
         if self.values == arg.values:
             return True
         return False
+
+    def append(self, arg):
+        if not type(arg) == Vector:
+            raise ArgTypeError("v")
+        if not len(self.values[0]) == arg.dimension:
+            raise DimensionError(0)
+        self.values.append(arg.values)
+        temp = self.dimension.split("x")
+        temp[0] = str(int(temp[0]) + 1)
+        self.dimension = "x".join(temp)
 
     def transpose(self):
         v = list()
