@@ -102,6 +102,10 @@ Methods are listed below.
 
 Returns the determinant of the matrix m.
 
+### _Matrix_.append(arg)
+
+Appends arg as a new row to self. Only accepts vectors as arguments.
+
 ### _Matrix_.transpose()
 
 Returns the transpose matrix of self
