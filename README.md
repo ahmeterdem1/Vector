@@ -26,6 +26,12 @@ Returns the dot product of self with v.
 Appends the argument to the vector. Returns the new vector. Argument
 can be int, float or Vector.
 
+### _Vector_.pop(ord)
+
+Functions exactly the same as .pop() for the list class. If left blank,
+pops the last element and returns it. If specified, pops the intended
+element and returns it.
+
 ### _Vector_.length()
 
 Returns the length of self.
@@ -105,6 +111,12 @@ Returns the determinant of the matrix m.
 ### _Matrix_.append(arg)
 
 Appends arg as a new row to self. Only accepts vectors as arguments.
+
+### _Matrix_.pop(ord)
+
+Functions exactly the same as .pop() in list class. If left blank, pops
+the last row and returns it. If specified, pops the row in the given 
+order and returns it.
 
 ### _Matrix_.transpose()
 
