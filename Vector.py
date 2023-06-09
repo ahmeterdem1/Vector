@@ -291,7 +291,7 @@ class Vector:
             self.values.append(k)
         self.dimension += arg.dimension
 
-    def pop(self, ord):
+    def pop(self, ord=-1):
         try:
             self.values[ord]
         except IndexError:
@@ -655,7 +655,7 @@ class Matrix:
         temp[0] = str(int(temp[0]) + 1)
         self.dimension = "x".join(temp)
 
-    def pop(self, ord):
+    def pop(self, ord=-1):
         try:
             self.values[ord]
         except IndexError:
