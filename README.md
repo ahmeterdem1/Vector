@@ -26,6 +26,10 @@ Returns the dot product of self with v.
 Appends the argument to the vector. Returns the new vector. Argument
 can be int, float or Vector.
 
+### _Vector_.copy()
+
+Returns the copy of the vector.
+
 ### _Vector_.pop(ord)
 
 Functions exactly the same as .pop() for the list class. If left blank,
@@ -111,6 +115,10 @@ Returns the determinant of the matrix m.
 ### _Matrix_.append(arg)
 
 Appends arg as a new row to self. Only accepts vectors as arguments.
+
+### _Matrix_.copy()
+
+Returns the copy of the matrix.
 
 ### _Matrix_.pop(ord)
 

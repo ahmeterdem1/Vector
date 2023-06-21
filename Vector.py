@@ -291,6 +291,9 @@ class Vector:
             self.values.append(k)
         self.dimension += arg.dimension
 
+    def copy(self):
+        return Vector(*self.values.copy())
+
     def pop(self, ord=-1):
         try:
             self.values[ord]
@@ -654,6 +657,9 @@ class Matrix:
         temp = self.dimension.split("x")
         temp[0] = str(int(temp[0]) + 1)
         self.dimension = "x".join(temp)
+
+    def copy(self):
+        return Matrix(*[Vector(*k.copy()) for k in self.values])
 
     def pop(self, ord=-1):
         try:
