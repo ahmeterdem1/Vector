@@ -419,6 +419,12 @@ class Vector:
             end_list.append((Vector.determinant(*vector_list)) * pow(-1, k))
         return Vector(*end_list)
 
+    def cumsum(self):
+        sum = 0
+        for k in self.values:
+            sum += k
+        return sum
+
 
 
 
@@ -866,3 +872,21 @@ class Matrix:
         return sol
 
 
+    def cumsum(self):
+        sum = 0
+
+        for k in self.values:
+            for l in k:
+                sum += l
+
+        return sum
+
+
+if __name__ == "__main__":
+    # Finally I have created this section
+    # to do test freely
+
+    v = Vector(1, 2, 3, 4, 5, 6)
+
+    m = Matrix(v, v, v)
+    print(m.cumsum())

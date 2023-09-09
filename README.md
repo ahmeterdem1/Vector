@@ -90,6 +90,10 @@ tool for cross product and the determinant method for Matrix class.
 
 Returns the cross product of the vectors given in *args.
 
+### _Vector_.cumsum()
+
+Returns the cumulative sum.
+
 
 #### Footnotes
 
@@ -175,7 +179,11 @@ of magnitude rapidly.
 ### Matrix.cramer(a, number)
 
 Applies Cramers rule to the equation system represented by the matrix _a_.
-_number_ indicates which variable to calculate. 
+_number_ indicates which variable to calculate.
+
+### _Matrix_.cumsum()
+
+Returns the cumulative sum.
 
 ## Exceptions
 
