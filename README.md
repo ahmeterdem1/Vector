@@ -200,7 +200,7 @@ has a class for complex numbers.
 
 Pi, e and ln(2). Nothing more.
 
-### Math.Range(low: int or float, high: int or float)
+### Math.Range(low: int or float, high: int or float, step)
 
 A lazy implementation of range. There is indeed no range. Just a loop with
 yield statement. Almost as fast as the built-in range.
@@ -230,6 +230,29 @@ All are of the format Math.name(x: int or float, resolution: int).
 Calculates the value of the named trigonometric function via Taylor
 series. Again, resolution is passed as _power_ to __cumdiv().
 
+### Math.__find(...)
+
+This is a helper function for Math.solve(). Arguments are the same.
+Returns the first zero that it finds and saves it to memory.
+
+### Math.solve(f, low, high, search_step, res)
+
+Finds zeroes of function f. It may not be able to find all zeroes,
+but is pretty precise when it finds some. If the functions derivative
+large around its zero, then you should increase resolution to do a
+better search.
+
+Retrieves found zeroes from the memory, then clears it. Calling 
+multiple instances of this function at the same time will result
+in errors because of this global memory usage.
+
+This function is optimized for polynomials. It doesn't matter how many
+zeroes they have since this function utilizes a thread pool. This solver
+is slow when utilized with Taylor series based functions.
+
+There is an obvious solution to this speed problem though. Just put 
+expanded form as the argument. Not the implicit function form.
+
 ### _class_ Math.complex 
 
 This is the complex number class. It has + - / * overloaded.
@@ -242,10 +265,11 @@ Returns the complex conjugate of self.
 
 Returns the length of self, with treating it as a vector.
 
-#### _Math.complex_.range(lowreal, highreal, lowimg, highimg)
+#### _Math.complex_.range(lowreal, highreal, lowimg, highimg, step1, step2)
 
 Creates a complex number range, ranging from complex(lowreal, lowimg)
-to complex(highreal, highimg). Again this is a lazy implementation.
+to complex(highreal, highimg). Steps are 1 by default. Again this is 
+a lazy implementation.
 
 #### _Math.complex_.inverse()
 
