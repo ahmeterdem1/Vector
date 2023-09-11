@@ -883,10 +883,6 @@ class Matrix:
 
 
 if __name__ == "__main__":
+    pass
     # Finally I have created this section
     # to do test freely
-
-    v = Vector(1, 2, 3, 4, 5, 6)
-
-    m = Matrix(v, v, v)
-    print(m.cumsum())

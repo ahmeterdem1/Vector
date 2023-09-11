@@ -1,10 +1,11 @@
-# Vector.py 
+# Vector and more
 
-A linear algebra tool for python
+An algebra tool for python
 
-General layout is seperated to two different classes, Vector and Matrix. 
-Both have their constructors seperated, but the Matrix class only accepts
-vectors as arguments. 
+General layout consists of 2 files. Vector.py is for
+the linear algebra tools with classes of vectors and
+matrices. Math.py is for general mathematical operations
+and a class for complex numbers.
 
 ## Vector
 
@@ -101,6 +102,8 @@ Rotation is not implemented, because only reasonable way to implement
 it would be for just 2D and 3D vectors, which is not satisfying. 
 
 
+<hr>
+
 ## Matrix
 
 Includes basic operations for matrices.
@@ -185,6 +188,80 @@ _number_ indicates which variable to calculate.
 
 Returns the cumulative sum.
 
+
+<hr>
+
+## Math.py
+
+This files has definitions for general constants and functions. And it also
+has a class for complex numbers. 
+
+### Constants
+
+Pi, e and ln(2). Nothing more.
+
+### Math.Range(low: int or float, high: int or float)
+
+A lazy implementation of range. There is indeed no range. Just a loop with
+yield statement. Almost as fast as the built-in range.
+
+### Math.abs(arg: int or float)
+
+Returns the absolute value of the argument.
+
+### Math.cumsum(arg: list or float)
+
+Returns the cumulative sum of the iterable.
+
+### Math.__cumdiv(x: int or float, power: int)
+
+Calculates x<sup>n</sup> / power!. This is used to calculate Taylor series
+without data loss (at least minimal data loss).
+
+### Math.e(exponent: int or float, resolution: int)
+
+Calculates e<sup>exponent</sup>. resolution is passed as _power_ to the
+__cumdiv(). It will then define the maximal power of the power series
+implementation, therefore is a resolution.
+
+### Trigonometrics
+
+All are of the format Math.name(x: int or float, resolution: int).
+Calculates the value of the named trigonometric function via Taylor
+series. Again, resolution is passed as _power_ to __cumdiv().
+
+### _class_ Math.complex 
+
+This is the complex number class. It has + - / * overloaded.
+
+#### _Math.complex_.conjugate()
+
+Returns the complex conjugate of self.
+
+#### _Math.complex_.length()
+
+Returns the length of self, with treating it as a vector.
+
+#### _Math.complex_.range(lowreal, highreal, lowimg, highimg)
+
+Creates a complex number range, ranging from complex(lowreal, lowimg)
+to complex(highreal, highimg). Again this is a lazy implementation.
+
+#### _Math.complex_.inverse()
+
+Returns 1 / self. This is used in division. If divisor is complex,
+then this function is applied with multiplication to get the result.
+
+#### _Math.complex_.rotate(angle: int or float)
+
+Rotates self by angle.
+
+#### _Math.complex_.rotationFactor(angle: int or float)
+
+Returns e<sup>i*angle</sup> as a complex number.
+
+<hr>
+
 ## Exceptions
 
 ### DimensionError
@@ -213,3 +290,12 @@ Raised when an incorrect amount of arguments is passed into functions.
 ### RangeError
 
 Raised when given arguments are out of required range.
+
+### MathArgError
+
+Raised when argument(s) are of wrong type.
+
+### MathRangeError
+
+Raised when argument(s) are off range.
+
