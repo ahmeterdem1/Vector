@@ -205,7 +205,7 @@ def solve(f, low: int or float = -50, high: int or float = 50, search_step: int 
     :return: List of zeroes (may be incomplete)
     """
     # I couldn't find any other way to check it
-    if str(type(f)) != "<class 'function'>": raise MathArgError()
+    if str(type(f)) != "<class 'function'>" and str(type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError()
 
     zeroes: list = []
     thread_list: list = []
@@ -229,8 +229,10 @@ def solve(f, low: int or float = -50, high: int or float = 50, search_step: int 
                 zeroes.append(get)"""
             last_sign = temp_sign
 
+    logger.debug("Main loop end reached, waiting for joins.")
     for k in thread_list:
         k.join()
+    logger.debug("Joins ended.")
     for k in results:
         zeroes.append(k)
 
@@ -239,6 +241,12 @@ def solve(f, low: int or float = -50, high: int or float = 50, search_step: int 
     zeroes = list(map(lambda x: x if(abs(x) > 0.00001) else 0, zeroes))
 
     return zeroes
+
+def derivative(f, x: int or float, h: float = 0.0000000001) -> float:
+    if str(type(f)) != "<class 'function'>" and str(type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError()
+
+    return (f(x + h) - f(x)) / h
+
 
 
 """def ln(x: int or float, resolution: int = 40):
@@ -376,8 +384,10 @@ if __name__ == "__main__":
     #for k in complex.range(0, 5, 5, 0, 1, -1):
     #    print(k)
     begin = time.time()
-    print(solve(lambda x: x**2 + 2*x + 1))
+    print(solve(lambda x: e(x) - 18, low=2, high=4))
     end = time.time()
     print(end - begin)
+
+    print(derivative(lambda x: (x + 3)**2, 0))
 
 
