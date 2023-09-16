@@ -1,11 +1,10 @@
-# Vector and more
+# Vectorgebra
 
 An algebra tool for python
 
-General layout consists of 2 files. Vector.py is for
-the linear algebra tools with classes of vectors and
-matrices. Math.py is for general mathematical operations
-and a class for complex numbers.
+There are 3 main subclasses; Vector, Matrix, complex.
+And also there are functions, constants and exception classes. 
+Each section is explained below.
 
 ## Vector
 
