@@ -6,6 +6,14 @@ There are 3 main subclasses; Vector, Matrix, complex.
 And also there are functions, constants and exception classes. 
 Each section is explained below.
 
+## Project details
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+_pip install vectorgebra==1.0.0_
+
+https://pypi.org/project/vectorgebra/1.0.0/
+
 ## Vector
 
 Includes basic and some sophisticated operations on vectors.
