@@ -1,0 +1,9 @@
+LICENSE.txt
+README.md
+setup.py
+vectorgebra/__init__.py
+vectorgebra/vectorgebra.py
+vectorgebra.egg-info/PKG-INFO
+vectorgebra.egg-info/SOURCES.txt
+vectorgebra.egg-info/dependency_links.txt
+vectorgebra.egg-info/top_level.txt
