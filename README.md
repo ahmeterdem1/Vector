@@ -10,11 +10,11 @@ Each section is explained below.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-_pip install vectorgebra==1.0.0_
+_pip install vectorgebra_
 
-https://pypi.org/project/vectorgebra/1.0.0/
+https://pypi.org/project/vectorgebra/
 
-## Vector
+## Vectorgebra.Vector
 
 Includes basic and some sophisticated operations on vectors.
 
@@ -25,30 +25,30 @@ terms of the vectors are equal.
 
 Methods are listed below.
 
-### _Vector_.dot(v)
+### _Vectorgebra.Vector_.dot(v)
 
 Returns the dot product of self with v.
 
-### _Vector_.append(v)
+### _Vectorgebra.Vector_.append(v)
 
 Appends the argument to the vector. Returns the new vector. Argument
 can be int, float or Vector.
 
-### _Vector_.copy()
+### _Vectorgebra.Vector_.copy()
 
 Returns the copy of the vector.
 
-### _Vector_.pop(ord)
+### _Vectorgebra.Vector_.pop(ord)
 
 Functions exactly the same as .pop() for the list class. If left blank,
 pops the last element and returns it. If specified, pops the intended
 element and returns it.
 
-### _Vector_.length()
+### _Vectorgebra.Vector_.length()
 
 Returns the length of self.
 
-### _Vector_.proj(v)
+### _Vectorgebra.Vector_.proj(v)
 
 Projects self onto v and returns the resulting vector. Due to the 
 division included, may result in inaccurate values that should have
@@ -56,49 +56,49 @@ been zero. However, these values are very close to zero and are of
 magnitude 10<sup>-17</sup>. This situation is important for the method
 Vector.spanify().
 
-### _Vector_.unit()
+### _Vectorgebra.Vector_.unit()
 
 Returns the unit vector.
 
-### Vector.spanify(*args)
+### Vectorgebra.Vector.spanify(*args)
 
 Applies Gram-Schmidt process to the given list of vectors. Returns the
 list of resulting vectors. May have inaccuracies explained for Vector.dot()
 method.
 
-### Vector.does_span(*args)
+### Vectorgebra.Vector.does_span(*args)
 
 Returns True if the given list of vectors span the R<sup>n</sup> space
 where n is the number of vectors. Returns False otherwise. Eliminates
 the possible error from Vector.spanify() method. Therefore, this method
 will work just fine regardless the errors from divisions.
 
-### Vector.randVint(dim , a, b)
+### Vectorgebra.Vector.randVint(dim , a, b)
 
 Returns _dim_ dimensional vector which has its elements randomly selected
 as integers within the interval (a, b).
 
-### Vector.randVfloat(dim, a, b)
+### Vectorgebra.Vector.randVfloat(dim, a, b)
 
 Returns _dim_ dimensional vector which has its elements randomly selected
 as floats within the interval (a, b).
 
-### Vector.randVbool(dim)
+### Vectorgebra.Vector.randVbool(dim)
 
 Returns _dim_ dimensional vector which has its elements randomly selected
 as booleans.
 
-### Vector.determinant(*args)
+### Vectorgebra.Vector.determinant(*args)
 
 Returns the determinant of the matrix which has rows given as vectors in
 *args. This method is not intended for casual use. It is a background
 tool for cross product and the determinant method for Matrix class.
 
-### Vector.cross(*args)
+### Vectorgebra.Vector.cross(*args)
 
 Returns the cross product of the vectors given in *args.
 
-### _Vector_.cumsum()
+### _Vectorgebra.Vector_.cumsum()
 
 Returns the cumulative sum.
 
@@ -111,7 +111,7 @@ it would be for just 2D and 3D vectors, which is not satisfying.
 
 <hr>
 
-## Matrix
+## Vectorgebra.Matrix
 
 Includes basic operations for matrices.
 
@@ -122,55 +122,55 @@ are equal.
 
 Methods are listed below.
 
-### Matrix.determinant(_m_)
+### Vectorgebra.Matrix.determinant(_m_)
 
 Returns the determinant of the matrix m.
 
-### _Matrix_.append(arg)
+### _Vectorgebra.Matrix_.append(arg)
 
 Appends arg as a new row to self. Only accepts vectors as arguments.
 
-### _Matrix_.copy()
+### _Vectorgebra.Matrix_.copy()
 
 Returns the copy of the matrix.
 
-### _Matrix_.pop(ord)
+### _Vectorgebra.Matrix_.pop(ord)
 
 Functions exactly the same as .pop() in list class. If left blank, pops
 the last row and returns it. If specified, pops the row in the given 
 order and returns it.
 
-### _Matrix_.transpose()
+### _Vectorgebra.Matrix_.transpose()
 
 Returns the transpose matrix of self
 
-### _Matrix_.inverse()
+### _Vectorgebra.Matrix_.inverse()
 
 Returns the inverse matrix of self. Returns None if not invertible.
 
-### Matrix.identity(dim)
+### Vectorgebra.Matrix.identity(dim)
 
 Returns _dim_ dimensional identity matrix.
 
-### Matrix.randMint(m, n, a, b)
+### Vectorgebra.Matrix.randMint(m, n, a, b)
 
 Returns _mxn_ matrix of random integers selected from the interval (a, b).
 
-### Matrix.randMfloat(m, n, a, b)
+### Vectorgebra.Matrix.randMfloat(m, n, a, b)
 
 Returns _mxn_ matrix of random floats selected from the interval (a, b).
 
-### Matrix.randMbool(m, n)
+### Vectorgebra.Matrix.randMbool(m, n)
 
 Returns _mxn_ matrix of random booleans.
 
-### _Matrix_.echelon()
+### _Vectorgebra.Matrix_.echelon()
 
 Returns reduced row echelon form of self. Also does reorganization on
 rows and multiplies one of them by -1 every 2 reorganization. This is
 for the determinant to remain unchanged.
 
-### _Matrix_.det_echelon()
+### _Vectorgebra.Matrix_.det_echelon()
 
 Returns determinant of self via _.echelon()_ method. This is faster
 than the other determinant method, which also loses time during type
@@ -178,7 +178,7 @@ conversions. But this method does not return the exact value and has a
 very small error compared to the original determinant. This is due to
 floating point numbers and can be disregarded for most of the uses.
 
-### _Matrix_.fast_inverse()
+### _Vectorgebra.Matrix_.fast_inverse()
 
 Returns the inverse matrix, faster. Implements echelon algorithm to
 calculate determinants. Otherwise, it's the same. The other inverse
@@ -186,46 +186,42 @@ method is faster when working with smaller dimensional matrices. But
 as the dimension grows, speed of this algorithm gets faster many orders
 of magnitude rapidly.
 
-### Matrix.cramer(a, number)
+### Vectorgebra.Matrix.cramer(a, number)
 
 Applies Cramers rule to the equation system represented by the matrix _a_.
 _number_ indicates which variable to calculate.
 
-### _Matrix_.cumsum()
+### _Vectorgebra.Matrix_.cumsum()
 
 Returns the cumulative sum.
 
-
 <hr>
 
-## Math.py
-
-This files has definitions for general constants and functions. And it also
-has a class for complex numbers. 
-
-### Constants
+## Constants
 
 Pi, e and ln(2). Nothing more.
 
-### Math.Range(low: int or float, high: int or float, step)
+## Functions
+
+### Vectorgebra.Range(low: int or float, high: int or float, step)
 
 A lazy implementation of range. There is indeed no range. Just a loop with
 yield statement. Almost as fast as the built-in range.
 
-### Math.abs(arg: int or float)
+### Vectorgebra.abs(arg: int or float)
 
 Returns the absolute value of the argument.
 
-### Math.cumsum(arg: list or float)
+### Vectorgebra.cumsum(arg: list or float)
 
 Returns the cumulative sum of the iterable.
 
-### Math.__cumdiv(x: int or float, power: int)
+### Vectorgebra.__cumdiv(x: int or float, power: int)
 
 Calculates x<sup>n</sup> / power!. This is used to calculate Taylor series
 without data loss (at least minimal data loss).
 
-### Math.e(exponent: int or float, resolution: int)
+### Vectorgebra.e(exponent: int or float, resolution: int)
 
 Calculates e<sup>exponent</sup>. resolution is passed as _power_ to the
 __cumdiv(). It will then define the maximal power of the power series
@@ -233,16 +229,16 @@ implementation, therefore is a resolution.
 
 ### Trigonometrics
 
-All are of the format Math.name(x: int or float, resolution: int).
+All are of the format Vectorgebra.name(x: int or float, resolution: int).
 Calculates the value of the named trigonometric function via Taylor
 series. Again, resolution is passed as _power_ to __cumdiv().
 
-### Math.__find(...)
+### Vectorgebra.__find(...)
 
 This is a helper function for Math.solve(). Arguments are the same.
 Returns the first zero that it finds and saves it to memory.
 
-### Math.solve(f, low, high, search_step, res)
+### Vectorgebra.solve(f, low, high, search_step, res)
 
 Finds zeroes of function f. It may not be able to find all zeroes,
 but is pretty precise when it finds some. If the functions derivative
@@ -260,34 +256,34 @@ is slow when utilized with Taylor series based functions.
 There is an obvious solution to this speed problem though. Just put 
 expanded form as the argument. Not the implicit function form.
 
-### _class_ Math.complex 
+### Vectorgebra.complex 
 
 This is the complex number class. It has + - / * overloaded.
 
-#### _Math.complex_.conjugate()
+#### _Vectorgebra.complex_.conjugate()
 
 Returns the complex conjugate of self.
 
-#### _Math.complex_.length()
+#### _Vectorgebra.complex_.length()
 
 Returns the length of self, with treating it as a vector.
 
-#### _Math.complex_.range(lowreal, highreal, lowimg, highimg, step1, step2)
+#### _Vectorgebra.complex_.range(lowreal, highreal, lowimg, highimg, step1, step2)
 
 Creates a complex number range, ranging from complex(lowreal, lowimg)
 to complex(highreal, highimg). Steps are 1 by default. Again this is 
 a lazy implementation.
 
-#### _Math.complex_.inverse()
+#### _Vectorgebra.complex_.inverse()
 
 Returns 1 / self. This is used in division. If divisor is complex,
 then this function is applied with multiplication to get the result.
 
-#### _Math.complex_.rotate(angle: int or float)
+#### _Vectorgebra.complex_.rotate(angle: int or float)
 
 Rotates self by angle.
 
-#### _Math.complex_.rotationFactor(angle: int or float)
+#### _Vectorgebra.complex_.rotationFactor(angle: int or float)
 
 Returns e<sup>i*angle</sup> as a complex number.
 
@@ -295,7 +291,7 @@ Returns e<sup>i*angle</sup> as a complex number.
 
 ## Exceptions
 
-### DimensionError
+### Vectorgebra.DimensionError
 
 Anything related to dimensions of vectors and matrices. Raised in 
 Vector class when dimensions of operands don't match or 0 is given
@@ -307,26 +303,26 @@ passed into inverse calculating functions.
 **DimensionError(1) has been changed to RangeError, but is still
 in the code.**
 
-### ArgTypeError
+### Vectorgebra.ArgTypeError
 
 Anything related to types of arguments. There are 8 modes of this
 exception depending on the conditions. These modes are defined by
 different combinations of types. For example type "i" is used for
 errors about arguments that should have been _only_ integers.
 
-### ArgumentError
+### Vectorgebra.ArgumentError
 
 Raised when an incorrect amount of arguments is passed into functions.
 
-### RangeError
+### Vectorgebra.RangeError
 
 Raised when given arguments are out of required range.
 
-### MathArgError
+### Vectorgebra.MathArgError
 
 Raised when argument(s) are of wrong type.
 
-### MathRangeError
+### Vectorgebra.MathRangeError
 
 Raised when argument(s) are off range.
 
