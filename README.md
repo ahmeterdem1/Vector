@@ -212,6 +212,12 @@ yield statement. Almost as fast as the built-in range.
 
 Returns the absolute value of the argument.
 
+### Vectorgebra.sqrt(arg: int or float, resolution: int = 10)
+
+A square root implementation that uses Newton's method. You may choose the 
+resolution, but any change is not needed there. Pretty much at the same
+accuracy as the built-in math.sqrt(). Accepts negative numbers too.
+
 ### Vectorgebra.cumsum(arg: list or float)
 
 Returns the cumulative sum of the iterable.
@@ -232,6 +238,9 @@ implementation, therefore is a resolution.
 All are of the format Vectorgebra.name(x: int or float, resolution: int).
 Calculates the value of the named trigonometric function via Taylor
 series. Again, resolution is passed as _power_ to __cumdiv().
+
+Inverse trigonometrics(arcsin, arccos) do not use the helper function 
+__cumdiv().
 
 ### Vectorgebra.__find(...)
 
@@ -267,6 +276,22 @@ Returns the complex conjugate of self.
 #### _Vectorgebra.complex_.length()
 
 Returns the length of self, with treating it as a vector.
+
+#### _Vectorgebra.complex_.unit()
+
+Treats the complex number as a vector and returns the unit vector.
+
+#### Vectorgebra.complex.sqrt(arg, resolution: int = 200)
+
+Calculates the square root of the complex number _arg_ and returns it
+again, as a complex number. Resolution argument is only passed to arcsin
+since it is the only limiting factor for this functions accuracy. Has an
+average of 1 degree of error as angle. You may still increase the resolution.
+But reaching less than half a degree of error requires for it to be at 
+least 600.
+
+The used algorithm calculates the unit vector as e<sup>i*x</sup>. Then halves
+the degree, x. Returns the resultant vector at the proper length.
 
 #### _Vectorgebra.complex_.range(lowreal, highreal, lowimg, highimg, step1, step2)
 

@@ -933,6 +933,38 @@ def abs(arg: int or float) -> int or float:
     """
     return arg if (arg >= 0) else -arg
 
+def sqrt(arg: int or float, resolution: int = 10):
+    """
+    Square root with Newton's method. Speed is very close to
+    the math.sqrt(). This may be due to both complex number
+    allowance and digit counting while loop, I don't know the
+    built-in algorithm.
+
+    :param arg: Number, can be negative
+    :param resolution: Number of iterations
+    :return: float or complex
+    """
+    if resolution < 1: raise MathRangeError()
+    c = True if arg >= 0 else False
+    arg = abs(arg)
+    digits = 0
+    temp = arg
+    first_digit = 0
+    while temp != 0:
+        first_digit = temp
+        temp //= 10
+        digits += 1
+
+    estimate = (first_digit // 2 + 1) * pow(10, digits // 2)
+
+    for k in range(resolution):
+        estimate = (estimate + arg / estimate) / 2
+
+    # Yes we can return the negatives too.
+    if c: return estimate
+    return complex(0, estimate)
+
+
 
 def cumsum(arg: list or tuple):
     """
@@ -1067,6 +1099,29 @@ def coth(x: int or float, resolution: int = 15):
     except ZeroDivisionError:
         return None
 
+def arcsin(x: int or float, resolution: int = 20):
+    """
+    A Taylor series implementation of arcsin.
+
+    :param x: sin(angle)
+    :param resolution: Resolution of operation
+    :return: angle
+    """
+    if not (-1 <= x <= 1): raise MathRangeError()
+    if resolution < 1: raise MathRangeError()
+    c = 1
+    sol = x
+    for k in range(1, resolution):
+        c *= (2 * k - 1) / (2 * k)
+        sol += c * pow(x, 2 * k + 1) / (2 * k + 1)
+    return sol * 360 / (2 * PI)
+
+def arccos(x: int or float, resolution: int = 20):
+    if not (-1 <= x <= 1): raise MathRangeError()
+    if resolution < 1: raise MathRangeError()
+
+    return 90 - arcsin(x, resolution)
+
 
 def __find(f, low: int or float, high: int or float, search_step: int or float, res: float = 0.0001):
     global results
@@ -1166,7 +1221,7 @@ def derivative(f, x: int or float, h: float = 0.0000000001) -> float:
 
 class complex:
 
-    def __init__(self, real: int or float, imaginary: int or float):
+    def __init__(self, real: int or float = 0, imaginary: int or float = 0):
         self.real = real
         self.imaginary = imaginary
 
@@ -1254,6 +1309,16 @@ class complex:
     def length(self):
         return (self * self.conjugate()).real
 
+    def unit(self):
+        return self / sqrt(self.length())
+
+    def sqrt(arg, resolution: int = 200):
+        if not isinstance(arg, complex): raise MathArgError()
+        temp = arg.unit()
+        angle = arcsin(temp.imaginary, resolution=resolution) / 2
+        print(angle)
+        return complex(cos(angle), sin(angle)) * sqrt(sqrt(arg.length()))
+
     # noinspection PyMethodFirstArgAssignment
     def range(lowreal: int or float, highreal: int or float, lowimg: int or float, highimg: int or float,
               step1: float = 1, step2: float = 1):
@@ -1275,4 +1340,6 @@ class complex:
 
     def rotationFactor(self, angle: int or float):
         return complex(cos(angle), sin(angle))
+
+
 
