@@ -1316,7 +1316,6 @@ class complex:
         if not isinstance(arg, complex): raise MathArgError()
         temp = arg.unit()
         angle = arcsin(temp.imaginary, resolution=resolution) / 2
-        print(angle)
         return complex(cos(angle), sin(angle)) * sqrt(sqrt(arg.length()))
 
     # noinspection PyMethodFirstArgAssignment
