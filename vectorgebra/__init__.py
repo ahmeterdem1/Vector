@@ -2,6 +2,7 @@ import math
 import random
 import threading
 import logging
+import time
 
 logger = logging.getLogger("root log")
 handler = logging.StreamHandler()
@@ -391,20 +392,16 @@ class Vector:
         return Vector(*[random.uniform(a, b) for k in range(0, dim)])
 
     def randVbool(dim: int):
-        if not (type(dim) == int):
-            raise ArgTypeError("i")
-        if not (dim > 0):
-            raise RangeError
+        if not (type(dim) == int): raise ArgTypeError("i")
+        if not (dim > 0): raise RangeError
         return Vector(*[random.randrange(0, 2) for k in range(0, dim)])
 
     def determinant(*args):
         for k in args:
-            if not (type(k) == Vector):
-                raise ArgTypeError("v")
-            if not (args[0].dimension == k.dimension):
-                raise DimensionError(0)
-        if not (len(args) == args[0].dimension):
-            raise ArgumentError
+            if not (type(k) == Vector): raise ArgTypeError("v")
+            if not (args[0].dimension == k.dimension): raise DimensionError(0)
+        if not (len(args) == args[0].dimension): raise ArgumentError
+
         if len(args) == 2 and args[0].dimension == 2:
             return (args[0].values[0] * args[1].values[1]) - (args[0].values[1] * args[1].values[0])
 
@@ -422,14 +419,12 @@ class Vector:
 
     def cross(*args):
         for k in args:
-            if not (type(k) == Vector):
-                raise ArgTypeError("v")
-            if not (args[0].dimension == k.dimension):
-                raise DimensionError(0)
+            if not (type(k) == Vector): raise ArgTypeError("v")
+            if not (args[0].dimension == k.dimension): raise DimensionError(0)
+
         if len(args) == 2 and args[0].dimension == 2:
             return args[0].values[0] * args[1].values[1] - args[0].values[1] * args[1].values[0]
-        if not (len(args) == args[0].dimension - 1):
-            raise ArgumentError
+        if not (len(args) == args[0].dimension - 1): raise ArgumentError
 
         end_list = list()
         for k in range(0, args[0].dimension):
@@ -449,6 +444,23 @@ class Vector:
             sum += k
         return sum
 
+    def reshape(self, m: int, n: int):
+        if not m * n == self.dimension: raise RangeError()
+        v_list = []
+        count = 0
+        temp = []
+        for k in self.values:
+            if count == n:
+                count = 0
+                v_list.append(Vector(*temp))
+                temp.clear()
+            temp.append(k)
+            count += 1
+        v_list.append(Vector(*temp))
+        return Matrix(*v_list)
+
+
+
 
 
 
@@ -461,10 +473,12 @@ class Matrix:
                 raise DimensionError(0)
         self.values = [k.values for k in args]
         self.dimension = f"{args[0].dimension}x{len(args)}"
+        self.string = [str(k) for k in self.values]
+        self.string = "\n".join(self.string)
 
 
     def __str__(self):
-        return str(self.values)
+        return self.string
 
     def __add__(self, arg):
         v = list()
@@ -1157,6 +1171,10 @@ def solve(f, low: int or float = -50, high: int or float = 50, search_step: int 
     if str(type(f)) != "<class 'function'>" and str(
         type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError()
 
+    if high <= low: raise MathRangeError()
+    if search_step <= 0: raise MathRangeError()
+    if res <= 0 or res >= 1: raise MathRangeError()
+
     zeroes: list = []
     thread_list: list = []
     last_sign: bool = True if (f(low) >= 0) else False
@@ -1200,23 +1218,91 @@ def derivative(f, x: int or float, h: float = 0.0000000001) -> float:
     return (f(x + h) - f(x)) / h
 
 
-"""def ln(x: int or float, resolution: int = 40):
-    if x <= 0: raise MathRangeError()
+def __mul(row: list, m, id: int, target: dict, amount: int):
+    length = len(m[0])  # Number of columns for the second matrix
+    result = [0] * length
 
-    result: float = 1
-    if x > 1:
-        while x >= 2:
-            result += ln2
-            x /= 2
-    else:
-        while x < 1:
-            result -= ln2
-            x *= 2
-    if not x == 1:
-        for k in range(resolution, 1, -1):
-            result += pow(-1, k - 1) * pow(1 / x, k)
+    """if length > 5:
+        pool = [0] * innermax
+        count = 0
 
-    return result"""
+        for k in range(length):
+            if count >= innermax:
+                pool[-1].join()
+                count = 0
+            pool[count] = threading.Thread(target=__row, args=[k, row, [m[l][k] for l in range(amount)], result, amount])
+            pool[count].start()
+            count += 1
+
+        for k in pool:
+            k.join()
+        target[id] = result
+        return"""
+
+    for k in range(length):
+        sum = 0
+        for l in range(amount):
+            sum += row[l] * m[l][k]
+        result[k] = sum
+
+    target[id] = result
+
+
+def matmul(m1, m2, max: int = 10):
+    """
+    This function is for efficient multiplication of matrices (and vectors).
+    It makes use of threads. Efficiency is depended on number of rows.
+
+    :param m1: Matrix
+    :param m2: Matrix or Vector
+    :return: m1 * m2
+    """
+    if not (isinstance(m1, Matrix) and isinstance(m2, Matrix)): raise MathArgError()
+    a, b = [int(k) for k in m1.dimension.split("x")]
+    data = {}
+    m1values = m1.values
+
+    c, d = [int(k) for k in m2.dimension.split("x")]
+    if not b == c: raise DimensionError(0)
+    m2values = m2.values
+    if a < 5: return m1 * m2
+
+    count = 0
+    pool = [0] * max
+    for k in range(a):
+        if count >= max:
+            pool[-1].join()
+            count = 0
+        pool[count] = threading.Thread(target=__mul, args=[m1values[k], m2values, k, data, a])
+        # pool.append(threading.Thread(target=__mul, args=[m1.values[k], m2, k, data, a]))
+        pool[count].start()
+        count += 1
+
+    for k in pool:
+        try:
+            k.join()
+        except:
+            pass
+    return Matrix(*[Vector(*data[k]) for k in range(a)])
+
+def findsol(f, x: int = 0, resolution: int = 15):
+    """
+    Finds a singular solution at a time with Newton's method.
+
+    :param f: Function
+    :param x: Starting value
+    :param resolution: Number of iterations
+    :return: The found/guessed solution of the function
+    """
+    if str(type(f)) != "<class 'function'>" and str(
+        type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError()
+    if resolution < 1: raise MathRangeError()
+
+    for k in range(resolution):
+        x = x - (f(x) / derivative(f, x))
+
+    return x
+
 
 
 class complex:
@@ -1303,6 +1389,26 @@ class complex:
         self.imaginary /= arg
         return self
 
+    def __floordiv__(self, arg):
+        if type(arg) != int and type(arg) != float and type(arg) != complex: raise MathArgError()
+
+        if type(arg) == complex:
+            temp = self * arg.inverse()
+            return complex(temp.real // 1, temp.imaginary // 1)
+        return complex(self.real // arg, self.imaginary // arg)
+
+    def __ifloordiv__(self, arg):
+        if type(arg) != int and type(arg) != float and type(arg) != complex: raise MathArgError()
+
+        if type(arg) == complex:
+            temp = self * arg.inverse()
+            self.real, self.imaginary = temp.real // 1, temp.imaginary // 1
+            return self
+        self.real //= arg
+        self.imaginary //= arg
+        return self
+
+
     def conjugate(self):
         return complex(self.real, -self.imaginary)
 
@@ -1339,6 +1445,4 @@ class complex:
 
     def rotationFactor(self, angle: int or float):
         return complex(cos(angle), sin(angle))
-
-
 

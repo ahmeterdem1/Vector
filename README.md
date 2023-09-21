@@ -265,6 +265,41 @@ is slow when utilized with Taylor series based functions.
 There is an obvious solution to this speed problem though. Just put 
 expanded form as the argument. Not the implicit function form.
 
+### Vectorgebra.derivative(f, x, h)
+
+Takes the derivative of f around x with h = _h_. There is no algorithm 
+here. It just calculates the derivative.
+
+### Vectorgebra.__mul(...)
+
+A helper function to Vectorgebra.matmul(). Threads inside matmul call this
+function.
+
+### Vectorgebra.matmul(m1, m2, max=10)
+
+Threaded matrix multiplication. Its speed is depended on dimensions of 
+matrices. Let it be axb and bxc, (a - b) is proportional to this functions
+speed. Worst case scenario is square matrices. 44x44 (On CPython) is limit 
+for this function to be faster than the overload version of matrix multiplication.
+
+If b > a, normally this function gets even more slower. But there is a
+way around. Let it be b > a;
+
+A * B = C
+
+B<sup>T</sup> * A<sup>T</sup> = C<sup>T</sup>
+
+After taking the transposes, we get a > b again. All we have to do is 
+to calculate the matrix C<sup>T</sup> instead of C directly then to
+calculate the transpose of it.
+
+(I didn't add this function to Matrix class because I have more plans on it.)
+
+### Vectorgebra.findsol(f, x, resolution)
+
+Calculates a single solution of f with Newton's method. x is the starting
+guess. resolution is the number of iterations.
+
 ### Vectorgebra.complex 
 
 This is the complex number class. It has + - / * overloaded.
