@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: vectorgebra
-Version: 1.1.0
+Version: 1.2.0
 Summary: A Python-based math library with linear algebra
 Author: Ahmet Erdem
 Classifier: Programming Language :: Python :: 3
@@ -25,6 +25,14 @@ Each section is explained below.
 _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
+
+### Update notes on 1.2.0
+
+Algorithm of _Matrix_.fest_inverse() has been completely changed.
+It is faster by 200+ times compared to the previous algorithm.
+Accuracy is also much much more higher. Old _Matrix_.inverse()
+has been left untouched because floating point errors are almost
+non existent there in spite of the slowness.
 
 ## Vectorgebra.Vector
 
@@ -192,11 +200,9 @@ floating point numbers and can be disregarded for most of the uses.
 
 ### _Vectorgebra.Matrix_.fast_inverse()
 
-Returns the inverse matrix, faster. Implements echelon algorithm to
-calculate determinants. Otherwise, it's the same. The other inverse
-method is faster when working with smaller dimensional matrices. But
-as the dimension grows, speed of this algorithm gets faster many orders
-of magnitude rapidly.
+Underlying algorithm of this inverse is completely based on echelon forms.
+Sometimes may get some rows wrong, this is due to floating point numbers.
+Error amount increases as the dimensions of the matrix increases.
 
 ### Vectorgebra.Matrix.cramer(a, number)
 

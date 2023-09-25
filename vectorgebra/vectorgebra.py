@@ -67,7 +67,7 @@ class RangeError(Exception):
 
 class Vector:
     def __init__(self, *args):
-        control_list = ["e-0", "e-1", "e-2", "e-3", "e-4", "e-5", "e-6", "e-7", "e-8", "e-9", "e0", "e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9"]
+        control_list = ["e-0", "e-1", "e-2", "e-3", "e-4", "e-5", "e-6", "e-7", "e-8", "e-9", "e+0", "e+1", "e+2", "e+3", "e+4", "e+5", "e+6", "e+7", "e+8", "e+9"]
         for k in args:
             a = str(k)
             if "e" in a:
@@ -858,28 +858,145 @@ class Matrix:
         return sum
 
     def fast_inverse(self):
-        if not (self.dimension.split("x")[0] == self.dimension.split("x")[1]):
-            raise DimensionError(2)
-        if self.dimension == "1x1":
-            return (1 / self.values[0][0])
-        det = self.det_echelon()
-        if not det:
-            return
-        end = list()
+        i = Matrix.identity(len(self.values))
+        i_values = i.values.copy()
+        v = self.values.copy()
+        taken_list = []
+        taken_list_i = []
+        counter = 0
+
         for k in range(0, len(self.values)):
-            temp = list()
+            for l in range(0, len(self.values[0])):
+                if not self.values[k][l] == 0 and l not in taken_list:
+                    v[l] = self.values[k]
+                    i_values[l] = i.values[k]
+                    counter += 1
+                    if not l == k and counter % 2 == 0:
+                        v[l] = [-z for z in self.values[k]]
+                        i_values[l] = [-z for z in i.values[k]]
+                    else:
+                        v[l] = self.values[k]
+                        i_values[l] = i.values[k]
+                    taken_list.append(l)
+                    taken_list_i.append(l)
+                    break
+                elif not self.values[k][l] == 0 and l in taken_list:
+                    for m in range(l, len(self.values)):
+                        if m not in taken_list:
+                            v[m] = self.values[k]
+                            i_values[m] = i.values[k]
+                            counter += 1
+                            if not m == k and counter % 2 == 0:
+                                v[m] = [-z for z in self.values[k]]
+                                i_values[m] = [-z for z in i.values[k]]
+
+        for k in range(0, len(self.values[0])):
+            if v[k][k] == 0:
+                continue
             for l in range(0, len(self.values)):
-                sub = list()
-                for a in range(0, len(self.values)):
-                    n = list()
-                    for b in range(0, len(self.values)):
-                        if (not k == a) and (not l == b):
-                            n.append(self.values[a][b])
-                    if len(n) > 0:
-                        sub.append(Vector(*n))
-                temp.append(pow(-1, k + l) * Matrix(*sub).det_echelon())
-            end.append(temp)
-        return Matrix(*[Vector(*k) for k in end]).transpose() / det
+                if l == k:
+                    continue
+                try:
+                    factor = (v[l][k]) / (v[k][k])
+                    if abs(factor) < 0.0000000001:
+                        factor = 0
+                    factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
+                    factored_list_i = [i_values[l][m] - (factor * i_values[k][m]) for m in
+                                       range(0, len(self.values[0]))]
+                    v[l] = factored_list
+                    i_values[l] = factored_list_i
+                except ZeroDivisionError:
+                    continue
+
+        # taken_list = list()
+        # taken_list_i = list()
+        # end_list = v.copy()
+        """for k in range(0, len(self.values)):
+            for l in range(0, len(self.values[0])):
+                if not v[k][l] == 0 and l not in taken_list:
+                    end_list[l] = v[k]
+                    end_list_i[l] = i_values[k]
+                    counter += 1
+                    if not k == l and counter % 2 == 0:
+                        end_list[l] = [-z for z in v[k]]
+                        end_list_i[l] = [-z for z in i_values[k]]
+                    taken_list.append(l)
+                    taken_list_i.append(l)
+                    break
+                elif not v[k][l] == 0 and l in taken_list:
+                    for m in range(l, len(self.values)):
+                        if m not in taken_list:
+                            end_list[m] = v[k]
+                            end_list_i[m] = i_values[k]
+                            counter += 1
+                            if not m == l and counter % 2 == 0:
+                                end_list[m] = [-z for z in v[k]]
+                                end_list_i[m] = [-z for z in i_values[k]]"""
+
+        # end_list = end_list[::-1]
+        # end_list_i = end_list_i[::-1]
+
+        # real = Matrix(*[Vector(*k) for k in end_list])
+        # iden = Matrix(*[Vector(*k) for k in end_list_i])
+
+        v = v[::-1]
+        iden_values = i_values.copy()
+        iden_values = iden_values[::-1]
+
+        for k in range(0, len(self.values[0])):
+            if v[k][k] == 0:
+                continue
+            for l in range(0, len(self.values)):
+                if l == k:
+                    continue
+                try:
+                    factor = (v[l][k]) / (v[k][k])
+                    if abs(factor) < 0.0000000001:
+                        factor = 0
+                    factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
+                    factored_list_i = [iden_values[l][m] - (factor * iden_values[k][m]) for m in
+                                       range(0, len(self.values[0]))]
+                    v[l] = factored_list
+                    iden_values[l] = factored_list_i
+                except ZeroDivisionError:
+                    continue
+
+        iden_values = iden_values[::-1].copy()
+        v = v[::-1].copy()
+
+        for k in range(0, len(self.values[0])):
+            if v[k][k] == 0:
+                continue
+            for l in range(0, len(self.values)):
+                if l == k:
+                    continue
+                try:
+                    factor = (v[l][k]) / (v[k][k])
+                    if abs(factor) < 0.0000000001:
+                        factor = 0
+                    factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
+                    factored_list_i = [iden_values[l][m] - (factor * iden_values[k][m]) for m in
+                                       range(0, len(self.values[0]))]
+                    v[l] = factored_list
+                    iden_values[l] = factored_list_i
+                except ZeroDivisionError:
+                    continue
+
+        for k in range(len(self.values[0])):
+            try:
+                iden_values[k] = list(map(lambda x: x if (abs(x) > 0.00000001) else 0,
+                                          [iden_values[k][l] / v[k][k] for l in range(len(self.values[0]))]))
+
+            except ZeroDivisionError:
+                pass
+
+        """for k in range(len(iden_values)):
+            for l in range(len(iden_values)):
+                if abs(iden_values[k][l]) < 0.00000001:
+                    iden_values[k][l] = 0"""
+
+        # print(Matrix(*[Vector(*k) for k in v]))
+        return Matrix(*[Vector(*k) for k in iden_values])
 
     def cramer(a, number: int):
         if not type(a) == Matrix:
