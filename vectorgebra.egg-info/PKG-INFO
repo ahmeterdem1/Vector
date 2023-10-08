@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: vectorgebra
-Version: 1.3.0
+Version: 1.3.1
 Summary: A Python-based math library with linear algebra
 Author: Ahmet Erdem
 Classifier: Programming Language :: Python :: 3

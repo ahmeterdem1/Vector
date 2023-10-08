@@ -1250,6 +1250,28 @@ class Matrix:
 
         return sum
 
+    def reshape(self, *args):
+        if not (0 < len(args) < 3): raise ArgumentError()
+        for k in args:
+            if not isinstance(k, int): raise RangeError()
+            if k <= 0: raise RangeError()
+
+        temp = []
+        for k in self.values:
+            for l in k:
+                temp.append(l)
+        v = Vector(*temp)
+        if len(args) == 1:
+            if args[0] != len(self.values) * len(self.values[0]): raise RangeError()
+            temp = []
+            for k in self.values:
+                for l in k:
+                    temp.append(l)
+            return v
+        if args[0] * args[1] != len(self.values) * len(self.values[0]): raise RangeError()
+        return v.reshape(args[0], args[1])
+
+
 
 def Range(low: int or float, high: int or float, step: float = 1):
     if not ((high < low) ^ (step > 0)): raise MathRangeError()

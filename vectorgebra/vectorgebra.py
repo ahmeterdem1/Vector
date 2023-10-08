@@ -1814,6 +1814,4 @@ class complex:
     def rotationFactor(self, angle: int or float):
         return complex(cos(angle), sin(angle))
 
-if __name__ == "__main__":
-    m = Matrix(Vector(1, 2, 3), Vector(4, 5, 6))
-    print(m.reshape(3, 2))
+
