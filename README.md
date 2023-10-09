@@ -14,16 +14,12 @@ _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
 
-### Update notes on 1.3.0
+### Update notes on 1.4.0
 
-- All (almost) type checks are turned to "isinstance()".
-- New matrix inversion method added, ~10 times slower than the fast one.
-- All matrix inversion methods collected in the .inverse() function with parameter "method".
-- .reshape() added to Matrix and Vector.
-- Reverse +-*/ overloads configured, ** operator configured.
-- Negation added to complex numbers.
-- Basic integrals added.
-- .zero(dim) creates all zero matrix, .one(dim) creates all 1 matrix.
+Now QR decomposition and eigenvalue decomposition is possible.
+QR function aims to calculate the exact values as much as possible.
+Also more basic matrix operations are added to the class Matrix such
+as .trace(), .diagonal(), etc.
 
 
 ## Vectorgebra.Vector
@@ -225,6 +221,35 @@ Returns the cumulative sum.
 Returns the reshaped matrix/vector. If the return is a matrix,
 makes a call to the vectors reshape.
 
+### _Vectorgebra.Matrix_.eigenvalue(resolution: int)
+
+Calculates the eigenvalues of self and returns a list of them.
+This function cannot calculate complex valued eigenvalues. So
+if there are any, there will be incorrect numbers in the returned
+list instead of the complex ones.
+
+The underlying algorithm is QR decomposition and iteration. Resolution
+is the number of iterations. Default is 10.
+
+### _Vectorgebra.Matrix_.qr()
+
+Applies QR decomposition to self and returns the tuple (Q, R). The algorithm
+just uses .spanify() from Vector class. If the columns of self do not consist
+of independent vectors, returns matrices of zeroes for both Q and R. This is to
+prevent type errors that may have otherwise risen from written code.
+
+### _Vectorgebra.Matrix_.trace()
+
+Returns the trace of self.
+
+### _Vectorgebra.Matrix_.diagonals()
+
+Returns the list of diagonals.
+
+### _Vectorgebra.Matrix_.diagonal_mul()
+
+Returns the multiplication of diagonals.
+
 <hr>
 
 ## Constants
@@ -299,6 +324,11 @@ expanded form as the argument. Not the implicit function form.
 
 Takes the derivative of f around x with h = _h_. There is no algorithm 
 here. It just calculates the derivative.
+
+### Vectorgebra.integrate(f, a, b, delta)
+
+Calculates the integral of f(x) in the interval (a, b) with the specified
+delta. Default for delta is 0.01. Uses the midpoint rule.
 
 ### Vectorgebra.__mul(...)
 

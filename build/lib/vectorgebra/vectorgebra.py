@@ -1271,6 +1271,54 @@ class Matrix:
         if args[0] * args[1] != len(self.values) * len(self.values[0]): raise RangeError()
         return v.reshape(args[0], args[1])
 
+    def eigenvalue(self, resolution: int = 10):
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+        if resolution < 1: raise RangeError()
+
+        to_work = self.copy()
+        for k in range(resolution):
+            Q, R = to_work.qr()
+            to_work = R * Q
+        result = []
+        for k in range(len(to_work.values)):
+            result.append(to_work.values[k][k])
+
+        return result
+
+    def qr(self):
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+        v_list = []
+        for k in self.transpose():
+            v_list.append(Vector(*k))
+        if not Vector.does_span(*v_list):
+            m = Matrix.zero(len(self.values))
+            return m, m
+        result_list = [k.unit() for k in Vector.spanify(*v_list)]
+        Q = Matrix(*result_list).transpose()
+        R = Q.transpose() * self
+        return Q, R
+
+    def trace(self):
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+        sum = 0
+        for k in range(len(self.values)):
+            sum += self.values[k][k]
+        return sum
+
+    def diagonals(self):
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+        diag = []
+        for k in range(len(self.values)):
+            diag.append(self.values[k][k])
+        return diag
+
+    def diagonal_mul(self):
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+        sum = 0
+        for k in range(len(self.values)):
+            sum *= self.values[k][k]
+        return sum
+
 
 
 def Range(low: int or float, high: int or float, step: float = 1):
@@ -1439,17 +1487,14 @@ def cot(angle: int or float, resolution: int = 16):
 def sinh(x: int or float, resolution: int = 15):
     return (e(x, resolution) - e(-x, resolution)) / 2
 
-
 def cosh(x: int or float, resolution: int = 15):
     return (e(x, resolution) + e(-x, resolution)) / 2
-
 
 def tanh(x: int or float, resolution: int = 15):
     try:
         return sinh(x, resolution) / cosh(x, resolution)
     except ZeroDivisionError:
         return None
-
 
 def coth(x: int or float, resolution: int = 15):
     try:
@@ -1480,7 +1525,6 @@ def arccos(x: int or float, resolution: int = 20):
 
     return 90 - arcsin(x, resolution)
 
-
 def __find(f, low: int or float, high: int or float, search_step: int or float, res: float = 0.0001):
     global results
     last_sign: bool = True if (f(low) >= 0) else False
@@ -1497,7 +1541,6 @@ def __find(f, low: int or float, high: int or float, search_step: int or float, 
             if get is not None:
                 results[get] = True
                 return get
-
 
 def solve(f, low: int or float = -50, high: int or float = 50, search_step: int or float = 0.1,
           res: float = 0.0001) -> list:
@@ -1551,7 +1594,6 @@ def solve(f, low: int or float = -50, high: int or float = 50, search_step: int 
 
     return zeroes
 
-
 def derivative(f, x: int or float, h: float = 0.0000000001) -> float:
     if str(type(f)) != "<class 'function'>" and str(
         type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError()
@@ -1578,7 +1620,6 @@ def integrate(f, a: int or float, b: int or float, delta: float = 0.01) -> float
         a += delta
     return sum * delta
 
-
 def __mul(row: list, m, id: int, target: dict, amount: int):
     length = len(m[0])  # Number of columns for the second matrix
     result = [0] * length
@@ -1590,7 +1631,6 @@ def __mul(row: list, m, id: int, target: dict, amount: int):
         result[k] = sum
 
     target[id] = result
-
 
 def matmul(m1, m2, max: int = 10):
     """
@@ -1646,8 +1686,6 @@ def findsol(f, x: int = 0, resolution: int = 15):
         x = x - (f(x) / derivative(f, x))
 
     return x
-
-
 
 class complex:
 
