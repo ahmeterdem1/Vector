@@ -18,12 +18,12 @@ ln2 = 0.6931471805599569
 results = {}
 
 class MathArgError(Exception):
-    def __init__(self):
-        super().__init__("Argument elements are of the wrong type")
+    def __init__(self, hint: str = ""):
+        super().__init__(f"Argument elements are of the wrong type{(': ' + hint) if hint else ''}")
 
 class MathRangeError(Exception):
-    def __init__(self):
-        super().__init__("Argument(s) out of range")
+    def __init__(self, hint: str = ""):
+        super().__init__(f"Argument(s) out of range{(': ' + hint) if hint else ''}")
 
 class DimensionError(Exception):
     def __init__(self, code):
@@ -66,7 +66,10 @@ class RangeError(Exception):
 
 class Vector:
     def __init__(self, *args):
-        control_list = ["e-0", "e-1", "e-2", "e-3", "e-4", "e-5", "e-6", "e-7", "e-8", "e-9", "e+0", "e+1", "e+2", "e+3", "e+4", "e+5", "e+6", "e+7", "e+8", "e+9"]
+        for k in args:
+            if (not isinstance(k, int)) and (not isinstance(k, float) and (not isinstance(k, bool)) and (not isinstance(k, Infinity))):
+                raise MathArgError("Arguments must be numeric or boolean.")
+        """control_list = ["e-0", "e-1", "e-2", "e-3", "e-4", "e-5", "e-6", "e-7", "e-8", "e-9", "e+0", "e+1", "e+2", "e+3", "e+4", "e+5", "e+6", "e+7", "e+8", "e+9"]
         for k in args:
             a = str(k)
             if "e" in a:
@@ -84,7 +87,7 @@ class Vector:
             except:
                 pass
             if not (a.isnumeric() or type(a) == bool):
-                raise ArgTypeError("f")
+                raise ArgTypeError("f")"""
         self.dimension = len(args)
         self.values = [_ for _ in args]
 
@@ -363,13 +366,20 @@ class Vector:
         sum = 0
         for k in arg.values:
             sum += k*k
-        dot = (dot/sum)
+        try:
+            dot = dot/sum
+        except ZeroDivisionError:
+            # Can only be positive or 0
+            dot = Infinity()
         res = Vector(*arg.values)
         return res * dot
 
     def unit(self):
         l = self.length()
-        temp = [k/l for k in self.values]
+        if l:
+            temp = [k/l for k in self.values]
+        else:
+            temp = [Infinity()] * self.dimension
         return Vector(*temp)
 
     def spanify(*args):
@@ -1348,7 +1358,7 @@ def abs(arg: int or float) -> int or float:
     """
     return arg if (arg >= 0) else -arg
 
-def sqrt(arg: int or float, resolution: int = 10):
+def sqrt(arg, resolution: int = 10):
     """
     Square root with Newton's method. Speed is very close to
     the math.sqrt(). This may be due to both complex number
@@ -1359,27 +1369,31 @@ def sqrt(arg: int or float, resolution: int = 10):
     :param resolution: Number of iterations
     :return: float or complex
     """
-    if resolution < 1: raise MathRangeError()
-    c = True if arg >= 0 else False
-    arg = abs(arg)
-    digits = 0
-    temp = arg
-    first_digit = 0
-    while temp != 0:
-        first_digit = temp
-        temp //= 10
-        digits += 1
+    if isinstance(arg, int) or isinstance(arg, float):
+        if resolution < 1: raise MathRangeError("Resolution must be a positive integer")
+        c = True if arg >= 0 else False
+        arg = abs(arg)
+        digits = 0
+        temp = arg
+        first_digit = 0
+        while temp != 0:
+            first_digit = temp
+            temp //= 10
+            digits += 1
 
-    estimate = (first_digit // 2 + 1) * pow(10, digits // 2)
+        estimate = (first_digit // 2 + 1) * pow(10, digits // 2)
 
-    for k in range(resolution):
-        estimate = (estimate + arg / estimate) / 2
+        for k in range(resolution):
+            estimate = (estimate + arg / estimate) / 2
 
-    # Yes we can return the negatives too.
-    if c: return estimate
-    return complex(0, estimate)
+        # Yes we can return the negatives too.
+        if c: return estimate
+        return complex(0, estimate)
+    if isinstance(arg, complex):
+        return arg.sqrt()
+    raise MathArgError()
 
-def cumsum(arg: list or tuple):
+def cumsum(arg: list or tuple) -> int or float:
     """
     Cumulative sum of iterables. To use with vectors,
     put vector.values as the argument.
@@ -1393,9 +1407,9 @@ def cumsum(arg: list or tuple):
             sum += k
         return sum
     except:
-        raise MathArgError()
+        raise MathArgError("Elements of arg must be numerical")
 
-def __cumdiv(x: int or float, power: int):
+def __cumdiv(x: int or float, power: int) -> float:
     """
     This is for lossless calculation of Taylor
     series.
@@ -1409,7 +1423,7 @@ def __cumdiv(x: int or float, power: int):
         result *= x / k
     return result
 
-def e(exponent: int or float, resolution: int = 15):
+def e(exponent: int or float, resolution: int = 15) -> float:
     """
     e^x function.
 
@@ -1417,13 +1431,13 @@ def e(exponent: int or float, resolution: int = 15):
     :param resolution: Up to which exponent Taylor series will continue.
     :return: e^x
     """
-    if (resolution < 1): raise MathRangeError()
+    if resolution < 1: raise MathRangeError("Resolution must be a positive integer")
     sum = 1
     for k in range(resolution, 0, -1):
         sum += __cumdiv(exponent, k)
     return sum
 
-def sin(angle: int or float, resolution: int = 15):
+def sin(angle: int or float, resolution: int = 15) -> float:
     """
     sin(x) using Taylor series. Input is in degrees.
 
@@ -1431,7 +1445,7 @@ def sin(angle: int or float, resolution: int = 15):
     :param resolution: Up to which exponent Taylor series will continue.
     :return: sin(angle)
     """
-    if not (resolution % 2) or resolution < 1: raise MathRangeError()
+    if not (resolution % 2) or resolution < 1: raise MathRangeError("Resolution must be a positive integer")
 
     radian: float = (2 * PI * (angle % 360 / 360)) % (2 * PI)
     result: float = 0
@@ -1440,7 +1454,7 @@ def sin(angle: int or float, resolution: int = 15):
         result = result + __cumdiv(radian, k) * pow(-1, (k - 1) / 2)
     return result
 
-def cos(angle: int or float, resolution: int = 16):
+def cos(angle: int or float, resolution: int = 16) -> float:
     """
     cos(x) using Taylor series. Input is in degrees.
 
@@ -1448,7 +1462,7 @@ def cos(angle: int or float, resolution: int = 16):
     :param resolution: Up to which exponent Taylor series will continue.
     :return: cos(angle)
     """
-    if (resolution % 2) or resolution < 1: raise MathRangeError()
+    if (resolution % 2) or resolution < 1: raise MathRangeError("Resolution must be a positive integer")
     radian: float = (2 * PI * (angle % 360 / 360)) % (2 * PI)
     result: float = 1
 
@@ -1464,12 +1478,14 @@ def tan(angle: int or float, resolution: int = 16):
     :param resolution: Up to which exponent Taylor series will continue.
     :return: tan(angle)
     """
-    if (resolution % 2) or resolution < 1: raise MathRangeError()
+    if (resolution % 2) or resolution < 1: raise MathRangeError("Resolution must be a positive integer")
     try:
         return sin(angle, resolution - 1) / cos(angle, resolution)
         # Because of the error amount, probably cos will never be zero.
     except ZeroDivisionError:
-        return None
+        # sin * cos is positive in this area
+        if 90 >= (angle % 360) >= 0 or 270 >= (angle % 360) >= 180: return Infinity()
+        return Infinity(False)
 
 def cot(angle: int or float, resolution: int = 16):
     """
@@ -1484,15 +1500,16 @@ def cot(angle: int or float, resolution: int = 16):
     except ZeroDivisionError:
         return None
 
-def sinh(x: int or float, resolution: int = 15):
+def sinh(x: int or float, resolution: int = 15) -> float:
     return (e(x, resolution) - e(-x, resolution)) / 2
 
-def cosh(x: int or float, resolution: int = 15):
+def cosh(x: int or float, resolution: int = 15) -> float:
     return (e(x, resolution) + e(-x, resolution)) / 2
 
 def tanh(x: int or float, resolution: int = 15):
     try:
         return sinh(x, resolution) / cosh(x, resolution)
+        # Indeed cosh is non-negative
     except ZeroDivisionError:
         return None
 
@@ -1500,9 +1517,10 @@ def coth(x: int or float, resolution: int = 15):
     try:
         return cosh(x, resolution) / sinh(x, resolution)
     except ZeroDivisionError:
-        return None
+        if x >= 0: return Infinity()
+        return Infinity(False)
 
-def arcsin(x: int or float, resolution: int = 20):
+def arcsin(x: int or float, resolution: int = 20) -> float:
     """
     A Taylor series implementation of arcsin.
 
@@ -1511,7 +1529,7 @@ def arcsin(x: int or float, resolution: int = 20):
     :return: angle
     """
     if not (-1 <= x <= 1): raise MathRangeError()
-    if resolution < 1: raise MathRangeError()
+    if resolution < 1: raise MathRangeError("Resolution must be a positive integer")
     c = 1
     sol = x
     for k in range(1, resolution):
@@ -1519,9 +1537,9 @@ def arcsin(x: int or float, resolution: int = 20):
         sol += c * pow(x, 2 * k + 1) / (2 * k + 1)
     return sol * 360 / (2 * PI)
 
-def arccos(x: int or float, resolution: int = 20):
+def arccos(x: int or float, resolution: int = 20) -> float:
     if not (-1 <= x <= 1): raise MathRangeError()
-    if resolution < 1: raise MathRangeError()
+    if resolution < 1: raise MathRangeError("Resolution must be a positive integer")
 
     return 90 - arcsin(x, resolution)
 
@@ -1556,7 +1574,7 @@ def solve(f, low: int or float = -50, high: int or float = 50, search_step: int 
     """
     # I couldn't find any other way to check it
     if str(type(f)) != "<class 'function'>" and str(
-        type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError()
+        type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError("f must be a callable")
 
     if high <= low: raise MathRangeError()
     if search_step <= 0: raise MathRangeError()
@@ -1596,13 +1614,13 @@ def solve(f, low: int or float = -50, high: int or float = 50, search_step: int 
 
 def derivative(f, x: int or float, h: float = 0.0000000001) -> float:
     if str(type(f)) != "<class 'function'>" and str(
-        type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError()
+        type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError("f must be a callable")
 
     return (f(x + h) - f(x)) / h
 
 def integrate(f, a: int or float, b: int or float, delta: float = 0.01) -> float:
     if str(type(f)) != "<class 'function'>" and str(
-        type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError()
+        type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError("f must be a callable")
 
     if a == b:
         return .0
@@ -1669,7 +1687,7 @@ def matmul(m1, m2, max: int = 10):
             pass
     return Matrix(*[Vector(*data[k]) for k in range(a)])
 
-def findsol(f, x: int = 0, resolution: int = 15):
+def findsol(f, x: int = 0, resolution: int = 15) -> float:
     """
     Finds a singular solution at a time with Newton's method.
 
@@ -1679,17 +1697,63 @@ def findsol(f, x: int = 0, resolution: int = 15):
     :return: The found/guessed solution of the function
     """
     if str(type(f)) != "<class 'function'>" and str(
-        type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError()
-    if resolution < 1: raise MathRangeError()
+        type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError("f must be a callable")
+    if resolution < 1: raise MathRangeError("Resolution must be a positive integer")
 
     for k in range(resolution):
-        x = x - (f(x) / derivative(f, x))
+        try:
+            x = x - (f(x) / derivative(f, x))
+        except ZeroDivisionError:
+            if f(x) >= 0:
+                x = Infinity(False)
+            else:
+                x = Infinity()
 
     return x
 
+def factorial(x: int = 0) -> int:
+    if x < 0: raise MathRangeError()
+    if x <= 1: return 1
+    return x * factorial(x - 1)
+
+def permutation(x: int = 1, y: int = 1) -> int:
+    if x < 1 or y < 1 or y > x: raise MathRangeError()
+    result = 1
+    for v in range(y + 1, x + 1):
+        result *= v
+    return result
+
+def combination(x: int = 0, y: int = 0) -> int:
+    if x < 0 or y < 0 or y > x: raise MathRangeError()
+    result = 1
+    count = 1
+    for v in range(y + 1, x + 1):
+        result *= v / count
+        count += 1
+    return result
+
+def multinomial(n: int = 0, *args) -> int:
+    sum = 0
+    for k in args:
+        if not isinstance(k, int): raise MathArgError()
+        if k < 0: raise MathRangeError()
+        sum += k
+    if sum != n: raise MathRangeError("Sum of partitions must be equal to n")
+    result = 1
+    while n != 1:
+        result *= n
+        for k in args:
+            result /= k
+            k -= 1
+        n -= 1
+    return result
+
+
 class complex:
 
-    def __init__(self, real: int or float = 0, imaginary: int or float = 0):
+    def __init__(self, real=0, imaginary=0):
+        # Initialization is erroneous when expressions with infinities result in NoneTypes
+        if (not isinstance(real, int)) and (not isinstance(real, float)) and (not isinstance(imaginary, int)) and (not isinstance(imaginary, float)) and (not isinstance(real, Infinity)) and (not isinstance(imaginary, Infinity)): raise MathArgError()
         self.real = real
         self.imaginary = imaginary
 
@@ -1699,51 +1763,49 @@ class complex:
         return f"{self.real} - {-self.imaginary}i"
 
     def __add__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
 
         if isinstance(arg, complex):
             return complex(self.real + arg.real, self.imaginary + arg.imaginary)
-        return complex(self.real + arg, self.imaginary + arg)
+        return complex(self.real + arg, self.imaginary)
 
     def __radd__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)): raise MathArgError()
-        return complex(self.real + arg, self.imaginary + arg)
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        return complex(self.real + arg, self.imaginary)
 
     def __iadd__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
 
         if isinstance(arg, complex):
             self.real += arg.real
             self.imaginary += arg.imaginary
             return self
         self.real += arg
-        self.imaginary += arg
         return self
 
     def __sub__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
 
         if isinstance(arg, complex):
             return complex(self.real - arg.real, self.imaginary - arg.imaginary)
-        return complex(self.real - arg, self.imaginary - arg)
+        return complex(self.real - arg, self.imaginary)
 
     def __rsub__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)): raise MathArgError()
-        return -complex(self.real - arg, self.imaginary + arg)
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        return -complex(self.real - arg, self.imaginary)
 
     def __isub__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
 
         if isinstance(arg, complex):
             self.real -= arg.real
             self.imaginary -= arg.imaginary
             return self
         self.real -= arg
-        self.imaginary -= arg
         return self
 
     def __mul__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
 
         if isinstance(arg, complex):
             return complex(self.real * arg.real - self.imaginary * arg.imaginary,
@@ -1751,11 +1813,11 @@ class complex:
         return complex(self.real * arg, self.imaginary * arg)
 
     def __rmul__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)): raise MathArgError()
         return complex(self.real * arg, self.imaginary * arg)
 
     def __imul__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
 
         if isinstance(arg, complex):
             self.real = self.real * arg.real - self.imaginary * arg.imaginary
@@ -1766,18 +1828,19 @@ class complex:
         return self
 
     def __truediv__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
 
         if isinstance(arg, complex):
             return self * arg.inverse()
-        return complex(self.real / arg, self.imaginary / arg)
+        if arg: return complex(self.real / arg, self.imaginary / arg)
+        return complex(Infinity(self.real >= 0), Infinity(self.imaginary >= 0))
 
-    def __rdiv__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)): raise MathArgError()
+    def __rtruediv__(self, arg):
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)): raise MathArgError()
         return arg * self.inverse()
 
     def __idiv__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
 
         if isinstance(arg, complex):
             temp = self * arg.inverse()
@@ -1788,7 +1851,7 @@ class complex:
         return self
 
     def __floordiv__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
 
         if isinstance(arg, complex):
             temp = self * arg.inverse()
@@ -1796,7 +1859,7 @@ class complex:
         return complex(self.real // arg, self.imaginary // arg)
 
     def __ifloordiv__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
 
         if isinstance(arg, complex):
             temp = self * arg.inverse()
@@ -1825,10 +1888,11 @@ class complex:
         return self / sqrt(self.length())
 
     def sqrt(arg, resolution: int = 200):
-        if not isinstance(arg, complex): raise MathArgError()
-        temp = arg.unit()
-        angle = arcsin(temp.imaginary, resolution=resolution) / 2
-        return complex(cos(angle), sin(angle)) * sqrt(sqrt(arg.length()))
+        if isinstance(arg, complex):
+            temp = arg.unit()
+            angle = arcsin(temp.imaginary, resolution=resolution) / 2
+            return complex(cos(angle), sin(angle)) * sqrt(sqrt(arg.length()))
+        raise MathArgError()
 
     # noinspection PyMethodFirstArgAssignment
     def range(lowreal: int or float, highreal: int or float, lowimg: int or float, highimg: int or float,
@@ -1844,12 +1908,169 @@ class complex:
 
     def inverse(self):
         divisor = self.length()
-        return complex(self.real / divisor, -self.imaginary / divisor)
+        if divisor: return complex(self.real / divisor, -self.imaginary / divisor)
+        else: return complex(Infinity(self.real >= 0), Infinity(-self.imaginary >= 0))
 
     def rotate(self, angle: int or float):
         return self * complex(cos(angle), sin(angle))
 
     def rotationFactor(self, angle: int or float):
         return complex(cos(angle), sin(angle))
+
+
+
+class Infinity:
+    def __init__(self, sign: bool = True):
+        self.sign = sign
+
+    def __str__(self):
+        return f"Infinity({'positive' if self.sign else 'negative'})"
+
+    def __repr__(self):
+        return f"Infinity({'positive' if self.sign else 'negative'})"
+
+    def __add__(self, arg):
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
+        if isinstance(arg, Infinity): return None if (self.sign ^ arg.sign) else Infinity(self.sign)
+        if isinstance(arg, complex): return complex(Infinity(self.sign) + arg.real, arg.imaginary)
+        raise MathArgError()
+
+    def __radd__(self, arg):
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
+        if isinstance(arg, complex): return complex(Infinity(self.sign) + arg.real, arg.imaginary)
+        raise MathArgError()
+
+    def __iadd__(self, arg):
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
+        if isinstance(arg, Infinity): return None if (self.sign ^ arg.sign) else self
+        if isinstance(arg, complex): return complex(Infinity(self.sign) + arg.real, arg.imaginary)
+        raise MathArgError()
+
+    def __sub__(self, arg):
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
+        if isinstance(arg, Infinity): return None if not (self.sign ^ arg.sign) else Infinity(self.sign)
+        if isinstance(arg, complex): return complex(Infinity(self.sign) - arg.real, -arg.imaginary)
+        raise MathArgError()
+
+    def __rsub__(self, arg):
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(not self.sign)
+        if isinstance(arg, complex): return complex(-self + arg.real, arg.imaginary)
+        raise MathArgError()
+
+    def __isub__(self, arg):
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
+        if isinstance(arg, Infinity): return None if not (self.sign ^ arg.sign) else Infinity(self.sign)
+        if isinstance(arg, complex): return complex(self - arg.real, -arg.imaginary)
+        raise MathArgError()
+
+    def __mul__(self, arg):
+        if isinstance(arg, Infinity): return Infinity(not (self.sign ^ arg.sign))
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign and arg > 0) if arg != 0 else None
+        if isinstance(arg, complex): return complex(arg.real * self, arg.imaginary * self)
+        raise MathArgError()
+
+    def __rmul__(self, arg):
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign and arg > 0) if arg != 0 else None
+        if isinstance(arg, complex): return complex(arg.real * self, arg.imaginary * self)
+        raise MathArgError()
+
+    def __imul__(self, arg):
+        if isinstance(arg, Infinity): return Infinity(not (self.sign ^ arg.sign))
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign and arg > 0) if arg != 0 else None
+        if isinstance(arg, complex): return complex(arg.real * self, arg.imaginary * self)
+        raise MathArgError()
+
+    def __truediv__(self, arg):
+        if isinstance(arg, Infinity): return None
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign ^ arg >= 0)
+        if isinstance(arg, complex): return complex(Infinity(self.sign ^ arg.real >= 0), Infinity(self.sign ^ arg.imaginary >= 0))
+        raise MathArgError()
+
+    def __floordiv__(self, arg):
+        if isinstance(arg, Infinity): return None
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign ^ arg >= 0)
+        if isinstance(arg, complex): return complex(Infinity(self.sign ^ arg.real >= 0), Infinity(self.sign ^ arg.imaginary >= 0))
+        raise MathArgError()
+
+    def __rtruediv__(self, arg):
+        if isinstance(arg, Infinity): return None
+        if isinstance(arg, int) or isinstance(arg, float): return 0
+        raise MathArgError()
+
+    def __rfloordiv__(self, arg):
+        if isinstance(arg, Infinity): return None
+        if isinstance(arg, int) or isinstance(arg, float): return 0
+        raise MathArgError()
+
+    def __idiv__(self, arg):
+        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)): raise MathArgError()
+        if isinstance(arg, Infinity): return None
+        return self
+
+    def __neg__(self):
+        return Infinity(not self.sign)
+
+    def __pow__(self, p: int or float):
+        if not p: return None
+        if p > 0: return Infinity(True) if self.sign else ((-1)**p) * Infinity(False)
+        return 0
+
+    def __invert__(self):
+        # 0111111... -> 10000000... -> -0
+        # 1111111... -> 00000000... -> +0
+        return -0 if self.sign else 0
+
+    def __eq__(self, arg):
+        if isinstance(arg, Infinity): return not (self.sign ^ arg.sign)
+        return False
+
+    def __ne__(self, arg):
+        if isinstance(arg, Infinity): return self.sign ^ arg.sign
+        return True
+
+    def __or__(self, arg):
+        return True
+
+    def __ior__(self, arg):
+        return True
+
+    def __ror__(self, arg):
+        return True
+
+    def __and__(self, arg):
+        return True and arg
+
+    def __iand__(self, arg):
+        return True and arg
+
+    def __rand__(self, arg):
+        return True and arg
+
+    def __xor__(self, arg):
+        return True ^ arg
+
+    def __ixor__(self, arg):
+        return True ^ arg
+
+    def __rxor__(self, arg):
+        return True ^ arg
+
+    def __gt__(self, arg):
+        if isinstance(arg, Infinity): return (self.sign ^ arg.sign) and self.sign
+        return self.sign
+    def __ge__(self, arg):
+        if isinstance(arg, Infinity): return (self.sign ^ arg.sign) and self.sign
+        return self.sign
+
+    def __lt__(self, arg):
+        if isinstance(arg, Infinity): return not (self.sign ^ arg.sign) or ~self.sign
+        return self.sign
+
+    def __le__(self, arg):
+        if isinstance(arg, Infinity): return not (self.sign ^ arg.sign) or ~self.sign
+        return self.sign
+
+
+
 
 

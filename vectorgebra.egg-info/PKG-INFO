@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: vectorgebra
-Version: 1.4.0
+Version: 1.5.0
 Summary: A Python-based math library with linear algebra
 Author: Ahmet Erdem
 Classifier: Programming Language :: Python :: 3
@@ -12,9 +12,9 @@ License-File: LICENSE.txt
 
 # Vectorgebra
 
-An algebra tool for python
+A numerical methods tool for python
 
-There are 3 main subclasses; Vector, Matrix, complex.
+There are 4 main subclasses; Vector, Matrix, complex, Infinity.
 And also there are functions, constants and exception classes. 
 Each section is explained below.
 
@@ -26,12 +26,23 @@ _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
 
-### Update notes on 1.4.0
+### Update notes on 1.5.0
 
-Now QR decomposition and eigenvalue decomposition is possible.
-QR function aims to calculate the exact values as much as possible.
-Also more basic matrix operations are added to the class Matrix such
-as .trace(), .diagonal(), etc.
+Infinity class added. This class functions as, the infinity. May be
+positive or negative. All mathematical and logical operators are
+overloaded. Vector, Matrix and complex classes are currently being 
+updated to include infinities in their function definitions. The
+process is yet incomplete.
+
+sqrt() function now accepts complex class. Before only option for
+square roots of complex numbers were _complex.sqrt(complex)_.
+
+Factorials, permutations and combinations added. Future versions
+will include statistics related functions.
+
+Initialization conditions of vectors are not a mess anymore. They
+have been properly configured now. Gauss inversion for 20x20 random
+matrices became 2 milliseconds faster on average by just this change.
 
 
 ## Vectorgebra.Vector
@@ -300,6 +311,26 @@ Calculates e<sup>exponent</sup>. resolution is passed as _power_ to the
 __cumdiv(). It will then define the maximal power of the power series
 implementation, therefore is a resolution.
 
+### Vectorgebra.factorial(x: int)
+
+Calculates the factorial with recursion. Default argument is 1.
+
+### Vectorgebra.permutation(x: int, y: int)
+
+Calculates the _y_ permutations of _x_ elements. Does not utilize
+the factorial function. Indeed, uses loops to calculate the aimed
+value more efficiently.
+
+### Vectorgebra.combination(x: int, y: int)
+
+Calculates _y_ combinations of _x_ elements. Again, this does not
+utilize the factorial function.
+
+### Vectorgebra.multinomial(n: int, *args)
+
+Calculates the multinomial coefficient with n elements, with partitions
+described in "args". Does not utilize the factorial.
+
 ### Trigonometrics
 
 All are of the format Vectorgebra.name(x: int or float, resolution: int).
@@ -420,6 +451,19 @@ Rotates self by angle.
 Returns e<sup>i*angle</sup> as a complex number.
 
 <hr>
+
+
+### Vectorgebra.Infinity (unstable)
+
+The class of infinities. When initialized, takes one argument describing its sign.
+If "True", the infinity is positive (which is the default). If "False", the infinity
+is negative.
+
+Logical and mathematical operations are all overloaded. Operations may return "None".
+For example _infinity - infinity_ is None. We don't know the preceding expressions. Result
+may converge or diverge depending on the expressions that infinities arise from. So the
+operation just returns None. This may cause exceptions. In the future, these cases will
+return an "Unknown" number class. But this class is not implemented yet.
 
 ## Exceptions
 
