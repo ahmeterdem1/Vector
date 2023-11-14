@@ -1,8 +1,8 @@
 # Vectorgebra
 
-A numerical methods tool for python
+A numerical methods tool for python, in python.
 
-There are 4 main subclasses; Vector, Matrix, complex, Infinity.
+There are 5 main subclasses; Vector, Matrix, complex, Infinity, Undefined.
 And also there are functions, constants and exception classes. 
 Each section is explained below.
 
@@ -14,23 +14,15 @@ _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
 
-### Update notes on 1.5.0
+### Update notes on 1.5.1
 
-Infinity class added. This class functions as, the infinity. May be
-positive or negative. All mathematical and logical operators are
-overloaded. Vector, Matrix and complex classes are currently being 
-updated to include infinities in their function definitions. The
-process is yet incomplete.
+Infinities no longer unstable.
 
-sqrt() function now accepts complex class. Before only option for
-square roots of complex numbers were _complex.sqrt(complex)_.
+Undefined class added, problems with infinities improved. Operations with
+infinities cannot return None anymore. Instead, they return Undefined. This
+is the trick that solves infinities most problems.
 
-Factorials, permutations and combinations added. Future versions
-will include statistics related functions.
-
-Initialization conditions of vectors are not a mess anymore. They
-have been properly configured now. Gauss inversion for 20x20 random
-matrices became 2 milliseconds faster on average by just this change.
+Overloads such as <, >... are added to the complex class.
 
 
 ## Vectorgebra.Vector
@@ -441,17 +433,18 @@ Returns e<sup>i*angle</sup> as a complex number.
 <hr>
 
 
-### Vectorgebra.Infinity (unstable)
+### Vectorgebra.Infinity
 
 The class of infinities. When initialized, takes one argument describing its sign.
 If "True", the infinity is positive (which is the default). If "False", the infinity
 is negative.
 
-Logical and mathematical operations are all overloaded. Operations may return "None".
-For example _infinity - infinity_ is None. We don't know the preceding expressions. Result
-may converge or diverge depending on the expressions that infinities arise from. So the
-operation just returns None. This may cause exceptions. In the future, these cases will
-return an "Unknown" number class. But this class is not implemented yet.
+Logical and mathematical operations are all overloaded. Operations may return "Undefined".
+This is a special class that has every mathematical and logical operation overloaded.
+
+### Vectorgebra.Undefined
+
+A special class that corresponds to "undefined" in mathematics.
 
 ## Exceptions
 

@@ -67,7 +67,7 @@ class RangeError(Exception):
 class Vector:
     def __init__(self, *args):
         for k in args:
-            if (not isinstance(k, int)) and (not isinstance(k, float) and (not isinstance(k, bool)) and (not isinstance(k, Infinity))):
+            if (not isinstance(k, int)) and (not isinstance(k, float)) and (not isinstance(k, bool)) and (not isinstance(k, Infinity)) and (not isinstance(k, Undefined)):
                 raise MathArgError("Arguments must be numeric or boolean.")
         """control_list = ["e-0", "e-1", "e-2", "e-3", "e-4", "e-5", "e-6", "e-7", "e-8", "e-9", "e+0", "e+1", "e+2", "e+3", "e+4", "e+5", "e+6", "e+7", "e+8", "e+9"]
         for k in args:
@@ -1753,7 +1753,9 @@ class complex:
 
     def __init__(self, real=0, imaginary=0):
         # Initialization is erroneous when expressions with infinities result in NoneTypes
-        if (not isinstance(real, int)) and (not isinstance(real, float)) and (not isinstance(imaginary, int)) and (not isinstance(imaginary, float)) and (not isinstance(real, Infinity)) and (not isinstance(imaginary, Infinity)): raise MathArgError()
+        if ((not isinstance(real, int)) and (not isinstance(real, float)) and (not isinstance(imaginary, int))
+                and (not isinstance(imaginary, float)) and (not isinstance(real, Infinity))
+                and (not isinstance(imaginary, Infinity)) and (not isinstance(real, Undefined)) and (not isinstance(imaginary, Undefined))): raise MathArgError()
         self.real = real
         self.imaginary = imaginary
 
@@ -1763,18 +1765,20 @@ class complex:
         return f"{self.real} - {-self.imaginary}i"
 
     def __add__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
 
         if isinstance(arg, complex):
             return complex(self.real + arg.real, self.imaginary + arg.imaginary)
         return complex(self.real + arg, self.imaginary)
 
     def __radd__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)): raise MathArgError()
         return complex(self.real + arg, self.imaginary)
 
     def __iadd__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
 
         if isinstance(arg, complex):
             self.real += arg.real
@@ -1784,18 +1788,20 @@ class complex:
         return self
 
     def __sub__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
 
         if isinstance(arg, complex):
             return complex(self.real - arg.real, self.imaginary - arg.imaginary)
         return complex(self.real - arg, self.imaginary)
 
     def __rsub__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)): raise MathArgError()
         return -complex(self.real - arg, self.imaginary)
 
     def __isub__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
 
         if isinstance(arg, complex):
             self.real -= arg.real
@@ -1805,7 +1811,8 @@ class complex:
         return self
 
     def __mul__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
 
         if isinstance(arg, complex):
             return complex(self.real * arg.real - self.imaginary * arg.imaginary,
@@ -1813,11 +1820,12 @@ class complex:
         return complex(self.real * arg, self.imaginary * arg)
 
     def __rmul__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)): raise MathArgError()
         return complex(self.real * arg, self.imaginary * arg)
 
     def __imul__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
 
         if isinstance(arg, complex):
             self.real = self.real * arg.real - self.imaginary * arg.imaginary
@@ -1828,7 +1836,8 @@ class complex:
         return self
 
     def __truediv__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
 
         if isinstance(arg, complex):
             return self * arg.inverse()
@@ -1836,11 +1845,13 @@ class complex:
         return complex(Infinity(self.real >= 0), Infinity(self.imaginary >= 0))
 
     def __rtruediv__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)): raise MathArgError()
         return arg * self.inverse()
 
+
     def __idiv__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
 
         if isinstance(arg, complex):
             temp = self * arg.inverse()
@@ -1851,7 +1862,8 @@ class complex:
         return self
 
     def __floordiv__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
 
         if isinstance(arg, complex):
             temp = self * arg.inverse()
@@ -1859,7 +1871,8 @@ class complex:
         return complex(self.real // arg, self.imaginary // arg)
 
     def __ifloordiv__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex)) and (not isinstance(arg, Infinity)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
 
         if isinstance(arg, complex):
             temp = self * arg.inverse()
@@ -1871,6 +1884,46 @@ class complex:
 
     def __neg__(self):
         return complex(-self.real, -self.imaginary)
+
+    def __eq__(self, arg):
+        if isinstance(arg, complex):
+            if self.real == arg.real and self.imaginary == arg.imaginary:
+                return True
+            else:
+                return False
+        return False
+
+    def __ne__(self, arg):
+        if isinstance(arg, complex):
+            if self.real != arg.real or self.imaginary != arg.imaginary:
+                return True
+            else:
+                return False
+        return True
+
+    def __gt__(self, arg):
+        if isinstance(arg, complex):
+            return self.length() > arg.length()
+        if isinstance(arg, int) or isinstance(arg, float): return self.length() > arg
+        raise MathArgError()
+
+    def __ge__(self, arg):
+        if isinstance(arg, complex):
+            return self.length() >= arg.length()
+        if isinstance(arg, int) or isinstance(arg, float): return self.length() >= arg
+        raise MathArgError()
+
+    def __lt__(self, arg):
+        if isinstance(arg, complex):
+            return self.length() < arg.length()
+        if isinstance(arg, int) or isinstance(arg, float): return self.length() < arg
+        raise MathArgError()
+
+    def __le__(self, arg):
+        if isinstance(arg, complex):
+            return self.length() <= arg.length()
+        if isinstance(arg, int) or isinstance(arg, float): return self.length() <= arg
+        raise MathArgError()
 
     def __pow__(self, p):
         temp = 1
@@ -1931,8 +1984,9 @@ class Infinity:
 
     def __add__(self, arg):
         if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
-        if isinstance(arg, Infinity): return None if (self.sign ^ arg.sign) else Infinity(self.sign)
+        if isinstance(arg, Infinity): return Undefined() if (self.sign ^ arg.sign) else Infinity(self.sign)
         if isinstance(arg, complex): return complex(Infinity(self.sign) + arg.real, arg.imaginary)
+        if isinstance(arg, Undefined): return Undefined()
         raise MathArgError()
 
     def __radd__(self, arg):
@@ -1942,14 +1996,16 @@ class Infinity:
 
     def __iadd__(self, arg):
         if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
-        if isinstance(arg, Infinity): return None if (self.sign ^ arg.sign) else self
+        if isinstance(arg, Infinity): return Undefined() if (self.sign ^ arg.sign) else self
         if isinstance(arg, complex): return complex(Infinity(self.sign) + arg.real, arg.imaginary)
+        if isinstance(arg, Undefined): return Undefined()
         raise MathArgError()
 
     def __sub__(self, arg):
         if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
-        if isinstance(arg, Infinity): return None if not (self.sign ^ arg.sign) else Infinity(self.sign)
+        if isinstance(arg, Infinity): return Undefined() if not (self.sign ^ arg.sign) else Infinity(self.sign)
         if isinstance(arg, complex): return complex(Infinity(self.sign) - arg.real, -arg.imaginary)
+        if isinstance(arg, Undefined): return Undefined()
         raise MathArgError()
 
     def __rsub__(self, arg):
@@ -1959,59 +2015,73 @@ class Infinity:
 
     def __isub__(self, arg):
         if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
-        if isinstance(arg, Infinity): return None if not (self.sign ^ arg.sign) else Infinity(self.sign)
+        if isinstance(arg, Infinity): return Undefined() if not (self.sign ^ arg.sign) else Infinity(self.sign)
         if isinstance(arg, complex): return complex(self - arg.real, -arg.imaginary)
+        if isinstance(arg, Undefined): return Undefined()
         raise MathArgError()
 
     def __mul__(self, arg):
         if isinstance(arg, Infinity): return Infinity(not (self.sign ^ arg.sign))
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign and arg > 0) if arg != 0 else None
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign and arg > 0) if arg != 0 else Undefined()
         if isinstance(arg, complex): return complex(arg.real * self, arg.imaginary * self)
+        if isinstance(arg, Undefined): return Undefined()
         raise MathArgError()
 
     def __rmul__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign and arg > 0) if arg != 0 else None
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign and arg > 0) if arg != 0 else Undefined()
         if isinstance(arg, complex): return complex(arg.real * self, arg.imaginary * self)
         raise MathArgError()
 
     def __imul__(self, arg):
         if isinstance(arg, Infinity): return Infinity(not (self.sign ^ arg.sign))
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign and arg > 0) if arg != 0 else None
+        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign and arg > 0) if arg != 0 else Undefined()
         if isinstance(arg, complex): return complex(arg.real * self, arg.imaginary * self)
+        if isinstance(arg, Undefined): return Undefined()
         raise MathArgError()
 
     def __truediv__(self, arg):
-        if isinstance(arg, Infinity): return None
+        if isinstance(arg, Infinity) or isinstance(arg, Undefined): return Undefined()
         if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign ^ arg >= 0)
         if isinstance(arg, complex): return complex(Infinity(self.sign ^ arg.real >= 0), Infinity(self.sign ^ arg.imaginary >= 0))
         raise MathArgError()
 
     def __floordiv__(self, arg):
-        if isinstance(arg, Infinity): return None
+        if isinstance(arg, Infinity) or isinstance(arg, Undefined): return Undefined()
         if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign ^ arg >= 0)
         if isinstance(arg, complex): return complex(Infinity(self.sign ^ arg.real >= 0), Infinity(self.sign ^ arg.imaginary >= 0))
         raise MathArgError()
 
     def __rtruediv__(self, arg):
-        if isinstance(arg, Infinity): return None
+        if isinstance(arg, Infinity): return Undefined()
         if isinstance(arg, int) or isinstance(arg, float): return 0
         raise MathArgError()
 
     def __rfloordiv__(self, arg):
-        if isinstance(arg, Infinity): return None
+        if isinstance(arg, Infinity): return Undefined()
         if isinstance(arg, int) or isinstance(arg, float): return 0
         raise MathArgError()
 
     def __idiv__(self, arg):
-        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)): raise MathArgError()
-        if isinstance(arg, Infinity): return None
-        return self
+        if isinstance(arg, Infinity) or isinstance(arg, Undefined): return Undefined()
+        if isinstance(arg, int) or isinstance(arg, float): return self
+        if isinstance(arg, complex):
+            temp = 1 / arg
+            return complex(self * temp.real, self * temp.imaginary)
+        raise MathArgError()
+
+    def __ifloordiv__(self, arg):
+        if isinstance(arg, Infinity) or isinstance(arg, Undefined): return Undefined()
+        if isinstance(arg, int) or isinstance(arg, float): return self
+        if isinstance(arg, complex):
+            temp = 1 / arg
+            return complex(self * temp.real, self * temp.imaginary)
+        raise MathArgError()
 
     def __neg__(self):
         return Infinity(not self.sign)
 
     def __pow__(self, p: int or float):
-        if not p: return None
+        if not p: return Undefined()
         if p > 0: return Infinity(True) if self.sign else ((-1)**p) * Infinity(False)
         return 0
 
@@ -2070,7 +2140,112 @@ class Infinity:
         if isinstance(arg, Infinity): return not (self.sign ^ arg.sign) or ~self.sign
         return self.sign
 
+class Undefined:
 
+    def __str__(self):
+        return "Undefined()"
+
+    def __repr__(self):
+        return "Undefined()"
+
+    def __add__(self, other):
+        return Undefined()
+
+    def __radd__(self, other):
+        return Undefined()
+
+    def __iadd__(self, other):
+        return self
+
+    def __sub__(self, other):
+        return Undefined()
+
+    def __rsub__(self, other):
+        return Undefined()
+
+    def __isub__(self, other):
+        return self
+
+    def __mul__(self, other):
+        return Undefined()
+
+    def __rmul__(self, other):
+        return Undefined()
+
+    def __imul__(self, other):
+        return self
+
+    def __truediv__(self, other):
+        return Undefined()
+
+    def __floordiv__(self, other):
+        return Undefined()
+
+    def __rtruediv__(self, other):
+        return Undefined()
+
+    def __rfloordiv__(self, other):
+        return Undefined()
+
+    def __idiv__(self, other):
+        return self
+
+    def __ifloordiv__(self, other):
+        return self
+
+    def __neg__(self):
+        return self
+
+    def __invert__(self):
+        return self
+
+    # Normally boolean resulting operations are defined as "False"
+    def __eq__(self, other):
+        return False
+
+    # nothing is equal to undefined
+    def __ne__(self, other):
+        return True
+
+    def __gt__(self, other):
+        return False
+
+    def __ge__(self, other):
+        return False
+
+    def __lt__(self, other):
+        return False
+
+    def __le__(self):
+        return False
+
+    def __and__(self, other):
+        return False
+
+    def __rand__(self, other):
+        return False
+
+    def __iand__(self, other):
+        return False
+
+    # This is important
+    def __or__(self, other):
+        return other
+
+    def __ror__(self, other):
+        return other
+
+    def __ior__(self, other):
+        return other
+
+    def __xor__(self, other):
+        return False
+
+    def __rxor__(self, other):
+        return False
+
+    def __ixor__(self, other):
+        return False
 
 
 
