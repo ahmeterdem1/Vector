@@ -69,25 +69,6 @@ class Vector:
         for k in args:
             if (not isinstance(k, int)) and (not isinstance(k, float)) and (not isinstance(k, bool)) and (not isinstance(k, Infinity)) and (not isinstance(k, Undefined)):
                 raise MathArgError("Arguments must be numeric or boolean.")
-        """control_list = ["e-0", "e-1", "e-2", "e-3", "e-4", "e-5", "e-6", "e-7", "e-8", "e-9", "e+0", "e+1", "e+2", "e+3", "e+4", "e+5", "e+6", "e+7", "e+8", "e+9"]
-        for k in args:
-            a = str(k)
-            if "e" in a:
-                factor = False
-                for k in range(0, len(control_list)):
-                    factor = factor or (control_list[k] in a)
-                if not factor:
-                    if not (a.isnumeric()):
-                        raise ArgTypeError("f")
-            try:
-                a = a.replace(".", "")
-                a = a.replace("-", "")
-                a = a.replace("e", "")
-                a = a.replace("+", "")
-            except:
-                pass
-            if not (a.isnumeric() or type(a) == bool):
-                raise ArgTypeError("f")"""
         self.dimension = len(args)
         self.values = [_ for _ in args]
 
@@ -96,6 +77,9 @@ class Vector:
 
     def __getitem__(self, index):
         return self.values[index]
+
+    def __len__(self):
+        return len(self.values)
 
     def __add__(self, arg):
         if isinstance(arg, int) or isinstance(arg, float):
@@ -344,7 +328,7 @@ class Vector:
         try:
             self.values[ord]
         except IndexError:
-            raise RangeError
+            raise RangeError()
         popped = self.values.pop(ord)
         self.dimension -= 1
         return popped
@@ -1711,6 +1695,63 @@ def findsol(f, x: int = 0, resolution: int = 15) -> float:
 
     return x
 
+def mean(arg) -> float:
+    if isinstance(arg, tuple) or isinstance(arg, list) or isinstance(arg, Vector):
+        sum = 0
+        for k in range(len(arg)):
+            sum += arg[k]
+        return sum / len(arg)
+    if isinstance(arg, Matrix):
+        sum = 0
+        for k in range(len(arg.values)):
+            for l in range(len(k)):
+                sum += arg[k][l]
+        return sum / (len(arg.values) * len(arg.values[0]))
+    if isinstance(arg, dict):
+        sum = 0
+        count = 0
+        for k, v in arg:
+            sum += v
+            count += 1
+        return sum / count
+    raise MathArgError()
+
+def expectation(values, probabilities, moment: int = 1) -> float:
+    if moment < 0: raise MathRangeError()
+    if (isinstance(values, list) or isinstance(values, tuple) or isinstance(values, Vector)) \
+        and (isinstance(probabilities, list) or isinstance(probabilities, tuple) or isinstance(probabilities, Vector)):
+        if len(values) != len(probabilities): raise DimensionError(0)
+
+        sum = 0
+        for k in range(len(values)):
+            sum += (values[k]**moment) * probabilities[k]
+        return sum
+    raise MathArgError("Arguments must be one dimensional iterables")
+
+def variance(values, probabilities) -> float:
+    if (isinstance(values, list) or isinstance(values, tuple) or isinstance(values, Vector)) \
+            and (
+            isinstance(probabilities, list) or isinstance(probabilities, tuple) or isinstance(probabilities, Vector)):
+        if len(values) != len(probabilities): raise DimensionError(0)
+
+        sum = 0
+        for k in range(len(values)):
+            sum += (values[k]**2) * probabilities[k] - values[k] * probabilities[k]
+        return sum
+    raise MathArgError("Arguments must be one dimensional iterables")
+
+def sd(values, probabilities) -> float:
+    if (isinstance(values, list) or isinstance(values, tuple) or isinstance(values, Vector)) \
+            and (
+            isinstance(probabilities, list) or isinstance(probabilities, tuple) or isinstance(probabilities, Vector)):
+        if len(values) != len(probabilities): raise DimensionError(0)
+
+        sum = 0
+        for k in range(len(values)):
+            sum += (values[k]**2) * probabilities[k] - values[k] * probabilities[k]
+        return sqrt(sum)
+    raise MathArgError("Arguments must be one dimensional iterables")
+
 def factorial(x: int = 0) -> int:
     if x < 0: raise MathRangeError()
     if x <= 1: return 1
@@ -1747,6 +1788,40 @@ def multinomial(n: int = 0, *args) -> int:
             k -= 1
         n -= 1
     return result
+
+def binomial(n: int, k: int, p: float) -> float:
+    if p < 0 or p > 1: raise MathRangeError("Probability cannot be negative or bigger than 1")
+    return combination(n, k) * pow(p, k) * pow(1 - p, k)
+
+def geometrical(n: int, p: float):
+    if p < 0 or p > 1: raise MathRangeError("Probability cannot be negative or bigger than 1")
+    if n < 0: raise MathRangeError("Trial number cannot be negative")
+    if n == 0: return Undefined()
+    return p * pow(1 - p, n - 1)
+
+def poisson(k: int or float, l: int or float) -> float:
+    if l < 0 or k < 0: raise MathRangeError()
+    return pow(l, k) * e(-l) / factorial(k)
+
+def linear_fit(x, y, rate: int or float = 0.01, iterations: int = 15) -> tuple:
+    if not (isinstance(x, list) or isinstance(x, tuple) or isinstance(x, Vector)
+            or isinstance(y, list) or isinstance(y, tuple) or isinstance(y, Vector)): raise MathArgError("Arguments must be one dimensional iterables")
+
+    if iterations < 1: raise MathRangeError()
+    if len(x) != len(y): raise DimensionError(0)
+    N = len(x)
+    b0 = 1
+    b1 = 1
+    for k in range(iterations):
+        sum1 = 0
+        sum2 = 0
+        for i in range(N):
+            sum1 += (y[i] - b0 - b1 * x[i])
+            sum2 += (y[i] - b0 - b1 * x[i]) * x[i]
+        b0 = b0 - rate * (-2 * sum1 / N)
+        b1 = b1 - rate * (-2 * sum2 / N)
+    return b0, b1
+
 
 
 class complex:
@@ -2246,6 +2321,4 @@ class Undefined:
 
     def __ixor__(self, other):
         return False
-
-
 

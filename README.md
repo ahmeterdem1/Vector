@@ -14,15 +14,19 @@ _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
 
-### Update notes on 1.5.1
+### Update notes on 1.6.0
 
-Infinities no longer unstable.
+More functions on statistics and data analysis.
 
-Undefined class added, problems with infinities improved. Operations with
-infinities cannot return None anymore. Instead, they return Undefined. This
-is the trick that solves infinities most problems.
+Linear regression is added as a function. When using,
+you may need to modify its parameters for it to not 
+blow up.
 
-Overloads such as <, >... are added to the complex class.
+Mean, expectation value, variance and standard deviation
+are added. Binomial, geometric and poisson distributions are
+added. 
+
+len() function is now overloaded for vectors.
 
 
 ## Vectorgebra.Vector
@@ -291,6 +295,27 @@ Calculates e<sup>exponent</sup>. resolution is passed as _power_ to the
 __cumdiv(). It will then define the maximal power of the power series
 implementation, therefore is a resolution.
 
+### Vectorgebra.mean(data)
+
+Calculates the mean of data. "data" must be a one dimensional iterable.
+
+### Vectorgebra.expectation(values, probabilities, moment: int = 1)
+
+"values" and "probabilities" are one dimensional iterables and their lengths must be
+equal. There is no value checking for the probabilities. If they sum up
+to more than 1 or have negative values, it is up to the user to check 
+that. "moment" is the power of "values". Returns the expectation value of
+given data.
+
+### Vectorgebra.variance(values, probabilities)
+
+Same constraints as "expectation" apply here. Returns the variance of the given data.
+
+### Vectorgebra.sd(values, probabilities)
+
+Same constraints as "variance" apply here. Returns the standard deviation of the
+given data.
+
 ### Vectorgebra.factorial(x: int)
 
 Calculates the factorial with recursion. Default argument is 1.
@@ -310,6 +335,30 @@ utilize the factorial function.
 
 Calculates the multinomial coefficient with n elements, with partitions
 described in "args". Does not utilize the factorial.
+
+### Vectorgebra.binomial(n: int, k: int, p: float)
+
+Calculates the probability according to the binomial distribution. n is
+the maximum number of events, k is the events that p describes, p is the
+probability of the "event" happening.
+
+### Vectorgebra.geometrical(n: int, p: float)
+
+Calculates the probability according to the geometric distribution. n is
+the number of total events. p is the probability that the event happens.
+
+### Vectorgebra.poisson(k, l)
+
+Calculates the probability according to the Poisson formula. l is the
+lambda factor. k is the "variable" on the whatever system this function
+is used to describe.
+
+### Vectorgebra.linear_fit(x, y, rate: float = 0.01, iterations: int = 15)
+
+Returns the b0 and b1 constants for the linear regression of the given data.
+x and y must be one dimensional iterables and their lengths must be equal.
+"rate" is the learning rate. "iterations" is the total number of iterations
+that this functions going to update the coefficients.
 
 ### Trigonometrics
 
