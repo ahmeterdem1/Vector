@@ -67,7 +67,8 @@ class RangeError(Exception):
 class Vector:
     def __init__(self, *args):
         for k in args:
-            if (not isinstance(k, int)) and (not isinstance(k, float)) and (not isinstance(k, bool)) and (not isinstance(k, Infinity)) and (not isinstance(k, Undefined)):
+            if ((not isinstance(k, int)) and (not isinstance(k, float)) and (not isinstance(k, bool))
+                    and (not isinstance(k, Infinity)) and (not isinstance(k, Undefined)) and (not isinstance(k, complex))):
                 raise MathArgError("Arguments must be numeric or boolean.")
         self.dimension = len(args)
         self.values = [_ for _ in args]
@@ -82,7 +83,7 @@ class Vector:
         return len(self.values)
 
     def __add__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             return Vector(*[self.values[k] + arg for k in range(0, self.dimension)])
         if not isinstance(arg, Vector):
             raise ArgTypeError("vif")
@@ -91,12 +92,12 @@ class Vector:
         return Vector(*[self.values[k] + arg.values[k] for k in range(0, self.dimension)])
 
     def __radd__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             return Vector(*[self.values[k] + arg for k in range(0, self.dimension)])
         raise ArgTypeError("vif")
 
     def __sub__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             return Vector(*[self.values[k] - arg for k in range(0, self.dimension)])
         if not isinstance(arg, Vector):
             raise ArgTypeError("vif")
@@ -105,7 +106,7 @@ class Vector:
         return Vector(*[self.values[k] - arg.values[k] for k in range(0, self.dimension)])
 
     def __rsub__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             return -Vector(*[self.values[k] - arg for k in range(0, self.dimension)])
         raise ArgTypeError("vif")
 
@@ -121,28 +122,28 @@ class Vector:
         return sum
 
     def __mul__(self, arg):
-        if not (isinstance(arg, int) or isinstance(arg, float)):
+        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
             raise ArgTypeError("if")
         return Vector(*[self.values[k] * arg for k in range(0, self.dimension)])
 
     def __rmul__(self, arg):
-        if not (isinstance(arg, int) or isinstance(arg, float)):
+        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
             raise ArgTypeError("if")
         return Vector(*[self.values[k] * arg for k in range(0, self.dimension)])
 
     def __truediv__(self, arg):
-        if not (isinstance(arg, int) or isinstance(arg, float)):
+        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
             raise ArgTypeError("if")
         return Vector(*[self.values[k] / arg for k in range(0, self.dimension)])
 
 
     def __floordiv__(self, arg):
-        if not (isinstance(arg, int) or isinstance(arg, float)):
+        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
             raise ArgTypeError("if")
         return Vector(*[self.values[k] // arg for k in range(0, self.dimension)])
 
     def __iadd__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             return Vector(*[self.values[k] + arg for k in range(0, self.dimension)])
         if not isinstance(arg, Vector):
             raise ArgTypeError("vif")
@@ -151,7 +152,7 @@ class Vector:
         return Vector(*[self.values[k] + arg.values[k] for k in range(0, self.dimension)])
 
     def __isub__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             return Vector(*[self.values[k] - arg for k in range(0, self.dimension)])
         if not isinstance(arg, Vector):
             raise ArgTypeError("vif")
@@ -160,7 +161,7 @@ class Vector:
         return Vector(*[self.values[k] - arg.values[k] for k in range(0, self.dimension)])
 
     def __gt__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             sum = 0
             for k in self.values:
                 sum += k * k
@@ -181,7 +182,7 @@ class Vector:
         return False
 
     def __ge__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             sum = 0
             for k in self.values:
                 sum += k * k
@@ -202,7 +203,7 @@ class Vector:
         return False
 
     def __lt__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             sum = 0
             for k in self.values:
                 sum += k * k
@@ -223,7 +224,7 @@ class Vector:
         return False
 
     def __le__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             sum = 0
             for k in self.values:
                 sum += k * k
@@ -244,7 +245,7 @@ class Vector:
         return False
 
     def __eq__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             for k in self.values:
                 if not (k == arg):
                     return False
@@ -311,7 +312,7 @@ class Vector:
         return Vector(*[int(not self.values[k]) for k in range(0, self.dimension)])
 
     def append(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             self.values.append(arg)
             self.dimension += 1
             return
@@ -456,6 +457,14 @@ class Vector:
             sum += k
         return sum
 
+    def zero(dim: int):
+        if dim < 0: raise RangeError()
+        return Vector(*[0 for k in range(dim)])
+
+    def one(dim: int):
+        if dim < 0: raise RangeError()
+        return Vector(*[1 for k in range(dim)])
+
     def reshape(self, m: int, n: int):
         if not m * n == self.dimension: raise RangeError()
         v_list = []
@@ -470,10 +479,6 @@ class Vector:
             count += 1
         v_list.append(Vector(*temp))
         return Matrix(*v_list)
-
-
-
-
 
 
 class Matrix:
@@ -497,7 +502,7 @@ class Matrix:
 
     def __add__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             for k in self.values:
                 v.append(Vector(*[l + arg for l in k]))
             return Matrix(*v)
@@ -514,7 +519,7 @@ class Matrix:
 
     def __radd__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             for k in self.values:
                 v.append(Vector(*[l + arg for l in k]))
             return Matrix(*v)
@@ -522,7 +527,7 @@ class Matrix:
 
     def __iadd__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             for k in self.values:
                 v.append(Vector(*[l + arg for l in k]))
             return Matrix(*v)
@@ -539,7 +544,7 @@ class Matrix:
 
     def __sub__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             for k in self.values:
                 v.append(Vector(*[l - arg for l in k]))
             return Matrix(*v)
@@ -556,7 +561,7 @@ class Matrix:
 
     def __rsub__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             for k in self.values:
                 v.append(Vector(*[l - arg for l in k]))
             return -Matrix(*v)
@@ -564,7 +569,7 @@ class Matrix:
 
     def __isub__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             for k in self.values:
                 v.append(Vector(*[l - arg for l in k]))
             return Matrix(*v)
@@ -581,7 +586,7 @@ class Matrix:
 
     def __mul__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             for k in self.values:
                 v.append(Vector(*[l * arg for l in k]))
             return Matrix(*v)
@@ -611,7 +616,7 @@ class Matrix:
 
     def __rmul__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float):
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
             for k in self.values:
                 v.append(Vector(*[l * arg for l in k]))
             return Matrix(*v)
@@ -622,7 +627,7 @@ class Matrix:
 
     def __truediv__(self, arg):
         v = list()
-        if not (isinstance(arg, int) or isinstance(arg, float)):
+        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
             raise ArgTypeError("if")
         for k in self.values:
             v.append(Vector(*[l / arg for l in k]))
@@ -630,7 +635,7 @@ class Matrix:
 
     def __floordiv__(self, arg):
         v = list()
-        if not (isinstance(arg, int) or isinstance(arg, float)):
+        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
             raise ArgTypeError("if")
         for k in self.values:
             v.append(Vector(*[l // arg for l in k]))
@@ -1117,37 +1122,6 @@ class Matrix:
                 except ZeroDivisionError:
                     continue
 
-        # taken_list = list()
-        # taken_list_i = list()
-        # end_list = v.copy()
-        """for k in range(0, len(self.values)):
-            for l in range(0, len(self.values[0])):
-                if not v[k][l] == 0 and l not in taken_list:
-                    end_list[l] = v[k]
-                    end_list_i[l] = i_values[k]
-                    counter += 1
-                    if not k == l and counter % 2 == 0:
-                        end_list[l] = [-z for z in v[k]]
-                        end_list_i[l] = [-z for z in i_values[k]]
-                    taken_list.append(l)
-                    taken_list_i.append(l)
-                    break
-                elif not v[k][l] == 0 and l in taken_list:
-                    for m in range(l, len(self.values)):
-                        if m not in taken_list:
-                            end_list[m] = v[k]
-                            end_list_i[m] = i_values[k]
-                            counter += 1
-                            if not m == l and counter % 2 == 0:
-                                end_list[m] = [-z for z in v[k]]
-                                end_list_i[m] = [-z for z in i_values[k]]"""
-
-        # end_list = end_list[::-1]
-        # end_list_i = end_list_i[::-1]
-
-        # real = Matrix(*[Vector(*k) for k in end_list])
-        # iden = Matrix(*[Vector(*k) for k in end_list_i])
-
         v = v[::-1]
         iden_values = i_values.copy()
         iden_values = iden_values[::-1]
@@ -1199,12 +1173,6 @@ class Matrix:
             except ZeroDivisionError:
                 pass
 
-        """for k in range(len(iden_values)):
-            for l in range(len(iden_values)):
-                if abs(iden_values[k][l]) < 0.00000001:
-                    iden_values[k][l] = 0"""
-
-        # print(Matrix(*[Vector(*k) for k in v]))
         return Matrix(*[Vector(*k) for k in iden_values])
 
     def cramer(a, number: int):
@@ -1804,8 +1772,8 @@ def poisson(k: int or float, l: int or float) -> float:
     return pow(l, k) * e(-l) / factorial(k)
 
 def linear_fit(x, y, rate: int or float = 0.01, iterations: int = 15) -> tuple:
-    if not (isinstance(x, list) or isinstance(x, tuple) or isinstance(x, Vector)
-            or isinstance(y, list) or isinstance(y, tuple) or isinstance(y, Vector)): raise MathArgError("Arguments must be one dimensional iterables")
+    if not (isinstance(x, list) or isinstance(x, tuple) or isinstance(x, Vector))\
+            and (isinstance(y, list) or isinstance(y, tuple) or isinstance(y, Vector)): raise MathArgError("Arguments must be one dimensional iterables")
 
     if iterations < 1: raise MathRangeError()
     if len(x) != len(y): raise DimensionError(0)
@@ -1822,6 +1790,31 @@ def linear_fit(x, y, rate: int or float = 0.01, iterations: int = 15) -> tuple:
         b1 = b1 - rate * (-2 * sum2 / N)
     return b0, b1
 
+def general_fit(x, y, rate: int or float = 0.0000002, iterations: int = 15, degree: int = 1) -> Vector:
+    if (not (isinstance(x, list) or isinstance(x, tuple) or isinstance(x, Vector))
+            and (isinstance(y, list) or isinstance(y, tuple) or isinstance(y, Vector))): raise MathArgError("Arguments must be one dimensional iterables")
+    if iterations < 1 or degree < 1: raise MathRangeError()
+    if len(x) != len(y): raise DimensionError(0)
+
+    # Preprocess
+    if not isinstance(x, Vector):
+        x = Vector(*[k for k in x])
+    if not isinstance(y, Vector):
+        y = Vector(*[k for k in y])
+    N = len(x)
+    b = Vector(*[1 for k in range(degree + 1)])
+
+    # Work
+    for k in range(iterations):
+        c = Vector(*[0 for p in range(degree + 1)])
+        for i in range(N):
+            v = Vector(*[x[i]**p for p in range(degree + 1)])
+            c += (y[i] - b.dot(v)) * v
+        c *= (-2 / N)
+        b = b - rate * c
+
+    return b
+
 
 
 class complex:
@@ -1835,6 +1828,11 @@ class complex:
         self.imaginary = imaginary
 
     def __str__(self):
+        if self.imaginary >= 0: return f"{self.real} + {self.imaginary}i"
+
+        return f"{self.real} - {-self.imaginary}i"
+
+    def __repr__(self):
         if self.imaginary >= 0: return f"{self.real} + {self.imaginary}i"
 
         return f"{self.real} - {-self.imaginary}i"
@@ -2321,4 +2319,6 @@ class Undefined:
 
     def __ixor__(self, other):
         return False
+
+
 

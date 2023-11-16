@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: vectorgebra
-Version: 1.6.0
+Version: 1.7.0
 Summary: A numerical methods tool for python, in python.
 Author: Ahmet Erdem
 Classifier: Programming Language :: Python :: 3
@@ -26,20 +26,15 @@ _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
 
-### Update notes on 1.6.0
+### Update notes on 1.7.0
 
-More functions on statistics and data analysis.
+Complex numbers, infinities and undefined are properly
+integrated with vectors and matrices.
 
-Linear regression is added as a function. When using,
-you may need to modify its parameters for it to not 
-blow up.
+Vector.zero(_dim_) and Vector.one(_dim_) added, they work the same
+with the matrix versions.
 
-Mean, expectation value, variance and standard deviation
-are added. Binomial, geometric and poisson distributions are
-added. 
-
-len() function is now overloaded for vectors.
-
+General fit included that works with any degree polynomial regressions.
 
 ## Vectorgebra.Vector
 
@@ -128,6 +123,14 @@ Returns the cross product of the vectors given in *args.
 ### _Vectorgebra.Vector_.cumsum()
 
 Returns the cumulative sum.
+
+### Vectorgebra.Vector.zero(dim)
+
+Returns _dim_ dimensional zero vector.
+
+## Vectorgebra.Vector.one(dim)
+
+Returns _dim_ dimensional all ones vector.
 
 ### _Vectorgebra.Vector_.reshape(a, b)
 
@@ -371,6 +374,16 @@ Returns the b0 and b1 constants for the linear regression of the given data.
 x and y must be one dimensional iterables and their lengths must be equal.
 "rate" is the learning rate. "iterations" is the total number of iterations
 that this functions going to update the coefficients.
+
+### Vectorgebra.general_fit(x, y, rate: float = 0.0000002, iterations: int = 15, degree: int = 1)
+
+Calculates the coefficients for at _degree_ polynomial regression. 
+Default _rate_ argument is much much lower because otherwise result 
+easily blows up. Returns the coefficients starting from the zeroth 
+degree as a Vector object. 
+
+Internally, x and y sets are converted to Vectors if they were not,
+so it is faster to initialize them as Vectors.
 
 ### Trigonometrics
 
