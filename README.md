@@ -14,15 +14,30 @@ _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
 
-### Update notes on 1.7.0
+### Update notes on 2.0.0
 
-Complex numbers, infinities and undefined are properly
-integrated with vectors and matrices.
+Exception classes are changed. Now there are only 4 types of exceptions.
+DimensionError, AmountError, RangeError, ArgTypeError. Others are removed.
 
-Vector.zero(_dim_) and Vector.one(_dim_) added, they work the same
-with the matrix versions.
+Support for decimal added. decimal library is now the primary choice of 
+random generation methods used. However, decimal numbers are slow compared
+to default ones. 
 
-General fit included that works with any degree polynomial regressions.
+Bug fixes on infinities. Comparison operators fixed.
+
+Precision errors fixed on gauss inversion. Precision now can be manually set
+by the user. But the default settings do the work just fine for most of the 
+cases. Using decimal numbers increases precision drastically. However again, 
+this slows down the process by a lot. Precision errors can still happen 
+depending on the conditioning of the matrix. Adjusting the limiter settings
+will solve the problem.
+
+.det_echelon() and .fast_inverse() removed. .fast_inverse() was just gauss
+inverse which could be reached by .inverse(method="gauss"). Same application
+is done for the determinant. Echelon determinant can be reached via 
+.determinant(choice="echelon"). 
+
+New function, mode. Another statistical function added.
 
 ## Vectorgebra.Vector
 
@@ -83,20 +98,22 @@ where n is the number of vectors. Returns False otherwise. Eliminates
 the possible error from Vector.spanify() method. Therefore, this method
 will work just fine regardless the errors from divisions.
 
-### Vectorgebra.Vector.randVint(dim , a, b)
+### Vectorgebra.Vector.randVint(dim , a, b, decimal=True)
 
 Returns _dim_ dimensional vector which has its elements randomly selected
-as integers within the interval (a, b).
+as integers within the interval (a, b). If decimal is true, generated contents
+are decimal objects.
 
-### Vectorgebra.Vector.randVfloat(dim, a, b)
-
-Returns _dim_ dimensional vector which has its elements randomly selected
-as floats within the interval (a, b).
-
-### Vectorgebra.Vector.randVbool(dim)
+### Vectorgebra.Vector.randVfloat(dim, a, b, decimal=True)
 
 Returns _dim_ dimensional vector which has its elements randomly selected
-as booleans.
+as floats within the interval (a, b). If decimal is true, generated contents
+are decimal objects.
+
+### Vectorgebra.Vector.randVbool(dim, decimal=True)
+
+Returns _dim_ dimensional vector which has its elements randomly selected
+as booleans. If decimal is true, generated contents are decimal objects.
 
 ### Vectorgebra.Vector.determinant(*args)
 
@@ -144,9 +161,10 @@ are equal.
 
 Methods are listed below.
 
-### Vectorgebra.Matrix.determinant(_m_)
+### _Vectorgebra.Matrix_.determinant(choice="echelon")
 
-Returns the determinant of the matrix m.
+Returns the determinant of the matrix m. Two choices are available currently;
+echelon, analytic. Default is echelon.
 
 ### _Vectorgebra.Matrix_.append(arg)
 
@@ -166,56 +184,50 @@ order and returns it.
 
 Returns the transpose matrix of self
 
-### _Vectorgebra.Matrix_.inverse(method="iteraitve", resolution=10)
+### _Vectorgebra.Matrix_.inverse(method="iteraitve", resolution=10, lowlimit=0.0000000001, highlimit=100000)
 
 Returns the inverse matrix of self. Returns None if not invertible.
 method can ben "analytic", "gauss" or "iterative". Default is iterative
 which uses Newton's method for matrix inversion. Resolution is the number
-of iterations.
+of iterations. lowlimit and highlimit are only for gauss method. They control
+the "resolution" of multiplication and divisions. See the source code for a
+better inside look.
 
-### Vectorgebra.Matrix.identity(dim)
+### Vectorgebra.Matrix.identity(dim, decimal=True)
 
-Returns _dimxdim_ dimensional identity matrix.
+Returns _dimxdim_ dimensional identity matrix. If decimal is true, generated 
+contents are decimal objects.
 
-### Vectorgebra.Matrix.zero(dim)
+### Vectorgebra.Matrix.zero(dim, decimal=True)
 
-Returns _dimxdim_ dimensional all 0 matrix.
+Returns _dimxdim_ dimensional all 0 matrix. If decimal is true, generated 
+contents are decimal objects.
 
-### Vectorgebra.Matrix.one(dim)
+### Vectorgebra.Matrix.one(dim, decimal=True)
 
-Returns _dimxdim_ dimensional all 1 matrix.
+Returns _dimxdim_ dimensional all 1 matrix. If decimal is true, generated 
+contents are decimal objects.
 
-### Vectorgebra.Matrix.randMint(m, n, a, b)
+### Vectorgebra.Matrix.randMint(m, n, a, b, decimal=True)
 
 Returns _mxn_ matrix of random integers selected from the interval (a, b).
+If decimal is true, generated contents are decimal objects.
 
-### Vectorgebra.Matrix.randMfloat(m, n, a, b)
+### Vectorgebra.Matrix.randMfloat(m, n, a, b, decimal=True)
 
 Returns _mxn_ matrix of random floats selected from the interval (a, b).
+If decimal is true, generated contents are decimal objects.
 
-### Vectorgebra.Matrix.randMbool(m, n)
+### Vectorgebra.Matrix.randMbool(m, n, decimal=True)
 
-Returns _mxn_ matrix of random booleans.
+Returns _mxn_ matrix of random booleans. If decimal is true, generated 
+contents are decimal objects.
 
 ### _Vectorgebra.Matrix_.echelon()
 
 Returns reduced row echelon form of self. Also does reorganization on
 rows and multiplies one of them by -1 every 2 reorganization. This is
 for the determinant to remain unchanged.
-
-### _Vectorgebra.Matrix_.det_echelon()
-
-Returns determinant of self via _.echelon()_ method. This is faster
-than the other determinant method, which also loses time during type
-conversions. But this method does not return the exact value and has a
-very small error compared to the original determinant. This is due to
-floating point numbers and can be disregarded for most of the uses.
-
-### _Vectorgebra.Matrix_.fast_inverse()
-
-Underlying algorithm of this inverse is completely based on echelon forms.
-Sometimes may get some rows wrong, this is due to floating point numbers.
-Error amount increases as the dimensions of the matrix increases.
 
 ### Vectorgebra.Matrix.cramer(a, number)
 
@@ -268,16 +280,16 @@ Pi, e and ln(2). Nothing more.
 
 ## Functions
 
-### Vectorgebra.Range(low: int or float, high: int or float, step)
+### Vectorgebra.Range(low, high, step)
 
 A lazy implementation of range. There is indeed no range. Just a loop with
 yield statement. Almost as fast as the built-in range.
 
-### Vectorgebra.abs(arg: int or float)
+### Vectorgebra.abs(arg)
 
 Returns the absolute value of the argument.
 
-### Vectorgebra.sqrt(arg: int or float, resolution: int = 10)
+### Vectorgebra.sqrt(arg, resolution: int = 10)
 
 A square root implementation that uses Newton's method. You may choose the 
 resolution, but any change is not needed there. Pretty much at the same
@@ -287,16 +299,30 @@ accuracy as the built-in math.sqrt(). Accepts negative numbers too.
 
 Returns the cumulative sum of the iterable.
 
-### Vectorgebra.__cumdiv(x: int or float, power: int)
+### Vectorgebra.__cumdiv(x, power: int)
 
 Calculates x<sup>n</sup> / power!. This is used to calculate Taylor series
 without data loss (at least minimal data loss).
 
-### Vectorgebra.e(exponent: int or float, resolution: int)
+### Vectorgebra.e(exponent, resolution: int)
 
 Calculates e<sup>exponent</sup>. resolution is passed as _power_ to the
 __cumdiv(). It will then define the maximal power of the power series
 implementation, therefore is a resolution.
+
+### Vectorgebra.sigmoid(x, a=1)
+
+Returns the sigmoid functions value at x, where a is the coefficient of x.
+
+### Vectorgebra.Sum(f, a, b, step=Decimal(0.01), control: bool=False, limit=Decimal(0.000001))
+
+Returns the sum of f(x) from a to b. step is the step for Range. If control is true,
+stops the sum when the absolute value of the derivative drops under "limit".
+
+### Vectorgebra.mode(data)
+
+Returns the mode of the data. Tuples, lists, vectors and matrices are
+accepted.
 
 ### Vectorgebra.mean(data)
 
@@ -356,14 +382,14 @@ Calculates the probability according to the Poisson formula. l is the
 lambda factor. k is the "variable" on the whatever system this function
 is used to describe.
 
-### Vectorgebra.linear_fit(x, y, rate: float = 0.01, iterations: int = 15)
+### Vectorgebra.linear_fit(x, y, rate = Decimal(0.01), iterations: int = 15)
 
 Returns the b0 and b1 constants for the linear regression of the given data.
 x and y must be one dimensional iterables and their lengths must be equal.
 "rate" is the learning rate. "iterations" is the total number of iterations
 that this functions going to update the coefficients.
 
-### Vectorgebra.general_fit(x, y, rate: float = 0.0000002, iterations: int = 15, degree: int = 1)
+### Vectorgebra.general_fit(x, y, rate = Decimal(0.0000002), iterations: int = 15, degree: int = 1)
 
 Calculates the coefficients for at _degree_ polynomial regression. 
 Default _rate_ argument is much much lower because otherwise result 
@@ -375,7 +401,7 @@ so it is faster to initialize them as Vectors.
 
 ### Trigonometrics
 
-All are of the format Vectorgebra.name(x: int or float, resolution: int).
+All are of the format Vectorgebra.name(x, resolution: int).
 Calculates the value of the named trigonometric function via Taylor
 series. Again, resolution is passed as _power_ to __cumdiv().
 
@@ -524,24 +550,14 @@ in the code.**
 
 ### Vectorgebra.ArgTypeError
 
-Anything related to types of arguments. There are 8 modes of this
-exception depending on the conditions. These modes are defined by
-different combinations of types. For example type "i" is used for
-errors about arguments that should have been _only_ integers.
-
-### Vectorgebra.ArgumentError
-
-Raised when an incorrect amount of arguments is passed into functions.
+Anything related to types of arguments. Can take in a str argument
+flagged as "hint".
 
 ### Vectorgebra.RangeError
 
 Raised when given arguments are out of required range.
 
-### Vectorgebra.MathArgError
+### Vectorgebra.AmountError
 
-Raised when argument(s) are of wrong type.
-
-### Vectorgebra.MathRangeError
-
-Raised when argument(s) are off range.
+Raised when the amount of arguments in a function is wrong.
 

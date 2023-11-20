@@ -2,6 +2,7 @@ import math
 import random
 import threading
 import logging
+from decimal import *
 
 logger = logging.getLogger("root log")
 handler = logging.StreamHandler()
@@ -17,14 +18,7 @@ ln2 = 0.6931471805599569
 
 results = {}
 
-class MathArgError(Exception):
-    def __init__(self, hint: str = ""):
-        super().__init__(f"Argument elements are of the wrong type{(': ' + hint) if hint else ''}")
-
-class MathRangeError(Exception):
-    def __init__(self, hint: str = ""):
-        super().__init__(f"Argument(s) out of range{(': ' + hint) if hint else ''}")
-
+# I leave the DimensionError be...
 class DimensionError(Exception):
     def __init__(self, code):
         if code == 0:
@@ -34,42 +28,25 @@ class DimensionError(Exception):
         elif code == 2:
             super().__init__("Matrix must be a square")
 
-class ArgTypeError(Exception):
-    def __init__(self, code):
-        if code == "f":
-            super().__init__("Args must be of type float")
-        elif code == "vif":
-            super().__init__("Arg must be of type Vector, int, float")
-        elif code == "if":
-            super().__init__("Arg must be of type int, float")
-        elif code == "v":
-            super().__init__("Arg must be of type Vector")
-        elif code == "i":
-            super().__init__("Args must be of type int")
-        elif code == "ifm":
-            super().__init__("Arg must be of type int, float, Matrix")
-        elif code == "ifmv":
-            super().__init__("Arg must be of type int, float, Matrix, Vector")
-        elif code == "m":
-            super().__init__("Arg must be of type Matrix")
-        elif code == "im":
-            super().__init__("Arg must be of type int, Matrix")
-
-class ArgumentError(Exception):
+class AmountError(Exception):
     def __init__(self):
         super().__init__("Not the correct amount of args")
 
 class RangeError(Exception):
-    def __init__(self):
-        super().__init__("Argument out of range")
+    def __init__(self, hint: str = ""):
+        super().__init__(f"Argument(s) out of range{(': ' + hint) if hint else ''}")
+
+class ArgTypeError(Exception):
+    def __init__(self, hint: str = ""):
+        super().__init__(f"Argument elements are of the wrong type{(': ' + hint) if hint else ''}")
 
 
 class Vector:
     def __init__(self, *args):
         for k in args:
-            if ((not isinstance(k, int)) and (not isinstance(k, float)) and (not isinstance(k, bool))
+            if ((not isinstance(k, int)) and (not isinstance(k, float)) and (not isinstance(k, bool) and (not isinstance(k, Decimal)))
                     and (not isinstance(k, Infinity)) and (not isinstance(k, Undefined)) and (not isinstance(k, complex))):
-                raise MathArgError("Arguments must be numeric or boolean.")
+                raise ArgTypeError("Arguments must be numeric or boolean.")
         self.dimension = len(args)
         self.values = [_ for _ in args]
 
@@ -83,36 +60,40 @@ class Vector:
         return len(self.values)
 
     def __add__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             return Vector(*[self.values[k] + arg for k in range(0, self.dimension)])
         if not isinstance(arg, Vector):
-            raise ArgTypeError("vif")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         return Vector(*[self.values[k] + arg.values[k] for k in range(0, self.dimension)])
 
     def __radd__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             return Vector(*[self.values[k] + arg for k in range(0, self.dimension)])
-        raise ArgTypeError("vif")
+        raise ArgTypeError("Must be a numerical value.")
 
     def __sub__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             return Vector(*[self.values[k] - arg for k in range(0, self.dimension)])
         if not isinstance(arg, Vector):
-            raise ArgTypeError("vif")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         return Vector(*[self.values[k] - arg.values[k] for k in range(0, self.dimension)])
 
     def __rsub__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             return -Vector(*[self.values[k] - arg for k in range(0, self.dimension)])
-        raise ArgTypeError("vif")
+        raise ArgTypeError("Must be a numerical value.")
 
     def dot(self, arg):
         if not isinstance(arg, Vector):
-            raise ArgTypeError("v")
+            raise ArgTypeError("Must be a vector.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         mul = [self.values[k] * arg.values[k] for k in range(0, self.dimension)]
@@ -122,46 +103,53 @@ class Vector:
         return sum
 
     def __mul__(self, arg):
-        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
-            raise ArgTypeError("if")
+        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined)  or isinstance(arg, Decimal)):
+            raise ArgTypeError("Must be a numerical value.")
         return Vector(*[self.values[k] * arg for k in range(0, self.dimension)])
 
     def __rmul__(self, arg):
-        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
-            raise ArgTypeError("if")
+        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined)  or isinstance(arg, Decimal)):
+            raise ArgTypeError("Must be a numerical value.")
         return Vector(*[self.values[k] * arg for k in range(0, self.dimension)])
 
     def __truediv__(self, arg):
-        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
-            raise ArgTypeError("if")
+        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined)  or isinstance(arg, Decimal)):
+            raise ArgTypeError("Must be a numerical value.")
         return Vector(*[self.values[k] / arg for k in range(0, self.dimension)])
 
 
     def __floordiv__(self, arg):
-        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
-            raise ArgTypeError("if")
+        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
+            raise ArgTypeError("Must be a numerical value.")
         return Vector(*[self.values[k] // arg for k in range(0, self.dimension)])
 
     def __iadd__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             return Vector(*[self.values[k] + arg for k in range(0, self.dimension)])
         if not isinstance(arg, Vector):
-            raise ArgTypeError("vif")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         return Vector(*[self.values[k] + arg.values[k] for k in range(0, self.dimension)])
 
     def __isub__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             return Vector(*[self.values[k] - arg for k in range(0, self.dimension)])
         if not isinstance(arg, Vector):
-            raise ArgTypeError("vif")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         return Vector(*[self.values[k] - arg.values[k] for k in range(0, self.dimension)])
 
     def __gt__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             sum = 0
             for k in self.values:
                 sum += k * k
@@ -169,7 +157,7 @@ class Vector:
                 return True
             return False
         if not isinstance(arg, Vector):
-            raise ArgTypeError("vif")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         sum = 0
@@ -182,7 +170,8 @@ class Vector:
         return False
 
     def __ge__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             sum = 0
             for k in self.values:
                 sum += k * k
@@ -190,7 +179,7 @@ class Vector:
                 return True
             return False
         if not isinstance(arg, Vector):
-            raise ArgTypeError("vif")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         sum = 0
@@ -203,7 +192,8 @@ class Vector:
         return False
 
     def __lt__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             sum = 0
             for k in self.values:
                 sum += k * k
@@ -211,7 +201,7 @@ class Vector:
                 return True
             return False
         if not isinstance(arg, Vector):
-            raise ArgTypeError("vif")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         sum = 0
@@ -224,7 +214,8 @@ class Vector:
         return False
 
     def __le__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             sum = 0
             for k in self.values:
                 sum += k * k
@@ -232,7 +223,7 @@ class Vector:
                 return True
             return False
         if not isinstance(arg, Vector):
-            raise ArgTypeError("vif")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         sum = 0
@@ -245,13 +236,14 @@ class Vector:
         return False
 
     def __eq__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             for k in self.values:
                 if not (k == arg):
                     return False
             return True
         if not isinstance(arg, Vector):
-            raise ArgTypeError("vif")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         factor = True
@@ -268,42 +260,42 @@ class Vector:
 
     def __and__(self, arg):
         if not isinstance(arg, Vector):
-            raise ArgTypeError("v")
+            raise ArgTypeError("Must be a vector.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         return Vector(*[(self.values[k] and arg.values[k]) for k in range(0, self.dimension)])
 
     def __iand__(self, arg):
         if not isinstance(arg, Vector):
-            raise ArgTypeError("v")
+            raise ArgTypeError("Must be a vector.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         return Vector(*[(self.values[k] and arg.values[k]) for k in range(0, self.dimension)])
 
     def __or__(self, arg):
         if not isinstance(arg, Vector):
-            raise ArgTypeError("v")
+            raise ArgTypeError("Must be a vector.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         return Vector(*[(self.values[k] or arg.values[k]) for k in range(0, self.dimension)])
 
     def __ior__(self, arg):
         if not isinstance(arg, Vector):
-            raise ArgTypeError("v")
+            raise ArgTypeError("Must be a vector.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         return Vector(*[(self.values[k] or arg.values[k]) for k in range(0, self.dimension)])
 
     def __xor__(self, arg):
         if not isinstance(arg, Vector):
-            raise ArgTypeError("v")
+            raise ArgTypeError("Must be a vector.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         return Vector(*[(self.values[k] ^ arg.values[k]) for k in range(0, self.dimension)])
 
     def __ixor__(self, arg):
         if not isinstance(arg, Vector):
-            raise ArgTypeError("v")
+            raise ArgTypeError("Must be a vector.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         return Vector(*[(self.values[k] ^ arg.values[k]) for k in range(0, self.dimension)])
@@ -312,12 +304,13 @@ class Vector:
         return Vector(*[int(not self.values[k]) for k in range(0, self.dimension)])
 
     def append(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             self.values.append(arg)
             self.dimension += 1
             return
         if not isinstance(arg, Vector):
-            raise ArgTypeError("vif")
+            raise ArgTypeError("Must be a numerical value.")
         for k in arg.values:
             self.values.append(k)
         self.dimension += arg.dimension
@@ -342,7 +335,7 @@ class Vector:
 
     def proj(self, arg):
         if not isinstance(arg, Vector):
-            raise ArgTypeError("v")
+            raise ArgTypeError("Must be a vector.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         if not self.dimension:
@@ -371,9 +364,9 @@ class Vector:
         v_list = list()
         for k in args:
             if not isinstance(k, Vector):
-                raise ArgTypeError("v")
+                raise ArgTypeError("Must be a vector.")
             if not (k.dimension == (len(args))):
-                raise ArgumentError
+                raise AmountError
             v_list.append(k)
         for k in range(1, len(v_list)):
             temp = v_list[k]
@@ -390,30 +383,39 @@ class Vector:
                     return False
         return True
 
-    def randVint(dim: int, a: int, b: int):
+    def randVint(dim: int, a: int, b: int, decimal: bool = True):
         if not (isinstance(dim, int) and isinstance(a, int) and isinstance(b, int)):
-            raise ArgTypeError("i")
+            raise ArgTypeError("Must be an integer.")
         if not (dim > 0):
             raise RangeError
-        return Vector(*[random.randint(a, b) for k in range(0, dim)])
+        if decimal:
+            return Vector(*[Decimal(random.randint(a, b)) for k in range(0, dim)])
+        else:
+            return Vector(*[random.randint(a, b) for k in range(0, dim)])
 
-    def randVfloat(dim: int, a: float, b: float):
+    def randVfloat(dim: int, a: float, b: float, decimal: bool = True):
         if not (isinstance(dim, int) and (isinstance(a, int) or isinstance(a, float)) and (isinstance(b, int) or isinstance(b, float))):
-            raise ArgTypeError("if")
+            raise ArgTypeError("Must be a numerical value.")
         if not (dim > 0):
             raise RangeError
-        return Vector(*[random.uniform(a, b) for k in range(0, dim)])
+        if decimal:
+            return Vector(*[Decimal(random.uniform(a, b)) for k in range(0, dim)])
+        else:
+            return Vector(*[random.uniform(a, b) for k in range(0, dim)])
 
-    def randVbool(dim: int):
-        if not isinstance(dim, int): raise ArgTypeError("i")
+    def randVbool(dim: int, decimal: bool = True):
+        if not isinstance(dim, int): raise ArgTypeError("Must be an integer.")
         if not (dim > 0): raise RangeError
-        return Vector(*[random.randrange(0, 2) for k in range(0, dim)])
+        if decimal:
+            return Vector(*[Decimal(random.randrange(0, 2)) for k in range(0, dim)])
+        else:
+            return Vector(*[random.randrange(0, 2) for k in range(0, dim)])
 
     def determinant(*args):
         for k in args:
-            if not isinstance(k, Vector): raise ArgTypeError("v")
+            if not isinstance(k, Vector): raise ArgTypeError("Must be a vector.")
             if not (args[0].dimension == k.dimension): raise DimensionError(0)
-        if not (len(args) == args[0].dimension): raise ArgumentError
+        if not (len(args) == args[0].dimension): raise AmountError
 
         if len(args) == 2 and args[0].dimension == 2:
             return (args[0].values[0] * args[1].values[1]) - (args[0].values[1] * args[1].values[0])
@@ -432,12 +434,12 @@ class Vector:
 
     def cross(*args):
         for k in args:
-            if not isinstance(k, Vector): raise ArgTypeError("v")
+            if not isinstance(k, Vector): raise ArgTypeError("Must be a vector.")
             if not (args[0].dimension == k.dimension): raise DimensionError(0)
 
         if len(args) == 2 and args[0].dimension == 2:
             return args[0].values[0] * args[1].values[1] - args[0].values[1] * args[1].values[0]
-        if not (len(args) == args[0].dimension - 1): raise ArgumentError
+        if not (len(args) == args[0].dimension - 1): raise AmountError
 
         end_list = list()
         for k in range(0, args[0].dimension):
@@ -458,6 +460,7 @@ class Vector:
         return sum
 
     def zero(dim: int):
+        # We use the RangeError because dimension can be 0.
         if dim < 0: raise RangeError()
         return Vector(*[0 for k in range(dim)])
 
@@ -485,7 +488,7 @@ class Matrix:
     def __init__(self, *args):
         for k in args:
             if not isinstance(k, Vector):
-                raise ArgTypeError("v")
+                raise ArgTypeError("Must be a vector.")
             if not (args[0].dimension == k.dimension):
                 raise DimensionError(0)
         self.values = [k.values for k in args]
@@ -502,12 +505,13 @@ class Matrix:
 
     def __add__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             for k in self.values:
                 v.append(Vector(*[l + arg for l in k]))
             return Matrix(*v)
         if not isinstance(arg, Matrix):
-            raise ArgTypeError("ifm")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         for k in range(0, len(self.values)):
@@ -519,20 +523,22 @@ class Matrix:
 
     def __radd__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             for k in self.values:
                 v.append(Vector(*[l + arg for l in k]))
             return Matrix(*v)
-        raise ArgTypeError("ifm")
+        raise ArgTypeError("Must be a numerical value.")
 
     def __iadd__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             for k in self.values:
                 v.append(Vector(*[l + arg for l in k]))
             return Matrix(*v)
         if not isinstance(arg, Matrix):
-            raise ArgTypeError("ifm")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         for k in range(0, len(self.values)):
@@ -544,12 +550,13 @@ class Matrix:
 
     def __sub__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             for k in self.values:
                 v.append(Vector(*[l - arg for l in k]))
             return Matrix(*v)
         if not isinstance(arg, Matrix):
-            raise ArgTypeError("ifm")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         for k in range(0, len(self.values)):
@@ -561,20 +568,22 @@ class Matrix:
 
     def __rsub__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             for k in self.values:
                 v.append(Vector(*[l - arg for l in k]))
             return -Matrix(*v)
-        raise ArgTypeError("ifm")
+        raise ArgTypeError("Must be a numerical value.")
 
     def __isub__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             for k in self.values:
                 v.append(Vector(*[l - arg for l in k]))
             return Matrix(*v)
         if not (type(arg) == Matrix):
-            raise ArgTypeError("ifm")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         for k in range(0, len(self.values)):
@@ -586,7 +595,8 @@ class Matrix:
 
     def __mul__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             for k in self.values:
                 v.append(Vector(*[l * arg for l in k]))
             return Matrix(*v)
@@ -601,7 +611,7 @@ class Matrix:
             return Vector(*v)
 
         if not isinstance(arg, Matrix):
-            raise ArgTypeError("ifmv")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension.split("x")[1] == arg.dimension.split("x")[0]):
             raise DimensionError(0)
         for k in range(0, len(self.values)):
@@ -616,27 +626,30 @@ class Matrix:
 
     def __rmul__(self, arg):
         v = list()
-        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined):
+        if (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
             for k in self.values:
                 v.append(Vector(*[l * arg for l in k]))
             return Matrix(*v)
-        raise ArgTypeError("ifmv")
+        raise ArgTypeError("Must be a numerical value.")
 
     def __neg__(self):
         return Matrix(*[Vector(*[-l for l in k]) for k in self.values])
 
     def __truediv__(self, arg):
         v = list()
-        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
-            raise ArgTypeError("if")
+        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
+            raise ArgTypeError("Must be a numerical value.")
         for k in self.values:
             v.append(Vector(*[l / arg for l in k]))
         return Matrix(*v)
 
     def __floordiv__(self, arg):
         v = list()
-        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
-            raise ArgTypeError("if")
+        if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, complex)
+                or isinstance(arg, Infinity) or isinstance(arg, Undefined) or isinstance(arg, Decimal)):
+            raise ArgTypeError("Must be a numerical value.")
         for k in self.values:
             v.append(Vector(*[l // arg for l in k]))
         return Matrix(*v)
@@ -647,17 +660,22 @@ class Matrix:
             temp *= self
         return temp
 
-    def determinant(arg):
-        if not isinstance(arg, Matrix):
-            raise ArgTypeError("m")
-        if arg.dimension == "1x1":
-            return arg.values[0][0]
-        return Vector.determinant(*[Vector(*k) for k in arg.values])
+    def determinant(self, choice: str = "echelon"):
+        if self.dimension == "1x1":
+            return self.values[0][0]
+        if choice == "analytic":
+            return Vector.determinant(*[Vector(*k) for k in self.values])
+        elif choice == "echelon":
+            a = self.echelon()
+            sum = 1
+            for k in range(0, len(a.values)):
+                sum *= a.values[k][k]
+            return sum
 
     def __or__(self, arg):
         v = list()
         if not isinstance(arg, Matrix):
-            raise ArgTypeError("ifm")
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         for k in range(0, len(self.values)):
@@ -670,7 +688,7 @@ class Matrix:
     def __ior__(self, arg):
         v = list()
         if not isinstance(arg, Matrix):
-            raise ArgTypeError("m")
+            raise ArgTypeError("Must be a matrix.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         for k in range(0, len(self.values)):
@@ -683,7 +701,7 @@ class Matrix:
     def __and__(self, arg):
         v = list()
         if not isinstance(arg, Matrix):
-            raise ArgTypeError("m")
+            raise ArgTypeError("Must be a matrix.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         for k in range(0, len(self.values)):
@@ -696,7 +714,7 @@ class Matrix:
     def __iand__(self, arg):
         v = list()
         if not isinstance(arg, Matrix):
-            raise ArgTypeError("m")
+            raise ArgTypeError("Must be a matrix.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         for k in range(0, len(self.values)):
@@ -709,7 +727,7 @@ class Matrix:
     def __xor__(self, arg):
         v = list()
         if not isinstance(arg, Matrix):
-            raise ArgTypeError("m")
+            raise ArgTypeError("Must be a matrix.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         for k in range(0, len(self.values)):
@@ -722,7 +740,7 @@ class Matrix:
     def __ixor__(self, arg):
         v = list()
         if not isinstance(arg, Matrix):
-            raise ArgTypeError("m")
+            raise ArgTypeError("Must be a matrix.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
         for k in range(0, len(self.values)):
@@ -737,14 +755,14 @@ class Matrix:
 
     def __eq__(self, arg):
         if not isinstance(arg, Matrix):
-            raise ArgTypeError("m")
+            raise ArgTypeError("Must be a matrix.")
         if self.values == arg.values:
             return True
         return False
 
     def append(self, arg):
         if not isinstance(arg, Vector):
-            raise ArgTypeError("v")
+            raise ArgTypeError("Must be a vector.")
         if not len(self.values[0]) == arg.dimension:
             raise DimensionError(0)
         self.values.append(arg.values)
@@ -775,9 +793,12 @@ class Matrix:
             v.append(Vector(*m))
         return Matrix(*v)
 
-    def inverse(self, method: str = "iterative", resolution: int = 10):
-        if method not in ["gauss", "analytic", "iterative", "neumann"]: raise MathArgError()
+    def inverse(self, method: str = "iterative", resolution: int = 10, lowlimit=0.0000000001, highlimit=100000):
+        if method not in ["gauss", "analytic", "iterative", "neumann"]: raise ArgTypeError()
         if resolution < 1: raise RangeError()
+        if not ((isinstance(lowlimit, int) or isinstance(lowlimit, float) or isinstance(lowlimit, Decimal))
+                and (isinstance(highlimit, int) or isinstance(highlimit, float) or isinstance(highlimit, Decimal))):
+            raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension.split("x")[0] == self.dimension.split("x")[1]):
             raise DimensionError(2)
         if self.dimension == "1x1":
@@ -836,6 +857,8 @@ class Matrix:
                                     v[m] = [-z for z in self.values[k]]
                                     i_values[m] = [-z for z in i.values[k]]
 
+
+
             for k in range(0, len(self.values[0])):
                 if v[k][k] == 0:
                     continue
@@ -844,7 +867,7 @@ class Matrix:
                         continue
                     try:
                         factor = (v[l][k]) / (v[k][k])
-                        if abs(factor) < 0.0000000001:
+                        if abs(factor) < lowlimit or abs(factor) > highlimit:
                             factor = 0
                         factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
                         factored_list_i = [i_values[l][m] - (factor * i_values[k][m]) for m in
@@ -866,7 +889,7 @@ class Matrix:
                         continue
                     try:
                         factor = (v[l][k]) / (v[k][k])
-                        if abs(factor) < 0.0000000001:
+                        if abs(factor) < lowlimit or abs(factor) > highlimit:
                             factor = 0
                         factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
                         factored_list_i = [iden_values[l][m] - (factor * iden_values[k][m]) for m in
@@ -887,7 +910,7 @@ class Matrix:
                         continue
                     try:
                         factor = (v[l][k]) / (v[k][k])
-                        if abs(factor) < 0.0000000001:
+                        if abs(factor) < lowlimit or abs(factor) > highlimit:
                             factor = 0
                         factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
                         factored_list_i = [iden_values[l][m] - (factor * iden_values[k][m]) for m in
@@ -899,10 +922,10 @@ class Matrix:
 
             for k in range(len(self.values[0])):
                 try:
-                    iden_values[k] = list(map(lambda x: x if (abs(x) > 0.00000001) else 0,
+                    iden_values[k] = list(map(lambda x: x if (abs(x) > lowlimit) else 0,
                                               [iden_values[k][l] / v[k][k] for l in range(len(self.values[0]))]))
 
-                except ZeroDivisionError:
+                except:
                     pass
 
             return Matrix(*[Vector(*k) for k in iden_values])
@@ -933,7 +956,7 @@ class Matrix:
             return guess
 
         elif method == "neumann":
-            # dont forget to calibrate the resolution here
+            # don't forget to calibrate the resolution here
             sum = Matrix.zero(len(self.values))
             block = Matrix.identity(len(self.values)) - self
 
@@ -945,65 +968,102 @@ class Matrix:
 
             return sum
 
-    def identity(dim: int):
+    def identity(dim: int, decimal: bool = True):
         if dim <= 0:
             raise RangeError()
         v = list()
-        for k in range(0, dim):
-            temp = [0] * dim
-            temp[k] = 1
-            v.append(Vector(*temp))
+        if decimal:
+            for k in range(0, dim):
+                temp = [Decimal(0)] * dim
+                temp[k] = Decimal(1)
+                v.append(Vector(*temp))
+        else:
+            for k in range(0, dim):
+                temp = [0] * dim
+                temp[k] = 1
+                v.append(Vector(*temp))
         return Matrix(*v)
 
-    def zero(dim: int):
+    def zero(dim: int, decimal: bool = True):
         if dim <= 0:
             raise RangeError()
         v = list()
-        for k in range(0, dim):
-            temp = [0] * dim
-            v.append(Vector(*temp))
+        if decimal:
+            for k in range(0, dim):
+                temp = [Decimal(0)] * dim
+                v.append(Vector(*temp))
+        else:
+            for k in range(0, dim):
+                temp = [0] * dim
+                v.append(Vector(*temp))
         return Matrix(*v)
 
-    def one(dim: int):
+    def one(dim: int, decimal: bool = True):
         if dim <= 0:
             raise RangeError()
         v = list()
-        for k in range(0, dim):
-            temp = [1] * dim
-            v.append(Vector(*temp))
+        if decimal:
+            for k in range(0, dim):
+                temp = [Decimal(1)] * dim
+                v.append(Vector(*temp))
+        else:
+            for k in range(0, dim):
+                temp = [1] * dim
+                v.append(Vector(*temp))
         return Matrix(*v)
 
-    def randMint(m: int, n: int, a: int, b: int):
+    def randMint(m: int, n: int, a: int, b: int, decimal: bool = True):
         if m <= 0 or n <= 0:
-            raise RangeError
+            raise RangeError()
         v = list()
-        for k in range(0, m):
-            temp = list()
-            for l in range(0, n):
-                temp.append(random.randint(a, b))
-            v.append(Vector(*temp))
+        if decimal:
+            for k in range(0, m):
+                temp = list()
+                for l in range(0, n):
+                    temp.append(Decimal(random.randint(a, b)))
+                v.append(Vector(*temp))
+        else:
+            for k in range(0, m):
+                temp = list()
+                for l in range(0, n):
+                    temp.append(random.randint(a, b))
+                v.append(Vector(*temp))
         return Matrix(*v)
 
-    def randMfloat(m: int, n: int, a: float, b: float):
+    def randMfloat(m: int, n: int, a: float, b: float, decimal: bool = True):
         if m <= 0 or n <= 0:
-            raise RangeError
+            raise RangeError()
         v = list()
-        for k in range(0, m):
-            temp = list()
-            for l in range(0, n):
-                temp.append(random.uniform(a, b))
-            v.append(Vector(*temp))
+        if decimal:
+            for k in range(0, m):
+                temp = list()
+                for l in range(0, n):
+                    temp.append(Decimal(random.uniform(a, b)))
+                v.append(Vector(*temp))
+        else:
+            for k in range(0, m):
+                temp = list()
+                for l in range(0, n):
+                    temp.append(random.uniform(a, b))
+                v.append(Vector(*temp))
         return Matrix(*v)
 
-    def randMbool(m: int, n: int):
+    def randMbool(m: int, n: int, decimal: bool = True):
         if m <= 0 or n <= 0:
-            raise RangeError
+            raise RangeError()
         v = list()
-        for k in range(0, m):
-            temp = list()
-            for l in range(0, n):
-                temp.append(random.randint(0, 1))
-            v.append(Vector(*temp))
+        if decimal:
+            for k in range(0, m):
+                temp = list()
+                for l in range(0, n):
+                    temp.append(Decimal(random.randint(0, 1)))
+                v.append(Vector(*temp))
+        else:
+            for k in range(0, m):
+                temp = list()
+                for l in range(0, n):
+                    temp.append(random.randint(0, 1))
+                v.append(Vector(*temp))
         return Matrix(*v)
 
     def echelon(self):
@@ -1062,122 +1122,9 @@ class Matrix:
                                 end_list[m] = [-z for z in v[k]]
         return Matrix(*[Vector(*k) for k in end_list])
 
-    def det_echelon(self):
-        a = self.echelon()
-        if not a.dimension.split("x")[0] == a.dimension.split("x")[1]:
-            return
-        sum = 1
-        for k in range(0, len(a.values)):
-            sum *= a.values[k][k]
-        return sum
-
-    def fast_inverse(self):
-        i = Matrix.identity(len(self.values))
-        i_values = i.values.copy()
-        v = self.values.copy()
-        taken_list = []
-        taken_list_i = []
-        counter = 0
-
-        for k in range(0, len(self.values)):
-            for l in range(0, len(self.values[0])):
-                if not self.values[k][l] == 0 and l not in taken_list:
-                    v[l] = self.values[k]
-                    i_values[l] = i.values[k]
-                    counter += 1
-                    if not l == k and counter % 2 == 0:
-                        v[l] = [-z for z in self.values[k]]
-                        i_values[l] = [-z for z in i.values[k]]
-                    else:
-                        v[l] = self.values[k]
-                        i_values[l] = i.values[k]
-                    taken_list.append(l)
-                    taken_list_i.append(l)
-                    break
-                elif not self.values[k][l] == 0 and l in taken_list:
-                    for m in range(l, len(self.values)):
-                        if m not in taken_list:
-                            v[m] = self.values[k]
-                            i_values[m] = i.values[k]
-                            counter += 1
-                            if not m == k and counter % 2 == 0:
-                                v[m] = [-z for z in self.values[k]]
-                                i_values[m] = [-z for z in i.values[k]]
-
-        for k in range(0, len(self.values[0])):
-            if v[k][k] == 0:
-                continue
-            for l in range(0, len(self.values)):
-                if l == k:
-                    continue
-                try:
-                    factor = (v[l][k]) / (v[k][k])
-                    if abs(factor) < 0.0000000001:
-                        factor = 0
-                    factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
-                    factored_list_i = [i_values[l][m] - (factor * i_values[k][m]) for m in
-                                       range(0, len(self.values[0]))]
-                    v[l] = factored_list
-                    i_values[l] = factored_list_i
-                except ZeroDivisionError:
-                    continue
-
-        v = v[::-1]
-        iden_values = i_values.copy()
-        iden_values = iden_values[::-1]
-
-        for k in range(0, len(self.values[0])):
-            if v[k][k] == 0:
-                continue
-            for l in range(0, len(self.values)):
-                if l == k:
-                    continue
-                try:
-                    factor = (v[l][k]) / (v[k][k])
-                    if abs(factor) < 0.0000000001:
-                        factor = 0
-                    factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
-                    factored_list_i = [iden_values[l][m] - (factor * iden_values[k][m]) for m in
-                                       range(0, len(self.values[0]))]
-                    v[l] = factored_list
-                    iden_values[l] = factored_list_i
-                except ZeroDivisionError:
-                    continue
-
-        iden_values = iden_values[::-1].copy()
-        v = v[::-1].copy()
-
-        for k in range(0, len(self.values[0])):
-            if v[k][k] == 0:
-                continue
-            for l in range(0, len(self.values)):
-                if l == k:
-                    continue
-                try:
-                    factor = (v[l][k]) / (v[k][k])
-                    if abs(factor) < 0.0000000001:
-                        factor = 0
-                    factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
-                    factored_list_i = [iden_values[l][m] - (factor * iden_values[k][m]) for m in
-                                       range(0, len(self.values[0]))]
-                    v[l] = factored_list
-                    iden_values[l] = factored_list_i
-                except ZeroDivisionError:
-                    continue
-
-        for k in range(len(self.values[0])):
-            try:
-                iden_values[k] = list(map(lambda x: x if (abs(x) > 0.00000001) else 0,
-                                          [iden_values[k][l] / v[k][k] for l in range(len(self.values[0]))]))
-
-            except ZeroDivisionError:
-                pass
-
-        return Matrix(*[Vector(*k) for k in iden_values])
-
     def cramer(a, number: int):
         if not isinstance(a, Matrix):
-            raise ArgTypeError("im")
+            raise ArgTypeError("Must be a numerical value.")
         if not number < len(a.values[0]) - 1 or number < 0:
             raise RangeError
         v = list()
@@ -1189,14 +1136,14 @@ class Matrix:
                 else:
                     m.append(a.values[k][len(a.values[0]) - 1])
             v.append(Vector(*m))
-        first = Matrix(*v).det_echelon()
+        first = Matrix(*v).determinant()
         v.clear()
         for k in range(0, len(a.values)):
             m = list()
             for l in range(0, len(a.values[0]) - 1):
                 m.append(a.values[k][l])
             v.append(Vector(*m))
-        second = Matrix(*v).det_echelon()
+        second = Matrix(*v).determinant()
         try:
             sol = first/second
         except ZeroDivisionError:
@@ -1213,7 +1160,7 @@ class Matrix:
         return sum
 
     def reshape(self, *args):
-        if not (0 < len(args) < 3): raise ArgumentError()
+        if not (0 < len(args) < 3): raise AmountError()
         for k in args:
             if not isinstance(k, int): raise RangeError()
             if k <= 0: raise RangeError()
@@ -1283,8 +1230,11 @@ class Matrix:
 
 
 
-def Range(low: int or float, high: int or float, step: float = 1):
-    if not ((high < low) ^ (step > 0)): raise MathRangeError()
+def Range(low, high, step=Decimal(1)):
+    if not (isinstance(low, int) or isinstance(low, float) or isinstance(low, Decimal) or isinstance(low, Infinity)
+            or isinstance(high, int) or isinstance(high, float) or isinstance(high, Decimal) or isinstance(high, Infinity)):
+        raise ArgTypeError("Must be a numerical value.")
+    if not ((high < low) ^ (step > 0)): raise RangeError()
 
     """
     A lazy implementation for creating ranges.
@@ -1301,7 +1251,9 @@ def Range(low: int or float, high: int or float, step: float = 1):
         yield low
         low += step
 
-def abs(arg: int or float) -> int or float:
+def abs(arg):
+    if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal) or isinstance(arg, Infinity)):
+        raise ArgTypeError("Must be a numerical value.")
     """
     Basic absolute value function
 
@@ -1321,8 +1273,8 @@ def sqrt(arg, resolution: int = 10):
     :param resolution: Number of iterations
     :return: float or complex
     """
-    if isinstance(arg, int) or isinstance(arg, float):
-        if resolution < 1: raise MathRangeError("Resolution must be a positive integer")
+    if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal):
+        if resolution < 1: raise RangeError("Resolution must be a positive integer")
         c = True if arg >= 0 else False
         arg = abs(arg)
         digits = 0
@@ -1343,7 +1295,7 @@ def sqrt(arg, resolution: int = 10):
         return complex(0, estimate)
     if isinstance(arg, complex):
         return arg.sqrt()
-    raise MathArgError()
+    raise ArgTypeError()
 
 def cumsum(arg: list or tuple) -> int or float:
     """
@@ -1359,9 +1311,9 @@ def cumsum(arg: list or tuple) -> int or float:
             sum += k
         return sum
     except:
-        raise MathArgError("Elements of arg must be numerical")
+        raise ArgTypeError("Elements of arg must be numerical")
 
-def __cumdiv(x: int or float, power: int) -> float:
+def __cumdiv(x, power: int):
     """
     This is for lossless calculation of Taylor
     series.
@@ -1370,12 +1322,15 @@ def __cumdiv(x: int or float, power: int) -> float:
     :param power: power
     :return: Returns x^power/(power!)
     """
+    if not (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal)):
+        raise ArgTypeError("Must be a numerical value.")
+
     result: float = 1
     for k in range(power, 0, -1):
         result *= x / k
     return result
 
-def e(exponent: int or float, resolution: int = 15) -> float:
+def e(exponent, resolution: int = 15):
     """
     e^x function.
 
@@ -1383,13 +1338,16 @@ def e(exponent: int or float, resolution: int = 15) -> float:
     :param resolution: Up to which exponent Taylor series will continue.
     :return: e^x
     """
-    if resolution < 1: raise MathRangeError("Resolution must be a positive integer")
+    if resolution < 1: raise RangeError("Resolution must be a positive integer")
+    if not (isinstance(exponent, int) or isinstance(exponent, float) or isinstance(exponent, Decimal)): raise ArgTypeError(
+        "Must be a numerical value.")
+
     sum = 1
     for k in range(resolution, 0, -1):
         sum += __cumdiv(exponent, k)
     return sum
 
-def sin(angle: int or float, resolution: int = 15) -> float:
+def sin(angle, resolution: int = 15):
     """
     sin(x) using Taylor series. Input is in degrees.
 
@@ -1397,7 +1355,9 @@ def sin(angle: int or float, resolution: int = 15) -> float:
     :param resolution: Up to which exponent Taylor series will continue.
     :return: sin(angle)
     """
-    if not (resolution % 2) or resolution < 1: raise MathRangeError("Resolution must be a positive integer")
+    if not (resolution % 2) or resolution < 1: raise RangeError("Resolution must be a positive integer")
+    if not (isinstance(angle, int) or isinstance(angle, float) or isinstance(angle, Decimal)):
+        raise ArgTypeError("Must be a numerical value.")
 
     radian: float = (2 * PI * (angle % 360 / 360)) % (2 * PI)
     result: float = 0
@@ -1406,7 +1366,7 @@ def sin(angle: int or float, resolution: int = 15) -> float:
         result = result + __cumdiv(radian, k) * pow(-1, (k - 1) / 2)
     return result
 
-def cos(angle: int or float, resolution: int = 16) -> float:
+def cos(angle, resolution: int = 16):
     """
     cos(x) using Taylor series. Input is in degrees.
 
@@ -1414,7 +1374,10 @@ def cos(angle: int or float, resolution: int = 16) -> float:
     :param resolution: Up to which exponent Taylor series will continue.
     :return: cos(angle)
     """
-    if (resolution % 2) or resolution < 1: raise MathRangeError("Resolution must be a positive integer")
+    if (resolution % 2) or resolution < 1: raise RangeError("Resolution must be a positive integer")
+    if not (isinstance(angle, int) or isinstance(angle, float) or isinstance(angle, Decimal)):
+        raise ArgTypeError("Must be a numerical value.")
+
     radian: float = (2 * PI * (angle % 360 / 360)) % (2 * PI)
     result: float = 1
 
@@ -1422,7 +1385,7 @@ def cos(angle: int or float, resolution: int = 16) -> float:
         result = result + __cumdiv(radian, k) * pow(-1, k / 2)
     return result
 
-def tan(angle: int or float, resolution: int = 16):
+def tan(angle, resolution: int = 16):
     """
     tan(x) using Taylor series. Input is in degrees.
 
@@ -1430,7 +1393,7 @@ def tan(angle: int or float, resolution: int = 16):
     :param resolution: Up to which exponent Taylor series will continue.
     :return: tan(angle)
     """
-    if (resolution % 2) or resolution < 1: raise MathRangeError("Resolution must be a positive integer")
+    if (resolution % 2) or resolution < 1: raise RangeError("Resolution must be a positive integer")
     try:
         return sin(angle, resolution - 1) / cos(angle, resolution)
         # Because of the error amount, probably cos will never be zero.
@@ -1439,7 +1402,7 @@ def tan(angle: int or float, resolution: int = 16):
         if 90 >= (angle % 360) >= 0 or 270 >= (angle % 360) >= 180: return Infinity()
         return Infinity(False)
 
-def cot(angle: int or float, resolution: int = 16):
+def cot(angle, resolution: int = 16):
     """
     cot(x) using Taylor series. Input is in degrees.
 
@@ -1452,27 +1415,27 @@ def cot(angle: int or float, resolution: int = 16):
     except ZeroDivisionError:
         return None
 
-def sinh(x: int or float, resolution: int = 15) -> float:
+def sinh(x, resolution: int = 15):
     return (e(x, resolution) - e(-x, resolution)) / 2
 
-def cosh(x: int or float, resolution: int = 15) -> float:
+def cosh(x, resolution: int = 15):
     return (e(x, resolution) + e(-x, resolution)) / 2
 
-def tanh(x: int or float, resolution: int = 15):
+def tanh(x, resolution: int = 15):
     try:
         return sinh(x, resolution) / cosh(x, resolution)
         # Indeed cosh is non-negative
     except ZeroDivisionError:
         return None
 
-def coth(x: int or float, resolution: int = 15):
+def coth(x, resolution: int = 15):
     try:
         return cosh(x, resolution) / sinh(x, resolution)
     except ZeroDivisionError:
         if x >= 0: return Infinity()
         return Infinity(False)
 
-def arcsin(x: int or float, resolution: int = 20) -> float:
+def arcsin(x, resolution: int = 20):
     """
     A Taylor series implementation of arcsin.
 
@@ -1480,8 +1443,10 @@ def arcsin(x: int or float, resolution: int = 20) -> float:
     :param resolution: Resolution of operation
     :return: angle
     """
-    if not (-1 <= x <= 1): raise MathRangeError()
-    if resolution < 1: raise MathRangeError("Resolution must be a positive integer")
+    if not (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal)): raise ArgTypeError(
+        "Must be a numerical value.")
+    if not (-1 <= x <= 1): raise RangeError()
+    if resolution < 1: raise RangeError("Resolution must be a positive integer")
     c = 1
     sol = x
     for k in range(1, resolution):
@@ -1490,12 +1455,18 @@ def arcsin(x: int or float, resolution: int = 20) -> float:
     return sol * 360 / (2 * PI)
 
 def arccos(x: int or float, resolution: int = 20) -> float:
-    if not (-1 <= x <= 1): raise MathRangeError()
-    if resolution < 1: raise MathRangeError("Resolution must be a positive integer")
+    if not (-1 <= x <= 1): raise RangeError()
+    if resolution < 1: raise RangeError("Resolution must be a positive integer")
 
     return 90 - arcsin(x, resolution)
 
-def __find(f, low: int or float, high: int or float, search_step: int or float, res: float = 0.0001):
+def __find(f, low, high, search_step, res=Decimal(0.0001)):
+    if not ((isinstance(low, int) or isinstance(low, float) or isinstance(low, Decimal))
+            and (isinstance(high, int) or isinstance(high, float) or isinstance(high, Decimal))
+            and (isinstance(search_step, int) or isinstance(search_step, float) or isinstance(search_step, Decimal))
+            and (isinstance(res, int) or isinstance(res, float) or isinstance(res, Decimal))):
+        raise ArgTypeError("Must be a numerical value.")
+
     global results
     last_sign: bool = True if (f(low) >= 0) else False
     for x in Range(low, high, search_step):
@@ -1512,8 +1483,8 @@ def __find(f, low: int or float, high: int or float, search_step: int or float, 
                 results[get] = True
                 return get
 
-def solve(f, low: int or float = -50, high: int or float = 50, search_step: int or float = 0.1,
-          res: float = 0.0001) -> list:
+def solve(f, low=-50, high=50, search_step=0.1,
+          res=Decimal(0.0001)) -> list:
     """
     Solves the equation f(x) = 0. Utilizes thread pool and some logging.
 
@@ -1524,13 +1495,19 @@ def solve(f, low: int or float = -50, high: int or float = 50, search_step: int 
     :param res: Search resolution
     :return: List of zeroes (may be incomplete)
     """
+    if not ((isinstance(low, int) or isinstance(low, float) or isinstance(low, Decimal))
+            and (isinstance(high, int) or isinstance(high, float) or isinstance(high, Decimal))
+            and (isinstance(search_step, int) or isinstance(search_step, float) or isinstance(search_step, Decimal))
+            and (isinstance(res, int) or isinstance(res, float) or isinstance(res, Decimal))):
+        raise ArgTypeError("Must be a numerical value.")
+
     # I couldn't find any other way to check it
     if str(type(f)) != "<class 'function'>" and str(
-        type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError("f must be a callable")
+        type(f)) != "<class 'builtin_function_or_method'>": raise ArgTypeError("f must be a callable")
 
-    if high <= low: raise MathRangeError()
-    if search_step <= 0: raise MathRangeError()
-    if res <= 0 or res >= 1: raise MathRangeError()
+    if high <= low: raise RangeError()
+    if search_step <= 0: raise RangeError()
+    if res <= 0 or res >= 1: raise RangeError()
 
     zeroes: list = []
     thread_list: list = []
@@ -1564,15 +1541,23 @@ def solve(f, low: int or float = -50, high: int or float = 50, search_step: int 
 
     return zeroes
 
-def derivative(f, x: int or float, h: float = 0.0000000001) -> float:
+def derivative(f, x, h=0.0000000001):
+    if not ((isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal))
+            and (isinstance(h, int) or isinstance(h, float) or isinstance(h, Decimal))):
+        raise ArgTypeError("Must be a numerical value.")
     if str(type(f)) != "<class 'function'>" and str(
-        type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError("f must be a callable")
+        type(f)) != "<class 'builtin_function_or_method'>": raise ArgTypeError("f must be a callable")
 
     return (f(x + h) - f(x)) / h
 
-def integrate(f, a: int or float, b: int or float, delta: float = 0.01) -> float:
+def integrate(f, a, b, delta=0.01):
+    if not ((isinstance(a, int) or isinstance(a, float) or isinstance(a, Decimal))
+            and (isinstance(b, int) or isinstance(b, float) or isinstance(b, Decimal))
+            and (isinstance(delta, int) or isinstance(delta, float) or isinstance(delta, Decimal))):
+        raise ArgTypeError("Must be a numerical value.")
+
     if str(type(f)) != "<class 'function'>" and str(
-        type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError("f must be a callable")
+        type(f)) != "<class 'builtin_function_or_method'>": raise ArgTypeError("f must be a callable")
 
     if a == b:
         return .0
@@ -1611,7 +1596,7 @@ def matmul(m1, m2, max: int = 10):
     :param m2: Matrix or Vector
     :return: m1 * m2
     """
-    if not (isinstance(m1, Matrix) and isinstance(m2, Matrix)): raise MathArgError()
+    if not (isinstance(m1, Matrix) and isinstance(m2, Matrix)): raise ArgTypeError()
     a, b = [int(k) for k in m1.dimension.split("x")]
     data = {}
     m1values = m1.values
@@ -1639,7 +1624,7 @@ def matmul(m1, m2, max: int = 10):
             pass
     return Matrix(*[Vector(*data[k]) for k in range(a)])
 
-def findsol(f, x: int = 0, resolution: int = 15) -> float:
+def findsol(f, x=0, resolution: int = 15):
     """
     Finds a singular solution at a time with Newton's method.
 
@@ -1649,8 +1634,8 @@ def findsol(f, x: int = 0, resolution: int = 15) -> float:
     :return: The found/guessed solution of the function
     """
     if str(type(f)) != "<class 'function'>" and str(
-        type(f)) != "<class 'builtin_function_or_method'>": raise MathArgError("f must be a callable")
-    if resolution < 1: raise MathRangeError("Resolution must be a positive integer")
+        type(f)) != "<class 'builtin_function_or_method'>": raise ArgTypeError("f must be a callable")
+    if resolution < 1: raise RangeError("Resolution must be a positive integer")
 
     for k in range(resolution):
         try:
@@ -1662,6 +1647,71 @@ def findsol(f, x: int = 0, resolution: int = 15) -> float:
                 x = Infinity()
 
     return x
+
+def sigmoid(x, a=1):
+    if not((isinstance(a, int) or isinstance(a, float) or isinstance(a, Decimal) or isinstance(a, Infinity))
+           and (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal) or isinstance(x, Infinity))):
+        raise ArgTypeError("Must be a numerical value.")
+    return 1 / (1 + e(-a*x))
+
+def Sum(f, a, b, step=Decimal(0.01), control: bool = False, limit=Decimal(0.000001)):
+    # Yes, with infinities this can blow up. It is the users problem to put infinities in.
+    if not ((isinstance(a, int) or isinstance(a, float) or isinstance(a, Decimal) or isinstance(a, Infinity))
+            and (isinstance(b, int) or isinstance(b, float) or isinstance(b, Decimal) or isinstance(b, Infinity))
+            and (isinstance(step, int) or isinstance(step, float) or isinstance(step, Decimal) or isinstance(step, Infinity))
+            and (isinstance(limit, int) or isinstance(limit, float) or isinstance(limit, Decimal) or isinstance(limit, Infinity))):
+        raise ArgTypeError("Must be a numerical value.")
+    if not b >= a:
+        raise RangeError()
+
+    result = 0
+    if control:
+        for x in Range(a, b, step):
+            if abs(derivative(f, x, x + step)) <= limit:
+                return result
+            result += f(x)
+    else:
+        for x in Range(a, b, step):
+            result += f(x)
+        return result
+
+
+def mode(arg):
+    if isinstance(arg, tuple) or isinstance(arg, list):
+        max = [None, Infinity(False)]
+        counts = {k: 0 for k in arg}
+        for element in arg:
+            counts[element] += 1
+            if counts[element] >= max[1]:
+                max[0] = element
+                max[1] = counts[element]
+        return max[0]
+    if isinstance(arg, Vector):
+        max = [None, Infinity(False)]
+        counts = {k: 0 for k in arg.values}
+        for element in arg.values:
+            counts[element] += 1
+            if counts[element] >= max[1]:
+                max[0] = element
+                max[1] = counts[element]
+        return max[0]
+    if isinstance(arg, Matrix):
+        max = [None, Infinity(False)]
+        counts = {}
+        for k in arg.values:
+            for l in k.values:
+                counts[l] = 0
+
+        for k in arg.values:
+            for l in k.values:
+                counts[l] += 1
+                if counts[l] >= max[1]:
+                    max[0] = l
+                    max[1] = l
+
+        return max[0]
+    raise ArgTypeError()
+
 
 def mean(arg) -> float:
     if isinstance(arg, tuple) or isinstance(arg, list) or isinstance(arg, Vector):
@@ -1682,10 +1732,10 @@ def mean(arg) -> float:
             sum += v
             count += 1
         return sum / count
-    raise MathArgError()
+    raise ArgTypeError()
 
 def expectation(values, probabilities, moment: int = 1) -> float:
-    if moment < 0: raise MathRangeError()
+    if moment < 0: raise RangeError()
     if (isinstance(values, list) or isinstance(values, tuple) or isinstance(values, Vector)) \
         and (isinstance(probabilities, list) or isinstance(probabilities, tuple) or isinstance(probabilities, Vector)):
         if len(values) != len(probabilities): raise DimensionError(0)
@@ -1694,7 +1744,7 @@ def expectation(values, probabilities, moment: int = 1) -> float:
         for k in range(len(values)):
             sum += (values[k]**moment) * probabilities[k]
         return sum
-    raise MathArgError("Arguments must be one dimensional iterables")
+    raise ArgTypeError("Arguments must be one dimensional iterables")
 
 def variance(values, probabilities) -> float:
     if (isinstance(values, list) or isinstance(values, tuple) or isinstance(values, Vector)) \
@@ -1706,7 +1756,7 @@ def variance(values, probabilities) -> float:
         for k in range(len(values)):
             sum += (values[k]**2) * probabilities[k] - values[k] * probabilities[k]
         return sum
-    raise MathArgError("Arguments must be one dimensional iterables")
+    raise ArgTypeError("Arguments must be one dimensional iterables")
 
 def sd(values, probabilities) -> float:
     if (isinstance(values, list) or isinstance(values, tuple) or isinstance(values, Vector)) \
@@ -1718,22 +1768,22 @@ def sd(values, probabilities) -> float:
         for k in range(len(values)):
             sum += (values[k]**2) * probabilities[k] - values[k] * probabilities[k]
         return sqrt(sum)
-    raise MathArgError("Arguments must be one dimensional iterables")
+    raise ArgTypeError("Arguments must be one dimensional iterables")
 
 def factorial(x: int = 0) -> int:
-    if x < 0: raise MathRangeError()
+    if x < 0: raise RangeError()
     if x <= 1: return 1
     return x * factorial(x - 1)
 
 def permutation(x: int = 1, y: int = 1) -> int:
-    if x < 1 or y < 1 or y > x: raise MathRangeError()
+    if x < 1 or y < 1 or y > x: raise RangeError()
     result = 1
     for v in range(y + 1, x + 1):
         result *= v
     return result
 
 def combination(x: int = 0, y: int = 0) -> int:
-    if x < 0 or y < 0 or y > x: raise MathRangeError()
+    if x < 0 or y < 0 or y > x: raise RangeError()
     result = 1
     count = 1
     for v in range(y + 1, x + 1):
@@ -1744,10 +1794,10 @@ def combination(x: int = 0, y: int = 0) -> int:
 def multinomial(n: int = 0, *args) -> int:
     sum = 0
     for k in args:
-        if not isinstance(k, int): raise MathArgError()
-        if k < 0: raise MathRangeError()
+        if not isinstance(k, int): raise ArgTypeError()
+        if k < 0: raise RangeError()
         sum += k
-    if sum != n: raise MathRangeError("Sum of partitions must be equal to n")
+    if sum != n: raise RangeError("Sum of partitions must be equal to n")
     result = 1
     while n != 1:
         result *= n
@@ -1757,26 +1807,36 @@ def multinomial(n: int = 0, *args) -> int:
         n -= 1
     return result
 
-def binomial(n: int, k: int, p: float) -> float:
-    if p < 0 or p > 1: raise MathRangeError("Probability cannot be negative or bigger than 1")
+def binomial(n: int, k: int, p):
+    if not (isinstance(p, int) or isinstance(p, float) or isinstance(p, Decimal)):
+        raise ArgTypeError("Must be a numerical value.")
+    if p < 0 or p > 1: raise RangeError("Probability cannot be negative or bigger than 1")
     return combination(n, k) * pow(p, k) * pow(1 - p, k)
 
-def geometrical(n: int, p: float):
-    if p < 0 or p > 1: raise MathRangeError("Probability cannot be negative or bigger than 1")
-    if n < 0: raise MathRangeError("Trial number cannot be negative")
+def geometrical(n: int, p):
+    if not (isinstance(p, int) or isinstance(p, float) or isinstance(p, Decimal)):
+        raise ArgTypeError("Must be a numerical value.")
+    if p < 0 or p > 1: raise RangeError("Probability cannot be negative or bigger than 1")
+    if n < 0: raise RangeError("Trial number cannot be negative")
     if n == 0: return Undefined()
     return p * pow(1 - p, n - 1)
 
-def poisson(k: int or float, l: int or float) -> float:
-    if l < 0 or k < 0: raise MathRangeError()
+def poisson(k, l):
+    if not ((isinstance(k, int) or isinstance(k, float) or isinstance(k, Decimal))
+            and (isinstance(l, int) or isinstance(l, float) or isinstance(l, Decimal))):
+        raise ArgTypeError("Must be a numerical value.")
+    if l < 0 or k < 0: raise RangeError()
     return pow(l, k) * e(-l) / factorial(k)
 
-def linear_fit(x, y, rate: int or float = 0.01, iterations: int = 15) -> tuple:
+def linear_fit(x, y, rate=Decimal(0.01), iterations: int = 15) -> tuple:
     if not (isinstance(x, list) or isinstance(x, tuple) or isinstance(x, Vector))\
-            and (isinstance(y, list) or isinstance(y, tuple) or isinstance(y, Vector)): raise MathArgError("Arguments must be one dimensional iterables")
-
-    if iterations < 1: raise MathRangeError()
+            and (isinstance(y, list) or isinstance(y, tuple) or isinstance(y, Vector)):
+        raise ArgTypeError("Arguments must be one dimensional iterables")
+    if not (isinstance(rate, int) or isinstance(rate, float) or isinstance(rate, Decimal)):
+        raise ArgTypeError("Must be a numerical value.")
+    if iterations < 1: raise RangeError()
     if len(x) != len(y): raise DimensionError(0)
+
     N = len(x)
     b0 = 1
     b1 = 1
@@ -1790,10 +1850,12 @@ def linear_fit(x, y, rate: int or float = 0.01, iterations: int = 15) -> tuple:
         b1 = b1 - rate * (-2 * sum2 / N)
     return b0, b1
 
-def general_fit(x, y, rate: int or float = 0.0000002, iterations: int = 15, degree: int = 1) -> Vector:
+def general_fit(x, y, rate=Decimal(0.0000002), iterations: int = 15, degree: int = 1) -> Vector:
     if (not (isinstance(x, list) or isinstance(x, tuple) or isinstance(x, Vector))
-            and (isinstance(y, list) or isinstance(y, tuple) or isinstance(y, Vector))): raise MathArgError("Arguments must be one dimensional iterables")
-    if iterations < 1 or degree < 1: raise MathRangeError()
+            and (isinstance(y, list) or isinstance(y, tuple) or isinstance(y, Vector))): raise ArgTypeError("Arguments must be one dimensional iterables")
+    if not (isinstance(rate, int) or isinstance(rate, float) or isinstance(rate, Decimal)):
+        raise ArgTypeError("Must be a numerical value.")
+    if iterations < 1 or degree < 1: raise RangeError()
     if len(x) != len(y): raise DimensionError(0)
 
     # Preprocess
@@ -1822,8 +1884,9 @@ class complex:
     def __init__(self, real=0, imaginary=0):
         # Initialization is erroneous when expressions with infinities result in NoneTypes
         if ((not isinstance(real, int)) and (not isinstance(real, float)) and (not isinstance(imaginary, int))
-                and (not isinstance(imaginary, float)) and (not isinstance(real, Infinity))
-                and (not isinstance(imaginary, Infinity)) and (not isinstance(real, Undefined)) and (not isinstance(imaginary, Undefined))): raise MathArgError()
+                and (not isinstance(imaginary, float)) and (not isinstance(real, Infinity)) and (not isinstance(real, Decimal))
+                and (not isinstance(imaginary, Infinity)) and (not isinstance(real, Undefined)) and (not isinstance(imaginary, Undefined))
+                and (not isinstance(imaginary, Decimal))): raise ArgTypeError()
         self.real = real
         self.imaginary = imaginary
 
@@ -1839,19 +1902,20 @@ class complex:
 
     def __add__(self, arg):
         if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
-                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
 
         if isinstance(arg, complex):
             return complex(self.real + arg.real, self.imaginary + arg.imaginary)
         return complex(self.real + arg, self.imaginary)
 
     def __radd__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity))
+                and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
         return complex(self.real + arg, self.imaginary)
 
     def __iadd__(self, arg):
         if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
-                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
 
         if isinstance(arg, complex):
             self.real += arg.real
@@ -1862,19 +1926,20 @@ class complex:
 
     def __sub__(self, arg):
         if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
-                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
 
         if isinstance(arg, complex):
             return complex(self.real - arg.real, self.imaginary - arg.imaginary)
         return complex(self.real - arg, self.imaginary)
 
     def __rsub__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity))
+                and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
         return -complex(self.real - arg, self.imaginary)
 
     def __isub__(self, arg):
         if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
-                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
 
         if isinstance(arg, complex):
             self.real -= arg.real
@@ -1885,7 +1950,7 @@ class complex:
 
     def __mul__(self, arg):
         if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
-                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
 
         if isinstance(arg, complex):
             return complex(self.real * arg.real - self.imaginary * arg.imaginary,
@@ -1893,12 +1958,13 @@ class complex:
         return complex(self.real * arg, self.imaginary * arg)
 
     def __rmul__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity))
+                and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
         return complex(self.real * arg, self.imaginary * arg)
 
     def __imul__(self, arg):
         if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
-                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
 
         if isinstance(arg, complex):
             self.real = self.real * arg.real - self.imaginary * arg.imaginary
@@ -1910,7 +1976,7 @@ class complex:
 
     def __truediv__(self, arg):
         if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
-                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
 
         if isinstance(arg, complex):
             return self * arg.inverse()
@@ -1918,13 +1984,14 @@ class complex:
         return complex(Infinity(self.real >= 0), Infinity(self.imaginary >= 0))
 
     def __rtruediv__(self, arg):
-        if (not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)): raise MathArgError()
+        if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, Infinity))
+                and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
         return arg * self.inverse()
 
 
     def __idiv__(self, arg):
         if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
-                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
 
         if isinstance(arg, complex):
             temp = self * arg.inverse()
@@ -1936,7 +2003,7 @@ class complex:
 
     def __floordiv__(self, arg):
         if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
-                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
 
         if isinstance(arg, complex):
             temp = self * arg.inverse()
@@ -1945,7 +2012,7 @@ class complex:
 
     def __ifloordiv__(self, arg):
         if ((not isinstance(arg, int)) and (not isinstance(arg, float)) and (not isinstance(arg, complex))
-                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined))): raise MathArgError()
+                and (not isinstance(arg, Infinity)) and (not isinstance(arg, Undefined)) and (not isinstance(arg, Decimal))): raise ArgTypeError()
 
         if isinstance(arg, complex):
             temp = self * arg.inverse()
@@ -1977,26 +2044,26 @@ class complex:
     def __gt__(self, arg):
         if isinstance(arg, complex):
             return self.length() > arg.length()
-        if isinstance(arg, int) or isinstance(arg, float): return self.length() > arg
-        raise MathArgError()
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal) or isinstance(arg, Infinity): return self.length() > arg
+        raise ArgTypeError()
 
     def __ge__(self, arg):
         if isinstance(arg, complex):
             return self.length() >= arg.length()
-        if isinstance(arg, int) or isinstance(arg, float): return self.length() >= arg
-        raise MathArgError()
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal) or isinstance(arg, Infinity): return self.length() >= arg
+        raise ArgTypeError()
 
     def __lt__(self, arg):
         if isinstance(arg, complex):
             return self.length() < arg.length()
-        if isinstance(arg, int) or isinstance(arg, float): return self.length() < arg
-        raise MathArgError()
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal) or isinstance(arg, Infinity): return self.length() < arg
+        raise ArgTypeError()
 
     def __le__(self, arg):
         if isinstance(arg, complex):
             return self.length() <= arg.length()
-        if isinstance(arg, int) or isinstance(arg, float): return self.length() <= arg
-        raise MathArgError()
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal) or isinstance(arg, Infinity): return self.length() <= arg
+        raise ArgTypeError()
 
     def __pow__(self, p):
         temp = 1
@@ -2018,12 +2085,18 @@ class complex:
             temp = arg.unit()
             angle = arcsin(temp.imaginary, resolution=resolution) / 2
             return complex(cos(angle), sin(angle)) * sqrt(sqrt(arg.length()))
-        raise MathArgError()
+        raise ArgTypeError()
 
     # noinspection PyMethodFirstArgAssignment
-    def range(lowreal: int or float, highreal: int or float, lowimg: int or float, highimg: int or float,
-              step1: float = 1, step2: float = 1):
-        if (highreal < lowreal ^ step1 > 0) or (highimg < lowimg ^ step2 > 0): raise MathRangeError()
+    def range(lowreal, highreal, lowimg, highimg, step1=Decimal(1), step2=Decimal(1)):
+        if not ((isinstance(lowreal, int) or isinstance(lowreal, float) or isinstance(lowreal, Decimal) or isinstance(lowreal, Infinity))
+                and (isinstance(highreal, int) or isinstance(highreal, float) or isinstance(highreal, Decimal) or isinstance(highreal, Infinity))
+                and (isinstance(lowimg, int) or isinstance(lowimg, float) or isinstance(lowimg, Decimal) or isinstance(lowimg, Infinity))
+                and (isinstance(highimg, int) or isinstance(highimg, float) or isinstance(highimg, Decimal) or isinstance(highimg, Infinity))
+                and (isinstance(step1, int) or isinstance(step1, float) or isinstance(step1, Decimal))
+                and (isinstance(step2, int) or isinstance(step2, float) or isinstance(step2, Decimal))):
+            raise ArgTypeError("Must be a numerical value.")
+        if (highreal < lowreal ^ step1 > 0) or (highimg < lowimg ^ step2 > 0): raise RangeError()
         reset = lowimg
         while (not highreal < lowreal ^ step1 > 0) and not highreal == lowreal:
             lowimg = reset
@@ -2037,10 +2110,10 @@ class complex:
         if divisor: return complex(self.real / divisor, -self.imaginary / divisor)
         else: return complex(Infinity(self.real >= 0), Infinity(-self.imaginary >= 0))
 
-    def rotate(self, angle: int or float):
+    def rotate(self, angle):
         return self * complex(cos(angle), sin(angle))
 
-    def rotationFactor(self, angle: int or float):
+    def rotationFactor(self, angle):
         return complex(cos(angle), sin(angle))
 
 
@@ -2056,105 +2129,106 @@ class Infinity:
         return f"Infinity({'positive' if self.sign else 'negative'})"
 
     def __add__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return Infinity(self.sign)
         if isinstance(arg, Infinity): return Undefined() if (self.sign ^ arg.sign) else Infinity(self.sign)
         if isinstance(arg, complex): return complex(Infinity(self.sign) + arg.real, arg.imaginary)
         if isinstance(arg, Undefined): return Undefined()
-        raise MathArgError()
+        raise ArgTypeError()
 
     def __radd__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return Infinity(self.sign)
         if isinstance(arg, complex): return complex(Infinity(self.sign) + arg.real, arg.imaginary)
-        raise MathArgError()
+        raise ArgTypeError()
 
     def __iadd__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return Infinity(self.sign)
         if isinstance(arg, Infinity): return Undefined() if (self.sign ^ arg.sign) else self
         if isinstance(arg, complex): return complex(Infinity(self.sign) + arg.real, arg.imaginary)
         if isinstance(arg, Undefined): return Undefined()
-        raise MathArgError()
+        raise ArgTypeError()
 
     def __sub__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return Infinity(self.sign)
         if isinstance(arg, Infinity): return Undefined() if not (self.sign ^ arg.sign) else Infinity(self.sign)
         if isinstance(arg, complex): return complex(Infinity(self.sign) - arg.real, -arg.imaginary)
         if isinstance(arg, Undefined): return Undefined()
-        raise MathArgError()
+        raise ArgTypeError()
 
     def __rsub__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(not self.sign)
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return Infinity(not self.sign)
         if isinstance(arg, complex): return complex(-self + arg.real, arg.imaginary)
-        raise MathArgError()
+        raise ArgTypeError()
 
     def __isub__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign)
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return Infinity(self.sign)
         if isinstance(arg, Infinity): return Undefined() if not (self.sign ^ arg.sign) else Infinity(self.sign)
         if isinstance(arg, complex): return complex(self - arg.real, -arg.imaginary)
         if isinstance(arg, Undefined): return Undefined()
-        raise MathArgError()
+        raise ArgTypeError()
 
     def __mul__(self, arg):
         if isinstance(arg, Infinity): return Infinity(not (self.sign ^ arg.sign))
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign and arg > 0) if arg != 0 else Undefined()
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return Infinity(self.sign and arg > 0) if arg != 0 else Undefined()
         if isinstance(arg, complex): return complex(arg.real * self, arg.imaginary * self)
         if isinstance(arg, Undefined): return Undefined()
-        raise MathArgError()
+        raise ArgTypeError()
 
     def __rmul__(self, arg):
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign and arg > 0) if arg != 0 else Undefined()
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return Infinity(self.sign and arg > 0) if arg != 0 else Undefined()
         if isinstance(arg, complex): return complex(arg.real * self, arg.imaginary * self)
-        raise MathArgError()
+        raise ArgTypeError()
 
     def __imul__(self, arg):
         if isinstance(arg, Infinity): return Infinity(not (self.sign ^ arg.sign))
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign and arg > 0) if arg != 0 else Undefined()
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return Infinity(self.sign and arg > 0) if arg != 0 else Undefined()
         if isinstance(arg, complex): return complex(arg.real * self, arg.imaginary * self)
         if isinstance(arg, Undefined): return Undefined()
-        raise MathArgError()
+        raise ArgTypeError()
 
     def __truediv__(self, arg):
         if isinstance(arg, Infinity) or isinstance(arg, Undefined): return Undefined()
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign ^ arg >= 0)
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return Infinity(self.sign ^ arg >= 0)
         if isinstance(arg, complex): return complex(Infinity(self.sign ^ arg.real >= 0), Infinity(self.sign ^ arg.imaginary >= 0))
-        raise MathArgError()
+        raise ArgTypeError()
 
     def __floordiv__(self, arg):
         if isinstance(arg, Infinity) or isinstance(arg, Undefined): return Undefined()
-        if isinstance(arg, int) or isinstance(arg, float): return Infinity(self.sign ^ arg >= 0)
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return Infinity(self.sign ^ arg >= 0)
         if isinstance(arg, complex): return complex(Infinity(self.sign ^ arg.real >= 0), Infinity(self.sign ^ arg.imaginary >= 0))
-        raise MathArgError()
+        raise ArgTypeError()
 
     def __rtruediv__(self, arg):
         if isinstance(arg, Infinity): return Undefined()
-        if isinstance(arg, int) or isinstance(arg, float): return 0
-        raise MathArgError()
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return 0
+        raise ArgTypeError()
 
     def __rfloordiv__(self, arg):
         if isinstance(arg, Infinity): return Undefined()
-        if isinstance(arg, int) or isinstance(arg, float): return 0
-        raise MathArgError()
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return 0
+        raise ArgTypeError()
 
     def __idiv__(self, arg):
         if isinstance(arg, Infinity) or isinstance(arg, Undefined): return Undefined()
-        if isinstance(arg, int) or isinstance(arg, float): return self
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return self
         if isinstance(arg, complex):
             temp = 1 / arg
             return complex(self * temp.real, self * temp.imaginary)
-        raise MathArgError()
+        raise ArgTypeError()
 
     def __ifloordiv__(self, arg):
         if isinstance(arg, Infinity) or isinstance(arg, Undefined): return Undefined()
-        if isinstance(arg, int) or isinstance(arg, float): return self
+        if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal): return self
         if isinstance(arg, complex):
             temp = 1 / arg
             return complex(self * temp.real, self * temp.imaginary)
-        raise MathArgError()
+        raise ArgTypeError()
 
     def __neg__(self):
         return Infinity(not self.sign)
 
-    def __pow__(self, p: int or float):
+    def __pow__(self, p):
         if not p: return Undefined()
+        if not (isinstance(p, int) or isinstance(p, float) or isinstance(p, Decimal)): raise ArgTypeError("Must be a numerical value.")
         if p > 0: return Infinity(True) if self.sign else ((-1)**p) * Infinity(False)
         return 0
 
@@ -2207,11 +2281,11 @@ class Infinity:
 
     def __lt__(self, arg):
         if isinstance(arg, Infinity): return not (self.sign ^ arg.sign) or ~self.sign
-        return self.sign
+        return not self.sign
 
     def __le__(self, arg):
         if isinstance(arg, Infinity): return not (self.sign ^ arg.sign) or ~self.sign
-        return self.sign
+        return not self.sign
 
 class Undefined:
 
