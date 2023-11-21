@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: vectorgebra
-Version: 2.0.0
+Version: 2.0.1
 Summary: A numerical methods tool for python, in python.
 Author: Ahmet Erdem
 Classifier: Programming Language :: Python :: 3
@@ -50,6 +50,11 @@ is done for the determinant. Echelon determinant can be reached via
 .determinant(choice="echelon"). 
 
 New function, mode. Another statistical function added.
+
+### 2.0.1
+
+A bug that prevent gauss invertion method from working with decimal=False
+is fixed.
 
 ## Vectorgebra.Vector
 

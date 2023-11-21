@@ -825,7 +825,10 @@ class Matrix:
             return Matrix(*[Vector(*k) for k in end]).transpose() / det
 
         elif method == "gauss":
-            i = Matrix.identity(len(self.values))
+            if isinstance(self[0][0], Decimal):
+                i = Matrix.identity(len(self.values))
+            else:
+                i = Matrix.identity(len(self.values), False)
             i_values = i.values.copy()
             v = self.values.copy()
             taken_list = []

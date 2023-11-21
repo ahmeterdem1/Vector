@@ -39,6 +39,11 @@ is done for the determinant. Echelon determinant can be reached via
 
 New function, mode. Another statistical function added.
 
+### 2.0.1
+
+A bug that prevent gauss invertion method from working with decimal=False
+is fixed.
+
 ## Vectorgebra.Vector
 
 Includes basic and some sophisticated operations on vectors.
