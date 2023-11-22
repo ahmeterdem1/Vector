@@ -1960,11 +1960,13 @@ def general_fit(x, y, rate=Decimal(0.0000002), iterations: int = 15, degree: int
 
     return b
 
-def kmeans(dataset, k: int = 2, iterations: int = 15):
+def kmeans(dataset, k: int = 2, iterations: int = 15, a = 0, b = 10):
     if not (isinstance(dataset, tuple) or isinstance(dataset, list) or isinstance(dataset, Vector)): raise ArgTypeError()
     if len(dataset) == 0: raise DimensionError(1)
     if k < 1: raise RangeError()
     if iterations < 1: raise RangeError()
+    if not ((isinstance(a, int) or isinstance(a, float) or isinstance(a, Decimal))
+            and (isinstance(b, int) or isinstance(b, float) or isinstance(b, Decimal))): raise ArgTypeError("Must be a numerical value.")
 
     check = True
     first = type(dataset[0])
@@ -1985,10 +1987,10 @@ def kmeans(dataset, k: int = 2, iterations: int = 15):
     del check
 
     d = len(dataset[0])
-    assigns = [[] for i in range(k)]
+    assigns = []
     points = []
     for i in range(k):
-        points.append(Vector(*[random.uniform(0, 10) for l in range(d)]))
+        points.append(Vector(*[random.uniform(a, b) for l in range(d)]))
 
     for i in range(iterations):
         # Main body of the algorithm.
@@ -1999,7 +2001,6 @@ def kmeans(dataset, k: int = 2, iterations: int = 15):
                 distances.append((data - points[j]).length())
             minima = minimum(distances)
             assigns[distances.index(minima)].append(data)
-
         for j in range(k):
             amount = len(assigns[j])
             v = Vector.zero(d, False)

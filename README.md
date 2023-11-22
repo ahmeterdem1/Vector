@@ -30,7 +30,9 @@ functions.
 K-means function added for data clustering. This function does not have
 decimal support yet.
 
+### 2.1.1
 
+Bug fix on kmeans. Initial guess range is now controllable by the user.
 
 ## Vectorgebra.Vector
 
@@ -407,7 +409,7 @@ degree as a Vector object.
 Internally, x and y sets are converted to Vectors if they were not,
 so it is faster to initialize them as Vectors.
 
-### Vectorgebra.kmeans(dataset, k=2, iterations=15)
+### Vectorgebra.kmeans(dataset, k=2, iterations=15, a = 0, b = 10)
 
 Applies the K-means algorithm on the dataset. "k" is the number of 
 points to assign data clusters. "iterations" is the number of iterations
@@ -426,7 +428,7 @@ to the same indexed center point. So this data is grouped by cluster
 centers.
 
 Initial guesses are random points whose components are random floats
-between 0 and 10.
+between a and b.
 
 This function does not have decimal support yet.
 
