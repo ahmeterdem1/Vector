@@ -56,6 +56,9 @@ class Vector:
     def __getitem__(self, index):
         return self.values[index]
 
+    def __setitem__(self, key, value):
+        self.values[key] = value
+
     def __len__(self):
         return len(self.values)
 
@@ -459,14 +462,20 @@ class Vector:
             sum += k
         return sum
 
-    def zero(dim: int):
+    def zero(dim: int, decimal: bool = True):
         # We use the RangeError because dimension can be 0.
         if dim < 0: raise RangeError()
-        return Vector(*[0 for k in range(dim)])
+        if decimal:
+            return Vector(*[Decimal(0) for k in range(dim)])
+        else:
+            return Vector(*[0 for k in range(dim)])
 
-    def one(dim: int):
+    def one(dim: int, decimal: bool = True):
         if dim < 0: raise RangeError()
-        return Vector(*[1 for k in range(dim)])
+        if decimal:
+            return Vector(*[Decimal(1) for k in range(dim)])
+        else:
+            return Vector(*[1 for k in range(dim)])
 
     def reshape(self, m: int, n: int):
         if not m * n == self.dimension: raise RangeError()
@@ -502,6 +511,9 @@ class Matrix:
 
     def __getitem__(self, index):
         return self.values[index]
+
+    def __setitem__(self, key, value):
+        self.values[key] = value
 
     def __add__(self, arg):
         v = list()
@@ -793,7 +805,7 @@ class Matrix:
             v.append(Vector(*m))
         return Matrix(*v)
 
-    def inverse(self, method: str = "iterative", resolution: int = 10, lowlimit=0.0000000001, highlimit=100000):
+    def inverse(self, method: str = "iterative", resolution: int = 10, lowlimit=0.0000000001, highlimit=100000, decimal: bool = True):
         if method not in ["gauss", "analytic", "iterative", "neumann"]: raise ArgTypeError()
         if resolution < 1: raise RangeError()
         if not ((isinstance(lowlimit, int) or isinstance(lowlimit, float) or isinstance(lowlimit, Decimal))
@@ -828,7 +840,7 @@ class Matrix:
             if isinstance(self[0][0], Decimal):
                 i = Matrix.identity(len(self.values))
             else:
-                i = Matrix.identity(len(self.values), False)
+                i = Matrix.identity(len(self.values), decimal)
             i_values = i.values.copy()
             v = self.values.copy()
             taken_list = []
@@ -951,7 +963,7 @@ class Matrix:
 
             guess = tpose * alpha
 
-            identity = Matrix.identity(len(self.values)) * 2
+            identity = Matrix.identity(len(self.values), decimal) * 2
 
             for k in range(resolution):
                 guess = guess * (identity - self * guess)
@@ -1129,7 +1141,7 @@ class Matrix:
         if not isinstance(a, Matrix):
             raise ArgTypeError("Must be a numerical value.")
         if not number < len(a.values[0]) - 1 or number < 0:
-            raise RangeError
+            raise RangeError()
         v = list()
         for k in range(0, len(a.values)):
             m = list()
@@ -1183,13 +1195,13 @@ class Matrix:
         if args[0] * args[1] != len(self.values) * len(self.values[0]): raise RangeError()
         return v.reshape(args[0], args[1])
 
-    def eigenvalue(self, resolution: int = 10):
+    def eigenvalue(self, resolution: int = 10, decimal: bool = True):
         if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
         if resolution < 1: raise RangeError()
 
         to_work = self.copy()
         for k in range(resolution):
-            Q, R = to_work.qr()
+            Q, R = to_work.qr(decimal)
             to_work = R * Q
         result = []
         for k in range(len(to_work.values)):
@@ -1197,13 +1209,13 @@ class Matrix:
 
         return result
 
-    def qr(self):
+    def qr(self, decimal: bool = True):
         if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
         v_list = []
         for k in self.transpose():
             v_list.append(Vector(*k))
         if not Vector.does_span(*v_list):
-            m = Matrix.zero(len(self.values))
+            m = Matrix.zero(len(self.values), decimal)
             return m, m
         result_list = [k.unit() for k in Vector.spanify(*v_list)]
         Q = Matrix(*result_list).transpose()
@@ -1230,6 +1242,34 @@ class Matrix:
         for k in range(len(self.values)):
             sum *= self.values[k][k]
         return sum
+
+    def gauss_seidel(self, b: Vector, initial=None, resolution: int = 20, decimal: bool = True):
+        if initial is not None:
+            if not isinstance(initial, Vector): raise ArgTypeError("Must be a vector.")
+        if b.dimension != len(self.values): raise DimensionError(0)
+        if resolution < 1: raise RangeError()
+        if initial is None:
+            initial = Vector.zero(len(self.values), decimal)
+            for i in range(initial.dimension):
+                initial.values[i] = b[i] / self[i][i]
+        for_l = []
+        for_u = []
+        for k in range(len(self.values)):
+            for_l.append(Vector.zero(len(self.values), decimal))
+            for_u.append(Vector.zero(len(self.values), decimal))
+            for l in range(len(self.values[0])):
+                if l <= k:
+                    for_l[-1].values[l] = self[k][l]
+                else:
+                    for_u[-1].values[l] = self[k][l]
+        L_inverse = Matrix(*for_l).inverse(resolution=resolution, decimal=decimal)
+        U = Matrix(*for_u)
+        for k in range(resolution):
+            initial = L_inverse * (b - U * initial)
+        return initial
+
+
+
 
 
 
@@ -1773,6 +1813,46 @@ def sd(values, probabilities) -> float:
         return sqrt(sum)
     raise ArgTypeError("Arguments must be one dimensional iterables")
 
+def maximum(dataset):
+    maxima = Infinity(False)
+    if isinstance(dataset, tuple) or isinstance(dataset, list):
+        for data in dataset:
+            if data > maxima:
+                maxima = data
+        return maxima  # Then you can get the index of it manually
+    if isinstance(dataset, Vector):
+        for data in dataset.values:
+            if data > maxima:
+                maxima = data
+        return maxima
+    if isinstance(dataset, Matrix):
+        for k in dataset.values:
+            for l in k:
+                if l > maxima:
+                    maxima = l
+        return maxima
+    raise ArgTypeError()
+
+def minimum(dataset):
+    minima = Infinity(True)
+    if isinstance(dataset, tuple) or isinstance(dataset, list):
+        for data in dataset:
+            if data < minima:
+                minima = data
+        return minima  # Then you can get the index of it manually
+    if isinstance(dataset, Vector):
+        for data in dataset.values:
+            if data < minima:
+                minima = data
+        return minima
+    if isinstance(dataset, Matrix):
+        for k in dataset.values:
+            for l in k:
+                if l < minima:
+                    minima = l
+        return minima
+    raise ArgTypeError()
+
 def factorial(x: int = 0) -> int:
     if x < 0: raise RangeError()
     if x <= 1: return 1
@@ -1879,6 +1959,62 @@ def general_fit(x, y, rate=Decimal(0.0000002), iterations: int = 15, degree: int
         b = b - rate * c
 
     return b
+
+def kmeans(dataset, k: int = 2, iterations: int = 15):
+    if not (isinstance(dataset, tuple) or isinstance(dataset, list) or isinstance(dataset, Vector)): raise ArgTypeError()
+    if len(dataset) == 0: raise DimensionError(1)
+    if k < 1: raise RangeError()
+    if iterations < 1: raise RangeError()
+
+    check = True
+    first = type(dataset[0])
+    for i in range(1, len(dataset)):
+        check &= (first == type(dataset[i]))
+    del first
+
+    if not check:
+        raise ArgTypeError("All element types must be the same.")
+
+    check = True
+    for data in dataset:
+        check &= isinstance(data, Vector)
+
+    if not check:
+        for i in range(len(dataset)):
+            dataset[i] = Vector(*dataset[i])
+    del check
+
+    d = len(dataset[0])
+    assigns = [[] for i in range(k)]
+    points = []
+    for i in range(k):
+        points.append(Vector(*[random.uniform(0, 10) for l in range(d)]))
+
+    for i in range(iterations):
+        # Main body of the algorithm.
+        assigns = [[] for i in range(k)]
+        for data in dataset:
+            distances = []
+            for j in range(k):
+                distances.append((data - points[j]).length())
+            minima = minimum(distances)
+            assigns[distances.index(minima)].append(data)
+
+        for j in range(k):
+            amount = len(assigns[j])
+            v = Vector.zero(d, False)
+            for temp in assigns[j]:
+                v += temp
+            points[j] = v / amount
+
+
+    # This will return a 2d list. Both elements are lists.
+    # First one is the cluster centers.
+    # Second one is data assigned to cluster centers in order.
+    return points, assigns
+
+
+
 
 
 
@@ -2396,6 +2532,4 @@ class Undefined:
 
     def __ixor__(self, other):
         return False
-
-
 

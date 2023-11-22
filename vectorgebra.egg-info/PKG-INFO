@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: vectorgebra
-Version: 2.0.1
+Version: 2.1.0
 Summary: A numerical methods tool for python, in python.
 Author: Ahmet Erdem
 Classifier: Programming Language :: Python :: 3
@@ -26,35 +26,23 @@ _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
 
-### Update notes on 2.0.0
+### Update notes on 2.1.0
 
-Exception classes are changed. Now there are only 4 types of exceptions.
-DimensionError, AmountError, RangeError, ArgTypeError. Others are removed.
+Decimal support is improved in general. More functions accept decimal
+choice as an argument. This should be kept in mind when developing with
+this library.
 
-Support for decimal added. decimal library is now the primary choice of 
-random generation methods used. However, decimal numbers are slow compared
-to default ones. 
+setitem overloads added for Vectors and Matrices.
 
-Bug fixes on infinities. Comparison operators fixed.
+Gauss-Seidel method added to Matrix class. 
 
-Precision errors fixed on gauss inversion. Precision now can be manually set
-by the user. But the default settings do the work just fine for most of the 
-cases. Using decimal numbers increases precision drastically. However again, 
-this slows down the process by a lot. Precision errors can still happen 
-depending on the conditioning of the matrix. Adjusting the limiter settings
-will solve the problem.
+Maximum-minimum functions added in conformity with other statistical
+functions. 
 
-.det_echelon() and .fast_inverse() removed. .fast_inverse() was just gauss
-inverse which could be reached by .inverse(method="gauss"). Same application
-is done for the determinant. Echelon determinant can be reached via 
-.determinant(choice="echelon"). 
+K-means function added for data clustering. This function does not have
+decimal support yet.
 
-New function, mode. Another statistical function added.
 
-### 2.0.1
-
-A bug that prevent gauss invertion method from working with decimal=False
-is fixed.
 
 ## Vectorgebra.Vector
 
@@ -289,6 +277,13 @@ Returns the list of diagonals.
 
 Returns the multiplication of diagonals.
 
+### _Vectorgebra.Matrix_.gauss_seidel(b: Vector, initial=None, resolution=15, decimal=True)
+
+Applies Gauss-Seidel method to the equation self * x = b. Returns the resultant x Vector.
+If "initial" left unchanged, code creates an initial guess by default. This may not converge
+though. "resolution" is the number of iterations. "decimal" argument is also passed to called
+functions inside this method. Same for resolution.
+
 <hr>
 
 ## Constants
@@ -362,6 +357,14 @@ Same constraints as "expectation" apply here. Returns the variance of the given 
 Same constraints as "variance" apply here. Returns the standard deviation of the
 given data.
 
+### Vectorgebra.maximum(dataset)
+
+Returns the maximum value of dataset. Dataset can be anywhere from tuples to Matrices.
+
+### Vectorgebra.minimum(dataset)
+
+Returns the minimum value of dataset. Dataset can be anywhere from tuples to Matrices.
+
 ### Vectorgebra.factorial(x: int)
 
 Calculates the factorial with recursion. Default argument is 1.
@@ -415,6 +418,29 @@ degree as a Vector object.
 
 Internally, x and y sets are converted to Vectors if they were not,
 so it is faster to initialize them as Vectors.
+
+### Vectorgebra.kmeans(dataset, k=2, iterations=15)
+
+Applies the K-means algorithm on the dataset. "k" is the number of 
+points to assign data clusters. "iterations" is the number of iterations
+that the algorithm applies. Dataset must be non-empty. Each row of 
+dataset is converted to Vectors internally. Predefining them as
+such would make the function faster. 
+
+Every element of dataset must be of the same type whether they are
+Vectors or not. Type-checking is based on the first row of the dataset.
+
+Returns a 2-element tuple. First element is a list of Vectors which
+point to the cluster centers. Second element is a list of Vectors
+which consist of the initial data. This list has the same length as
+number of generated cluster centers. Each internal list corresponds
+to the same indexed center point. So this data is grouped by cluster
+centers.
+
+Initial guesses are random points whose components are random floats
+between 0 and 10.
+
+This function does not have decimal support yet.
 
 ### Trigonometrics
 
