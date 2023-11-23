@@ -1,4 +1,3 @@
-import math
 import random
 import threading
 import logging
@@ -15,6 +14,8 @@ logger.setLevel(logging.INFO)
 PI = 3.14159265359
 E = 2.718281828459
 ln2 = 0.6931471805599569
+log2E = 1.4426950408889392
+log2_10 = 3.3219280948873626
 
 results = {}
 
@@ -334,7 +335,7 @@ class Vector:
         sum = 0
         for k in self.values:
             sum += k*k
-        return math.sqrt(sum)
+        return sqrt(sum)
 
     def proj(self, arg):
         if not isinstance(arg, Vector):
@@ -492,7 +493,6 @@ class Vector:
         v_list.append(Vector(*temp))
         return Matrix(*v_list)
 
-
 class Matrix:
     def __init__(self, *args):
         for k in args:
@@ -504,7 +504,6 @@ class Matrix:
         self.dimension = f"{args[0].dimension}x{len(args)}"
         self.string = [str(k) for k in self.values]
         self.string = "\n".join(self.string)
-
 
     def __str__(self):
         return self.string
@@ -804,6 +803,14 @@ class Matrix:
                 m.append(self.values[l][k])
             v.append(Vector(*m))
         return Matrix(*v)
+
+    def conjugate(self):
+        for k in range(len(self.values)):
+            for l in range(len(self.values[0])):
+                if isinstance(self[k][l], complex):
+                    self.values[k][l] = self.values[k][l].conjugate()
+        temp = [Vector(*k) for k in self.values]
+        return Matrix(*temp)
 
     def inverse(self, method: str = "iterative", resolution: int = 10, lowlimit=0.0000000001, highlimit=100000, decimal: bool = True):
         if method not in ["gauss", "analytic", "iterative", "neumann"]: raise ArgTypeError()
@@ -1222,6 +1229,23 @@ class Matrix:
         R = Q.transpose() * self
         return Q, R
 
+    def cholesky(self):
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+        L = Matrix.zero(len(self.values), False)
+        L.values[0][0] = sqrt(self[0][0])
+
+        for i in range(len(self.values)):
+            for j in range(i + 1):
+                sum = 0
+                for k in range(j):
+                    sum += L[i][k] * L[j][k]
+
+                if i == j:
+                    L.values[i][j] = sqrt(self[i][i] - sum)
+                else:
+                    L.values[i][j] = (1.0 / L.values[j][j]) * (self[i][j] - sum)
+        return Matrix(*[Vector(*k) for k in L.values])
+
     def trace(self):
         if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
         sum = 0
@@ -1267,11 +1291,6 @@ class Matrix:
         for k in range(resolution):
             initial = L_inverse * (b - U * initial)
         return initial
-
-
-
-
-
 
 def Range(low, high, step=Decimal(1)):
     if not (isinstance(low, int) or isinstance(low, float) or isinstance(low, Decimal) or isinstance(low, Infinity)
@@ -1503,6 +1522,36 @@ def arccos(x: int or float, resolution: int = 20) -> float:
 
     return 90 - arcsin(x, resolution)
 
+def log2(x, resolution: int = 15):
+    if not (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal)): raise ArgTypeError("Must be a numerical value.")
+    if x <= 0: raise RangeError()
+    if resolution < 1: raise RangeError()
+    # finally...
+    count = 0
+    while x > 2:
+        x = x / 2
+        count += 1
+
+    # x can be a decimal
+    for i in range(1, resolution + 1):
+        x = x**2
+        if x >= 2:
+            count += 1 / (2**i)
+            x = x / 2
+
+    return count
+
+def ln(x, resolution: int = 15):
+    return log2(x, resolution) / log2E
+
+def log10(x, resolution: int = 15):
+    return log2(x, resolution) / log2_10
+
+def log(x, base=2, resolution: int = 15):
+    if not (isinstance(base, int) or isinstance(base, float) or isinstance(base, Decimal)): raise ArgTypeError("Must be a numerical value.")
+    if base <= 0 or base == 1: raise RangeError()
+    return log2(x, resolution) / log2(base, resolution)
+
 def __find(f, low, high, search_step, res=Decimal(0.0001)):
     if not ((isinstance(low, int) or isinstance(low, float) or isinstance(low, Decimal))
             and (isinstance(high, int) or isinstance(high, float) or isinstance(high, Decimal))
@@ -1718,7 +1767,6 @@ def Sum(f, a, b, step=Decimal(0.01), control: bool = False, limit=Decimal(0.0000
             result += f(x)
         return result
 
-
 def mode(arg):
     if isinstance(arg, tuple) or isinstance(arg, list):
         max = [None, Infinity(False)]
@@ -1754,7 +1802,6 @@ def mode(arg):
 
         return max[0]
     raise ArgTypeError()
-
 
 def mean(arg) -> float:
     if isinstance(arg, tuple) or isinstance(arg, list) or isinstance(arg, Vector):
@@ -1960,7 +2007,7 @@ def general_fit(x, y, rate=Decimal(0.0000002), iterations: int = 15, degree: int
 
     return b
 
-def kmeans(dataset, k: int = 2, iterations: int = 15, a = 0, b = 10):
+def kmeans(dataset, k: int = 2, iterations: int = 15, a=0, b=10):
     if not (isinstance(dataset, tuple) or isinstance(dataset, list) or isinstance(dataset, Vector)): raise ArgTypeError()
     if len(dataset) == 0: raise DimensionError(1)
     if k < 1: raise RangeError()
@@ -2003,6 +2050,7 @@ def kmeans(dataset, k: int = 2, iterations: int = 15, a = 0, b = 10):
             assigns[distances.index(minima)].append(data)
         for j in range(k):
             amount = len(assigns[j])
+            if not amount: continue
             v = Vector.zero(d, False)
             for temp in assigns[j]:
                 v += temp
@@ -2013,11 +2061,6 @@ def kmeans(dataset, k: int = 2, iterations: int = 15, a = 0, b = 10):
     # First one is the cluster centers.
     # Second one is data assigned to cluster centers in order.
     return points, assigns
-
-
-
-
-
 
 class complex:
 
@@ -2255,8 +2298,6 @@ class complex:
 
     def rotationFactor(self, angle):
         return complex(cos(angle), sin(angle))
-
-
 
 class Infinity:
     def __init__(self, sign: bool = True):

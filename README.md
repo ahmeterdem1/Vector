@@ -14,25 +14,19 @@ _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
 
-### Update notes on 2.1.0
+### Update notes on 2.2.0
 
-Decimal support is improved in general. More functions accept decimal
-choice as an argument. This should be kept in mind when developing with
-this library.
+Finally, logarithms are added. There are 4 different functions and they
+are explained in more detail in the related section. 
 
-setitem overloads added for Vectors and Matrices.
+Cholesky decomposition and complex conjugation is added to Matrix class.
 
-Gauss-Seidel method added to Matrix class. 
+Kmeans is debugged more. With the latest changes, even if you put k=n 
+cluster centers, the effective output may result in less than n cluster
+centers. This is directly related to the conditioning of the initial data.
+If this happens, this means that given the random initial conditions less
+than k center points may be a better clustering of the given data.
 
-Maximum-minimum functions added in conformity with other statistical
-functions. 
-
-K-means function added for data clustering. This function does not have
-decimal support yet.
-
-### 2.1.1
-
-Bug fix on kmeans. Initial guess range is now controllable by the user.
 
 ## Vectorgebra.Vector
 
@@ -179,6 +173,10 @@ order and returns it.
 
 Returns the transpose matrix of self
 
+### _Vectorgebra.Matrix_.conjugate()
+
+Returns the complex conjugate of the self.
+
 ### _Vectorgebra.Matrix_.inverse(method="iteraitve", resolution=10, lowlimit=0.0000000001, highlimit=100000)
 
 Returns the inverse matrix of self. Returns None if not invertible.
@@ -255,6 +253,11 @@ just uses .spanify() from Vector class. If the columns of self do not consist
 of independent vectors, returns matrices of zeroes for both Q and R. This is to
 prevent type errors that may have otherwise risen from written code.
 
+### _Vectorgebra.Matrix_.cholesky()
+
+Applies Cholesky decomposition to self, and returns the L matrix. Applies algorithm
+is textbook Cholesky–Banachiewicz algorithm.
+
 ### _Vectorgebra.Matrix_.trace()
 
 Returns the trace of self.
@@ -278,7 +281,7 @@ functions inside this method. Same for resolution.
 
 ## Constants
 
-Pi, e and ln(2). Nothing more.
+Pi, e, log2(e), log2(10) and ln(2). Nothing more.
 
 ## Functions
 
@@ -311,6 +314,16 @@ without data loss (at least minimal data loss).
 Calculates e<sup>exponent</sup>. resolution is passed as _power_ to the
 __cumdiv(). It will then define the maximal power of the power series
 implementation, therefore is a resolution.
+
+### Logarithms
+
+There are 4 distinct logarithm functions: log2, ln, log10, log. Each have
+the arguments x and resolution. "resolution" is the number of iterations
+and by default is set to 15. "log" function also takes a "base" parameter.
+
+All logarithms are calculated based on "log2" function. "ln" and "log10"
+use the related constants instead of recalculating the same value over
+and over again.
 
 ### Vectorgebra.sigmoid(x, a=1)
 
