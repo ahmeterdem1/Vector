@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: vectorgebra
-Version: 2.2.0
+Version: 2.3.0
 Summary: A numerical methods tool for python, in python.
 Author: Ahmet Erdem
 Classifier: Programming Language :: Python :: 3
@@ -26,19 +26,21 @@ _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
 
-### Update notes on 2.2.0
+### Update notes on 2.3.0
 
-Finally, logarithms are added. There are 4 different functions and they
-are explained in more detail in the related section. 
+New constants added to prevent recalculation of the same values.
 
-Cholesky decomposition and complex conjugation is added to Matrix class.
+Outer product added to Vectors.
 
-Kmeans is debugged more. With the latest changes, even if you put k=n 
-cluster centers, the effective output may result in less than n cluster
-centers. This is directly related to the conditioning of the initial data.
-If this happens, this means that given the random initial conditions less
-than k center points may be a better clustering of the given data.
+"decimal" parameter added to pow() method on Matrix.
 
+Neumann inverse method added to Matrix. This method will only
+work for right conditioned matrices.
+
+Normalization, Hermitian conjugation, norm, least squares methods added to Matrix class.
+
+Undefined support increased. Also, new statistical functions added on distributions 
+(gaussian, etc.).
 
 ## Vectorgebra.Vector
 
@@ -126,6 +128,11 @@ tool for cross product and the determinant method for Matrix class.
 
 Returns the cross product of the vectors given in *args.
 
+### Vectorgebra.Vector.outer(v, w)
+
+Returns the outer product of Vectors v and w. Return type is therefore
+a Matrix.
+
 ### _Vectorgebra.Vector_.cumsum()
 
 Returns the cumulative sum.
@@ -160,6 +167,8 @@ are implemented as overloads. Only comparison operator implemented is
 _==_ which returns true if and only if all the elements of the matrices
 are equal.
 
+"pow" method accepts the parameter "decimal".
+
 Methods are listed below.
 
 ### _Vectorgebra.Matrix_.determinant(choice="echelon")
@@ -189,14 +198,30 @@ Returns the transpose matrix of self
 
 Returns the complex conjugate of the self.
 
+### _Vectorgebra.Matrix_.normalize()
+
+Divides self with its determinant.
+
+### _Vectorgebra.Matrix_.hconj()
+
+Returns the Hermitian conjugate of self.
+
+### _Vectorgebra.Matrix_.norm(resolution: int = 15, decimal: bool = True)
+
+Returns the Frobenius norm of self. Utilizes the eigenvalue function.
+Parameters are directly passed to eigenvalue function.
+
 ### _Vectorgebra.Matrix_.inverse(method="iteraitve", resolution=10, lowlimit=0.0000000001, highlimit=100000)
 
 Returns the inverse matrix of self. Returns None if not invertible.
-method can ben "analytic", "gauss" or "iterative". Default is iterative
+method can ben "analytic", "gauss", "neumann" or "iterative". Default is iterative
 which uses Newton's method for matrix inversion. Resolution is the number
 of iterations. lowlimit and highlimit are only for gauss method. They control
 the "resolution" of multiplication and divisions. See the source code for a
 better inside look.
+
+Neumann will only work for the right conditioned matrices (see [here](https://en.wikipedia.org/wiki/Matrix_norm)). Neumann only uses
+resolution parameter.
 
 ### Vectorgebra.Matrix.identity(dim, decimal=True)
 
@@ -289,11 +314,16 @@ If "initial" left unchanged, code creates an initial guess by default. This may 
 though. "resolution" is the number of iterations. "decimal" argument is also passed to called
 functions inside this method. Same for resolution.
 
+### _Vectorgebra.Matrix_.least_squares(b, *args)
+
+Accepts every argument that .inverse() accepts. Solves the equation _self * x = b_ for x.
+Every argument except b is passed to .inverse(). 
+
 <hr>
 
 ## Constants
 
-Pi, e, log2(e), log2(10) and ln(2). Nothing more.
+Pi, e, log2(e), log2(10), ln(2), sqrt(2), sqrt(pi), sqrt(2 * pi).
 
 ## Functions
 
@@ -417,6 +447,21 @@ Calculates the probability according to the Poisson formula. l is the
 lambda factor. k is the "variable" on the whatever system this function
 is used to describe.
 
+### Vectorgebra.normal(x, resolution: int = 15)
+
+Calculates the _normal_ gaussian formula given x. "resolution" is directly
+passed to the e() function.
+
+### Vectorgebra.gaussian(x, mean, sigma, resolution: int = 15)
+
+Calculates the gaussian given the parameters. "resolution" is directly 
+passed to the e() function.
+
+### Vectorgebra.laplace(x, sigma, resolution: int = 15)
+
+Calculates the Laplace distribution given the parameters. "resolution" is directly 
+passed to the e() function.
+
 ### Vectorgebra.linear_fit(x, y, rate = Decimal(0.01), iterations: int = 15)
 
 Returns the b0 and b1 constants for the linear regression of the given data.
@@ -488,6 +533,10 @@ is slow when utilized with Taylor series based functions.
 
 There is an obvious solution to this speed problem though. Just put 
 expanded form as the argument. Not the implicit function form.
+
+Exits the main loop if the maximum thread count is reached. This can be used as
+a limiter when given b=Infinity(). However, the thread count limit is
+most likely 4096.
 
 ### Vectorgebra.derivative(f, x, h)
 

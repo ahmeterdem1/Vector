@@ -16,6 +16,9 @@ E = 2.718281828459
 ln2 = 0.6931471805599569
 log2E = 1.4426950408889392
 log2_10 = 3.3219280948873626
+sqrtpi = 1.77245385091
+sqrt2 = 1.41421356237
+sqrt2pi = 2.50662827463
 
 results = {}
 
@@ -457,6 +460,19 @@ class Vector:
             end_list.append((Vector.determinant(*vector_list)) * pow(-1, k))
         return Vector(*end_list)
 
+    def outer(v, w):
+        if not (isinstance(v, Vector) and isinstance(w, Vector)): raise ArgTypeError("Must be a vector.")
+        if v.dimension != w.dimension: raise DimensionError(0)
+
+        v_list = []
+        for i in range(v.dimension):
+            temp = []
+            for j in range(v.dimension):
+                temp.append(v.values[i] * w.values[j])
+            v_list.append(Vector(*temp))
+
+        return Matrix(*v_list)
+
     def cumsum(self):
         sum = 0
         for k in self.values:
@@ -665,8 +681,8 @@ class Matrix:
             v.append(Vector(*[l // arg for l in k]))
         return Matrix(*v)
 
-    def __pow__(self, p):
-        temp = Matrix.identity(len(self.values))
+    def __pow__(self, p, decimal: bool = True):
+        temp = Matrix.identity(len(self.values), decimal)
         for k in range(p):
             temp *= self
         return temp
@@ -811,6 +827,21 @@ class Matrix:
                     self.values[k][l] = self.values[k][l].conjugate()
         temp = [Vector(*k) for k in self.values]
         return Matrix(*temp)
+
+    def normalize(self, d_method: str = "echelon"):
+        d = self.determinant(d_method)
+        if not d:
+            return Undefined()
+        return Matrix(*[Vector(*[val / d for val in k]) for k in self.values])
+
+    def hconj(self):  # Hermitian conjugate
+        return self.transpose().conjugate()
+
+    def norm(self, resolution: int = 10, decimal: bool = True):
+        temp = self.hconj() * self
+        vals = temp.eigenvalue(resolution=resolution, decimal=decimal)
+        return sqrt(maximum(vals))
+
 
     def inverse(self, method: str = "iterative", resolution: int = 10, lowlimit=0.0000000001, highlimit=100000, decimal: bool = True):
         if method not in ["gauss", "analytic", "iterative", "neumann"]: raise ArgTypeError()
@@ -979,16 +1010,13 @@ class Matrix:
 
         elif method == "neumann":
             # don't forget to calibrate the resolution here
-            sum = Matrix.zero(len(self.values))
-            block = Matrix.identity(len(self.values)) - self
+            i = Matrix.identity(len(self.values), decimal)
+            M = self - i
 
             for k in range(resolution):
-                temp = Matrix.identity(len(self.values))
-                for l in range(k):
-                    temp = temp * block
-                sum += temp
+                i += pow(-1, k + 1) * pow(M, k + 1, decimal)
 
-            return sum
+            return i
 
     def identity(dim: int, decimal: bool = True):
         if dim <= 0:
@@ -1292,9 +1320,18 @@ class Matrix:
             initial = L_inverse * (b - U * initial)
         return initial
 
+    def least_squares(self, b, method: str = "iterative", resolution: int = 10, lowlimit=0.0000000001, highlimit=100000, decimal: bool = True):
+        if not isinstance(b, Vector): raise ArgTypeError("Must be a vector.")
+        if len(self.values) != b.dimension: raise DimensionError(0)
+
+        t = self.transpose()
+        temp = (t * self).inverse(method=method, resolution=resolution, lowlimit=lowlimit, highlimit=highlimit, decimal=decimal)
+        return temp * (t * b)
+
+
 def Range(low, high, step=Decimal(1)):
-    if not (isinstance(low, int) or isinstance(low, float) or isinstance(low, Decimal) or isinstance(low, Infinity)
-            or isinstance(high, int) or isinstance(high, float) or isinstance(high, Decimal) or isinstance(high, Infinity)):
+    if not ((isinstance(low, int) or isinstance(low, float) or isinstance(low, Decimal) or isinstance(low, Infinity) or isinstance(low, Undefined))
+            and (isinstance(high, int) or isinstance(high, float) or isinstance(high, Decimal) or isinstance(high, Infinity) or isinstance(high, Undefined))):
         raise ArgTypeError("Must be a numerical value.")
     if not ((high < low) ^ (step > 0)): raise RangeError()
 
@@ -1314,7 +1351,7 @@ def Range(low, high, step=Decimal(1)):
         low += step
 
 def abs(arg):
-    if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal) or isinstance(arg, Infinity)):
+    if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
     """
     Basic absolute value function
@@ -1357,6 +1394,11 @@ def sqrt(arg, resolution: int = 10):
         return complex(0, estimate)
     if isinstance(arg, complex):
         return arg.sqrt()
+    if isinstance(arg, Infinity):
+        if arg.sign: return Infinity()
+        return sqrt(complex(0, 1)) * Infinity()
+    if isinstance(arg, Undefined):
+        return Undefined()
     raise ArgTypeError()
 
 def cumsum(arg: list or tuple) -> int or float:
@@ -1384,7 +1426,7 @@ def __cumdiv(x, power: int):
     :param power: power
     :return: Returns x^power/(power!)
     """
-    if not (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal)):
+    if not (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal) or isinstance(x, Infinity) or isinstance(x, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
 
     result: float = 1
@@ -1401,8 +1443,8 @@ def e(exponent, resolution: int = 15):
     :return: e^x
     """
     if resolution < 1: raise RangeError("Resolution must be a positive integer")
-    if not (isinstance(exponent, int) or isinstance(exponent, float) or isinstance(exponent, Decimal)): raise ArgTypeError(
-        "Must be a numerical value.")
+    if not (isinstance(exponent, int) or isinstance(exponent, float) or isinstance(exponent, Decimal) or isinstance(exponent, Infinity) or isinstance(exponent, Undefined)):
+        raise ArgTypeError("Must be a numerical value.")
 
     sum = 1
     for k in range(resolution, 0, -1):
@@ -1418,7 +1460,7 @@ def sin(angle, resolution: int = 15):
     :return: sin(angle)
     """
     if not (resolution % 2) or resolution < 1: raise RangeError("Resolution must be a positive integer")
-    if not (isinstance(angle, int) or isinstance(angle, float) or isinstance(angle, Decimal)):
+    if not (isinstance(angle, int) or isinstance(angle, float) or isinstance(angle, Decimal) or isinstance(angle, Infinity) or isinstance(angle, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
 
     radian: float = (2 * PI * (angle % 360 / 360)) % (2 * PI)
@@ -1437,7 +1479,7 @@ def cos(angle, resolution: int = 16):
     :return: cos(angle)
     """
     if (resolution % 2) or resolution < 1: raise RangeError("Resolution must be a positive integer")
-    if not (isinstance(angle, int) or isinstance(angle, float) or isinstance(angle, Decimal)):
+    if not (isinstance(angle, int) or isinstance(angle, float) or isinstance(angle, Decimal) or isinstance(angle, Infinity) or isinstance(angle, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
 
     radian: float = (2 * PI * (angle % 360 / 360)) % (2 * PI)
@@ -1505,8 +1547,8 @@ def arcsin(x, resolution: int = 20):
     :param resolution: Resolution of operation
     :return: angle
     """
-    if not (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal)): raise ArgTypeError(
-        "Must be a numerical value.")
+    if not (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal) or isinstance(x, Infinity) or isinstance(x, Undefined)):
+        raise ArgTypeError("Must be a numerical value.")
     if not (-1 <= x <= 1): raise RangeError()
     if resolution < 1: raise RangeError("Resolution must be a positive integer")
     c = 1
@@ -1523,7 +1565,8 @@ def arccos(x: int or float, resolution: int = 20) -> float:
     return 90 - arcsin(x, resolution)
 
 def log2(x, resolution: int = 15):
-    if not (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal)): raise ArgTypeError("Must be a numerical value.")
+    if not (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal) or isinstance(x, Infinity) or isinstance(x, Undefined)):
+        raise ArgTypeError("Must be a numerical value.")
     if x <= 0: raise RangeError()
     if resolution < 1: raise RangeError()
     # finally...
@@ -1548,7 +1591,8 @@ def log10(x, resolution: int = 15):
     return log2(x, resolution) / log2_10
 
 def log(x, base=2, resolution: int = 15):
-    if not (isinstance(base, int) or isinstance(base, float) or isinstance(base, Decimal)): raise ArgTypeError("Must be a numerical value.")
+    if not (isinstance(base, int) or isinstance(base, float) or isinstance(base, Decimal)):
+        raise ArgTypeError("Must be a numerical value.")
     if base <= 0 or base == 1: raise RangeError()
     return log2(x, resolution) / log2(base, resolution)
 
@@ -1618,6 +1662,7 @@ def solve(f, low=-50, high=50, search_step=0.1,
                 thread_list[-1].start()
             except RuntimeError:
                 logger.info(f"Thread count limit reached at {len(thread_list)}.")
+                break
             last_sign = temp_sign
 
     logger.debug("Main loop end reached, waiting for joins.")
@@ -1741,8 +1786,8 @@ def findsol(f, x=0, resolution: int = 15):
     return x
 
 def sigmoid(x, a=1):
-    if not((isinstance(a, int) or isinstance(a, float) or isinstance(a, Decimal) or isinstance(a, Infinity))
-           and (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal) or isinstance(x, Infinity))):
+    if not((isinstance(a, int) or isinstance(a, float) or isinstance(a, Decimal) or isinstance(a, Infinity) or isinstance(a, Undefined))
+           and (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal) or isinstance(x, Infinity) or isinstance(x, Undefined))):
         raise ArgTypeError("Must be a numerical value.")
     return 1 / (1 + e(-a*x))
 
@@ -1751,7 +1796,7 @@ def Sum(f, a, b, step=Decimal(0.01), control: bool = False, limit=Decimal(0.0000
     if not ((isinstance(a, int) or isinstance(a, float) or isinstance(a, Decimal) or isinstance(a, Infinity))
             and (isinstance(b, int) or isinstance(b, float) or isinstance(b, Decimal) or isinstance(b, Infinity))
             and (isinstance(step, int) or isinstance(step, float) or isinstance(step, Decimal) or isinstance(step, Infinity))
-            and (isinstance(limit, int) or isinstance(limit, float) or isinstance(limit, Decimal) or isinstance(limit, Infinity))):
+            and (isinstance(limit, int) or isinstance(limit, float) or isinstance(limit, Decimal) or isinstance(limit, Infinity) or isinstance(limit, Undefined))):
         raise ArgTypeError("Must be a numerical value.")
     if not b >= a:
         raise RangeError()
@@ -1957,6 +2002,29 @@ def poisson(k, l):
         raise ArgTypeError("Must be a numerical value.")
     if l < 0 or k < 0: raise RangeError()
     return pow(l, k) * e(-l) / factorial(k)
+
+def normal(x, resolution: int = 15):
+    if not (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal) or isinstance(x, Infinity)): raise ArgTypeError("Must be a numerical value.")
+    return e(-(x**2) / 2, resolution=resolution) / sqrt2pi
+
+def gaussian(x, mean, sigma, resolution: int = 15):
+    if not ((isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal) or isinstance(x, Infinity))
+            and (isinstance(mean, int) or isinstance(mean, float) or isinstance(mean, Decimal) or isinstance(mean, Infinity))
+            and (isinstance(sigma, int) or isinstance(sigma, float) or isinstance(sigma, Decimal) or isinstance(sigma, Infinity))):
+        raise ArgTypeError("Must be a numerical value.")
+
+    coef = 1 / (sqrt2pi * sigma)
+    power = - pow(x - mean, 2) / (2 * pow(sigma, 2))
+    return coef * e(power, resolution=resolution)
+
+def laplace(x, sigma, resolution: int = 15):
+    if not ((isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal) or isinstance(x, Infinity))
+            and (isinstance(sigma, int) or isinstance(sigma, float) or isinstance(sigma, Decimal) or isinstance(sigma, Infinity))):
+        raise ArgTypeError("Must be a numerical value.")
+
+    coef = 1 / (sqrt2 * sigma)
+    power = - (sqrt2 / sigma) * abs(x)
+    return coef * e(power, resolution=resolution)
 
 def linear_fit(x, y, rate=Decimal(0.01), iterations: int = 15) -> tuple:
     if not (isinstance(x, list) or isinstance(x, tuple) or isinstance(x, Vector))\
@@ -2574,4 +2642,6 @@ class Undefined:
 
     def __ixor__(self, other):
         return False
+
+
 
