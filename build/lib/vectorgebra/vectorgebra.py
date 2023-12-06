@@ -509,6 +509,9 @@ class Vector:
         v_list.append(Vector(*temp))
         return Matrix(*v_list)
 
+    def rotate(self, i, j, angle, resolution: int = 15):
+        return Matrix.givens(self.dimension, i, j, angle, resolution) * self
+
 class Matrix:
     def __init__(self, *args):
         for k in args:
@@ -518,11 +521,9 @@ class Matrix:
                 raise DimensionError(0)
         self.values = [k.values for k in args]
         self.dimension = f"{args[0].dimension}x{len(args)}"
-        self.string = [str(k) for k in self.values]
-        self.string = "\n".join(self.string)
 
     def __str__(self):
-        return self.string
+        return "\n".join([str(k) for k in self.values])
 
     def __getitem__(self, index):
         return self.values[index]
@@ -1274,6 +1275,62 @@ class Matrix:
                     L.values[i][j] = (1.0 / L.values[j][j]) * (self[i][j] - sum)
         return Matrix(*[Vector(*k) for k in L.values])
 
+    def get_diagonal(self):
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+
+        v_list = []
+        for k in range(len(self.values)):
+            temp = [0] * len(self.values)
+            for l in range(len(self.values)):
+                if l == k:
+                    temp[l] = self[k][l]
+            v_list.append(Vector(*temp))
+
+        return Matrix(*v_list)
+
+    def get_lower(self):
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+
+        v_list = []
+        for k in range(len(self.values)):
+            temp = [0] * len(self.values)
+            for l in range(len(self.values)):
+                if l < k:
+                    temp[l] = self[k][l]
+            v_list.append(Vector(*temp))
+
+        return Matrix(*v_list)
+
+    def get_upper(self):
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+
+        v_list = []
+        for k in range(len(self.values)):
+            temp = [0] * len(self.values)
+            for l in range(len(self.values)):
+                if l > k:
+                    temp[l] = self[k][l]
+            v_list.append(Vector(*temp))
+
+        return Matrix(*v_list)
+
+    def givens(dim, i, j, angle, resolution: int = 15):
+        if i >= dim or j >= dim: raise RangeError()
+        if resolution < 1: raise RangeError()
+
+        v_list = [[0 for l in range(dim)] for k in range(dim)]
+        for k in range(dim):
+            v_list[k][k] = 1
+
+        c = cos(angle, resolution=resolution)
+        s = sin(angle, resolution=resolution)
+        v_list[i][i] = c
+        v_list[j][j] = c
+        v_list[i][j] = s
+        v_list[j][i] = -s
+
+        return Matrix(*[Vector(*k) for k in v_list])
+
     def trace(self):
         if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
         sum = 0
@@ -1290,7 +1347,7 @@ class Matrix:
 
     def diagonal_mul(self):
         if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
-        sum = 0
+        sum = 1
         for k in range(len(self.values)):
             sum *= self.values[k][k]
         return sum
@@ -1328,6 +1385,303 @@ class Matrix:
         temp = (t * self).inverse(method=method, resolution=resolution, lowlimit=lowlimit, highlimit=highlimit, decimal=decimal)
         return temp * (t * b)
 
+    def jacobi_solve(self, b, resolution: int = 15):
+        if not isinstance(b, Vector): raise ArgTypeError("Must be a vector.")
+        if len(self.values) != b.dimension: raise DimensionError(0)
+        if resolution < 1: raise RangeError()
+
+        D = self.get_diagonal()
+        v_list = []
+        for k in range(len(D.values)):
+            temp = [0] * len(D.values)
+            for l in range(len(D.values)):
+                if l == k:
+                    temp[l] = 1 / D[k][l]
+            v_list.append(Vector(*temp))
+
+        D_inverse = Matrix(*v_list)
+
+        T = -D_inverse * (self - D)
+        C = D_inverse * b
+        del D, D_inverse
+
+        x = Vector(*[1 for k in range(b.dimension)])
+        for i in range(resolution):
+            x = T * x + C
+        return x
+
+class Graph:
+
+    def __init__(self, vertices=None, edges=None, weights=None, matrix=None, directed: bool = False):
+
+        if not ((isinstance(vertices, tuple) or isinstance(vertices, list) or (vertices is None))
+                and (isinstance(edges, tuple) or isinstance(edges, list) or (edges is None))
+                and (isinstance(weights, tuple) or isinstance(weights, list) or (weights is None))):
+            raise ArgTypeError()
+
+        if edges is not None:
+            for pair in edges:
+                if len(pair) != 2:
+                    raise AmountError()
+                if vertices is not None:
+                    if pair[0] not in vertices or pair[1] not in vertices:
+                        raise KeyError()
+
+        if weights is not None:
+            for val in weights:
+                if not (isinstance(val, int) or isinstance(val, float) or isinstance(val, Decimal)
+                        or isinstance(val, Infinity) or isinstance(val, Undefined)):
+                    raise ArgTypeError("Must be a numerical value.")
+
+        self.directed = directed
+
+        if matrix is None:
+            # let "vertices" and "edges" be only lists or tuples.
+            # weights and edges can also be None.
+            if vertices is None:
+                self.vertices = []
+            else:
+                self.vertices = [k for k in vertices]
+
+            if edges is None:
+                self.edges = []
+            else:
+                self.edges = [list(k) for k in edges]
+
+            if weights is None:
+                self.weights = [1 for k in self.edges]
+            else:
+                self.weights = [k for k in weights]
+
+            general = [[0 for k in range(len(self.vertices))] for l in range(len(self.vertices))]
+            for k in range(len(self.vertices)):
+                if weights is None:
+                    for pair in edges:
+                        i = self.vertices.index(pair[0])
+                        j = self.vertices.index(pair[1])
+                        general[i][j] = 1
+
+                else:
+                    counter = 0
+                    for pair in edges:
+                        i = self.vertices.index(pair[0])
+                        j = self.vertices.index(pair[1])
+                        general[i][j] = weights[counter]
+                        counter += 1
+                    del counter
+            if self.vertices:
+                self.matrix = Matrix(*[Vector(*k) for k in general])
+            else:
+                self.matrix = Matrix(Vector())
+
+        else:
+            dim = matrix.dimension.split("x")
+            if dim[0] != dim[1]:
+                raise DimensionError(2)
+            if vertices is not None:
+                if int(dim[0]) != len(vertices):
+                    raise DimensionError(0)
+                self.vertices = [k for k in vertices]  # You can still name your vertices like "a", "b", "c"...
+            else:
+                self.vertices = [k for k in range(len(matrix.values))]
+            # "edges" and "weights" option will be ignored here
+
+            self.weights = []
+            self.edges = []
+            for k in range(int(dim[0])):
+                for l in range(int(dim[1])):
+                    val = matrix[k][l]
+                    if val != 0:
+                        self.edges.append([self.vertices[k], self.vertices[l]])
+                        self.weights.append(val)
+
+            self.matrix = matrix.copy()
+
+    def __str__(self):
+        m = maximum(self.weights)
+        beginning = maximum([len(str(k)) for k in self.vertices]) + 1
+        length = len(str(m)) + 1
+        length = beginning if beginning >= length else length
+
+        result = beginning * " "
+        each = []
+        for item in self.vertices:
+            the_string = str(item)
+            emptyness = length - len(the_string)
+            emptyness = emptyness if emptyness >= 0 else 0
+            val = " " * emptyness + the_string
+            result += val
+            each.append(val)
+        result += "\n"
+
+        for i in range(len(each)):
+            emptyness = beginning - len(str(self.vertices[i]))
+            emptyness = emptyness if emptyness >= 0 else 0
+
+            result += " " * emptyness + str(self.vertices[i])
+            for j in range(len(each)):
+                val = str(self.matrix[i][j])
+                emptyness = length - len(val)
+                emptyness = emptyness if emptyness >= 0 else 0
+                result += " " * emptyness + val
+            result += "\n"
+
+        return result
+
+    def addedge(self, label, weight=1):
+        if not (isinstance(label, tuple) or isinstance(label, list)): raise ArgTypeError()
+        if len(label) != 2: raise AmountError()
+        if not (isinstance(weight, int) or isinstance(weight, float)
+                or isinstance(weight, Decimal) or isinstance(weight, Infinity) or isinstance(weight, Undefined)):
+            raise ArgTypeError("Must be a numerical value.")
+
+        i = self.vertices.index(label[0])
+        j = self.vertices.index(label[1])
+        self.matrix[i][j] = weight
+
+        self.edges.append(list(label))
+        self.weights.append(weight)
+
+        return self
+
+    def popedge(self, label):
+        if not (isinstance(label, tuple) or isinstance(label, list)): raise ArgTypeError()
+        if len(label) != 2: raise AmountError()
+
+        k = self.edges.index(label)
+        self.edges.pop(k)
+        self.weights.pop(k)
+
+        i = self.vertices.index(label[0])
+        j = self.vertices.index(label[1])
+        self.matrix[i][j] = 0
+        return label
+
+    def addvertex(self, v):
+        self.vertices.append(v)
+
+        general = [[0 for k in range(len(self.vertices))] for l in range(len(self.vertices))]
+        for k in range(len(self.vertices)):
+            if not self.weights:
+                for pair in self.edges:
+                    i = self.vertices.index(pair[0])
+                    j = self.vertices.index(pair[1])
+                    general[i][j] = 1
+            else:
+                counter = 0
+                for pair in self.edges:
+                    i = self.vertices.index(pair[0])
+                    j = self.vertices.index(pair[1])
+                    general[i][j] = self.weights[counter]
+                    counter += 1
+                del counter
+
+        self.matrix = Matrix(*[Vector(*k) for k in general])
+        return self
+
+    def popvertex(self, v):
+        k = self.vertices.index(v)
+        self.vertices.pop(k)
+
+        while True:
+            control = True
+            for item in self.edges:
+                if v in item:
+                    control = False
+                    i = self.edges.index(item)
+                    self.edges.pop(i)
+                    self.weights.pop(i)
+                    break
+
+            if control:
+                break
+
+        general = [[0 for k in range(len(self.vertices))] for l in range(len(self.vertices))]
+        for k in range(len(self.vertices)):
+            if not self.weights:
+                for pair in self.edges:
+                    i = self.vertices.index(pair[0])
+                    j = self.vertices.index(pair[1])
+                    general[i][j] = 1
+            else:
+                counter = 0
+                for pair in self.edges:
+                    i = self.vertices.index(pair[0])
+                    j = self.vertices.index(pair[1])
+                    general[i][j] = self.weights[counter]
+                    counter += 1
+                del counter
+
+        self.matrix = Matrix(*[Vector(*k) for k in general])
+        return v
+
+    def getdegree(self, vertex):
+        if vertex not in self.vertices: raise KeyError()
+
+        d = 0
+        for item in self.edges:
+            if vertex in item:
+                d += 1
+        return d
+
+    def getindegree(self, vertex):
+        if vertex not in self.vertices: raise KeyError()
+
+        d = 0
+        if self.directed:
+            for item in self.edges:
+                if vertex == item[1]:
+                    d += 1
+        else:
+            for item in self.edges:
+                if vertex in item:
+                    d += 1
+        return d
+
+    def getoutdegree(self, vertex):
+        if vertex not in self.vertices: raise KeyError()
+
+        d = 0
+        if self.directed:
+            for item in self.edges:
+                if vertex == item[0]:
+                    d += 1
+        else:
+            for item in self.edges:
+                if vertex in item:
+                    d += 1
+        return d
+
+    def getdegrees(self):
+        result = {}
+        for v in self.vertices:
+            d = self.getdegree(v)
+            if d not in result:
+                result[d] = 1
+            else:
+                result[d] += 1
+
+        return result
+
+    def getweight(self, label):
+        if not (isinstance(label, tuple) or isinstance(label, list)): raise ArgTypeError()
+        if len(label) != 2: raise AmountError()
+
+        i = self.edges.index(label)
+        return self.weights[i]
+
+    def isIsomorphic(g, h):
+        if not (isinstance(g, Graph) or isinstance(h, Graph)): raise ArgTypeError("Must be a Graph.")
+        return g.getdegrees() == h.getdegrees()
+
+    def isEuler(self):
+        degrees = self.getdegrees()
+        for k in degrees:
+            if k % 2:
+                return False
+        return True
+
+
 
 def Range(low, high, step=Decimal(1)):
     if not ((isinstance(low, int) or isinstance(low, float) or isinstance(low, Decimal) or isinstance(low, Infinity) or isinstance(low, Undefined))
@@ -1335,17 +1689,6 @@ def Range(low, high, step=Decimal(1)):
         raise ArgTypeError("Must be a numerical value.")
     if not ((high < low) ^ (step > 0)): raise RangeError()
 
-    """
-    A lazy implementation for creating ranges.
-
-    This works almost at the exact speed as built 
-    in range() when given a function inside the 
-    loop such as print().
-
-    :param low: low limit
-    :param high: high limit
-    :return: yields
-    """
     while (high < low) ^ (step > 0) and not high == low:
         yield low
         low += step
@@ -1353,25 +1696,10 @@ def Range(low, high, step=Decimal(1)):
 def abs(arg):
     if not (isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal) or isinstance(arg, Infinity) or isinstance(arg, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
-    """
-    Basic absolute value function
 
-    :param arg: float or int
-    :return: Absolute value of the arg
-    """
     return arg if (arg >= 0) else -arg
 
 def sqrt(arg, resolution: int = 10):
-    """
-    Square root with Newton's method. Speed is very close to
-    the math.sqrt(). This may be due to both complex number
-    allowance and digit counting while loop, I don't know the
-    built-in algorithm.
-
-    :param arg: Number, can be negative
-    :param resolution: Number of iterations
-    :return: float or complex
-    """
     if isinstance(arg, int) or isinstance(arg, float) or isinstance(arg, Decimal):
         if resolution < 1: raise RangeError("Resolution must be a positive integer")
         c = True if arg >= 0 else False
@@ -1401,31 +1729,42 @@ def sqrt(arg, resolution: int = 10):
         return Undefined()
     raise ArgTypeError()
 
-def cumsum(arg: list or tuple) -> int or float:
-    """
-    Cumulative sum of iterables. To use with vectors,
-    put vector.values as the argument.
-
-    :param arg: Number valued iterable
-    :return: Cumulative sum
-    """
-    sum: float = 0
-    try:
-        for k in arg:
+def cumsum(arg) -> int or float:
+    if isinstance(arg, list) or isinstance(arg, tuple) or isinstance(arg, Vector):
+        sum = 0
+        try:
+            for k in arg:
+                sum += k
+            return sum
+        except:
+            raise ArgTypeError("Elements of arg must be numerical")
+    elif isinstance(arg, Vector):
+        vals = arg.values
+        if isinstance(vals[0], Decimal):
+            sum = Decimal(0)
+            for k in vals:
+                sum += k
+            return sum
+        sum = 0
+        for k in vals:
             sum += k
         return sum
-    except:
-        raise ArgTypeError("Elements of arg must be numerical")
+    elif isinstance(arg, Matrix):
+        rows = arg.values
+        if isinstance(rows[0][0], Decimal):
+            sum = Decimal(0)
+            for k in rows:
+                for l in k:
+                    sum += l
+            return sum
+        sum = 0
+        for k in rows:
+            for l in k:
+                sum += l
+        return sum
+    raise ArgTypeError("Must be an iterable.")
 
 def __cumdiv(x, power: int):
-    """
-    This is for lossless calculation of Taylor
-    series.
-
-    :param x: Number
-    :param power: power
-    :return: Returns x^power/(power!)
-    """
     if not (isinstance(x, int) or isinstance(x, float) or isinstance(x, Decimal) or isinstance(x, Infinity) or isinstance(x, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
 
@@ -1435,13 +1774,6 @@ def __cumdiv(x, power: int):
     return result
 
 def e(exponent, resolution: int = 15):
-    """
-    e^x function.
-
-    :param exponent: x value
-    :param resolution: Up to which exponent Taylor series will continue.
-    :return: e^x
-    """
     if resolution < 1: raise RangeError("Resolution must be a positive integer")
     if not (isinstance(exponent, int) or isinstance(exponent, float) or isinstance(exponent, Decimal) or isinstance(exponent, Infinity) or isinstance(exponent, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
@@ -1452,13 +1784,6 @@ def e(exponent, resolution: int = 15):
     return sum
 
 def sin(angle, resolution: int = 15):
-    """
-    sin(x) using Taylor series. Input is in degrees.
-
-    :param angle: degrees
-    :param resolution: Up to which exponent Taylor series will continue.
-    :return: sin(angle)
-    """
     if not (resolution % 2) or resolution < 1: raise RangeError("Resolution must be a positive integer")
     if not (isinstance(angle, int) or isinstance(angle, float) or isinstance(angle, Decimal) or isinstance(angle, Infinity) or isinstance(angle, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
@@ -1471,13 +1796,6 @@ def sin(angle, resolution: int = 15):
     return result
 
 def cos(angle, resolution: int = 16):
-    """
-    cos(x) using Taylor series. Input is in degrees.
-
-    :param angle: degrees
-    :param resolution: Up to which exponent Taylor series will continue.
-    :return: cos(angle)
-    """
     if (resolution % 2) or resolution < 1: raise RangeError("Resolution must be a positive integer")
     if not (isinstance(angle, int) or isinstance(angle, float) or isinstance(angle, Decimal) or isinstance(angle, Infinity) or isinstance(angle, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
@@ -1490,13 +1808,6 @@ def cos(angle, resolution: int = 16):
     return result
 
 def tan(angle, resolution: int = 16):
-    """
-    tan(x) using Taylor series. Input is in degrees.
-
-    :param angle: degrees
-    :param resolution: Up to which exponent Taylor series will continue.
-    :return: tan(angle)
-    """
     if (resolution % 2) or resolution < 1: raise RangeError("Resolution must be a positive integer")
     try:
         return sin(angle, resolution - 1) / cos(angle, resolution)
@@ -1507,13 +1818,6 @@ def tan(angle, resolution: int = 16):
         return Infinity(False)
 
 def cot(angle, resolution: int = 16):
-    """
-    cot(x) using Taylor series. Input is in degrees.
-
-    :param angle: degrees
-    :param resolution: Up to which exponent Taylor series will continue.
-    :return: cot(angle)
-    """
     try:
         return 1 / tan(angle, resolution)
     except ZeroDivisionError:
@@ -2642,6 +2946,5 @@ class Undefined:
 
     def __ixor__(self, other):
         return False
-
 
 

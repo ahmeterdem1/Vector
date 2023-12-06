@@ -2,7 +2,7 @@
 
 A numerical methods tool for python, in python.
 
-There are 5 main subclasses; Vector, Matrix, complex, Infinity, Undefined.
+There are 6 main subclasses; Vector, Matrix, Graph, complex, Infinity, Undefined.
 And also there are functions, constants and exception classes. 
 Each section is explained below.
 
@@ -14,21 +14,17 @@ _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
 
-### Update notes on 2.3.0
+### Update notes on 2.4.0
 
-New constants added to prevent recalculation of the same values.
+Graph class added with basic functionality. 
 
-Outer product added to Vectors.
+Givens Rotations added to both matrices and vectors.
 
-"decimal" parameter added to pow() method on Matrix.
+Jacobi algorithm for solving Ax = b equations is added.
 
-Neumann inverse method added to Matrix. This method will only
-work for right conditioned matrices.
+Bug fix on Matrix print method. Now it is dynamic.
 
-Normalization, Hermitian conjugation, norm, least squares methods added to Matrix class.
-
-Undefined support increased. Also, new statistical functions added on distributions 
-(gaussian, etc.).
+A = L + D + U decomposition is added to Matrix class.
 
 ## Vectorgebra.Vector
 
@@ -137,12 +133,11 @@ Returns _dim_ dimensional all ones vector.
 
 Returns the reshaped matrix.
 
+### _Vectorgebra.Vector_.rotate(i, j, angle, resolution: int = 15)
 
-#### Footnotes
-
-Rotation is not implemented, because only reasonable way to implement
-it would be for just 2D and 3D vectors, which is not satisfying. 
-
+Rotates the vector, self, around axes "i" and "j" by "angle". 
+"resolution" argument is passed to cos() and sin(). Rotation
+is done via Givens rotation matrix.
 
 <hr>
 
@@ -283,6 +278,24 @@ prevent type errors that may have otherwise risen from written code.
 Applies Cholesky decomposition to self, and returns the L matrix. Applies algorithm
 is textbook Cholesky–Banachiewicz algorithm.
 
+### _Vectorgebra.Matrix_.get_diagonal()
+
+Returns the diagonal Matrix such that A = L + D + U.
+
+### _Vectorgebra.Matrix_.get_upper()
+
+Returns the upper triangular Matrix such that A = L + D + U.
+
+### _Vectorgebra.Matrix_.get_lower()
+
+Returns the lower triangular Matrix such that A = L + D + U.
+
+### Vectorgebra.Matrix.givens(dim, i, j, angle, resolution: int = 15)
+
+Returns the Givens rotation matrix that applies rotation around axes
+"i"-"j" by "angle". Matrix is dimxdim dimensional. "resolution" is
+passed to cos() and sin()
+
 ### _Vectorgebra.Matrix_.trace()
 
 Returns the trace of self.
@@ -305,7 +318,81 @@ functions inside this method. Same for resolution.
 ### _Vectorgebra.Matrix_.least_squares(b, *args)
 
 Accepts every argument that .inverse() accepts. Solves the equation _self * x = b_ for x.
-Every argument except b is passed to .inverse(). 
+Every argument except b is passed to .inverse().
+
+### _Vectorgebra.Matrix_.jacobi_solve(b, resolution: int = 15)
+
+Solves the equation self * x = b for x via Jacobi algorithm. "resolution" is the
+number of iterations. Returns the x vector.
+
+<hr>
+
+## Vectorgebra.Graph
+
+The class for graphs. These can be constructed via matrices or manually. Can be both
+directed or undirected.
+
+Constructor accepts 5 arguments; vertices, edges, weights, matrix, directed. "directed"
+is a bool and False by default. If "matrix" is given, "edges" and "weights" are ignored.
+If given, "vertices" is not ignored. If left blank, vertices are named numerically. Matrix
+must be a square, obviously. 
+
+Is manually constructed; "vertices" is the list (or tuple) of vertices names. Items can be
+anything that is hashable. "edges" is a list (or tuple) of length-2 lists (or tuples). Both
+items must be valid names of vertices, also named in the "vertices" argument. Weights to 
+these edges are passed in-order from "weights" list if is not None. If "weights" is left blank,
+1 is assigned as weight to given edges. The adjacency matrix is always generated.
+
+Related data can be accessed through; self.vertices, self.edges, self.weights, self.matrix, 
+self.directed.
+
+Print method is overloaded. Printing is much better than matrices even though it kind of prints
+the adjacency matrix.
+
+### _Vectorgebra.Graph_.addedge(label, weight=1)
+
+Add an edge with vertex pair "label". Weight is 1 by default. Returns self.
+
+### _Vectorgebra.Graph_.popedge(label)
+
+Pops the edge and returns it defined by "label". If there is more than one, pops the first instance.
+
+### _Vectorgebra.Graph_.addvertex(v)
+
+Adds a vertex named "v". Adjacency matrix is regenerated here.
+
+### _Vectorgebra.Graph_.popvertex(v)
+
+Removes the vertex named "v" and returns it. Removes all edges connected to vertex "v". Adjacency
+matrix is naturally regenerated.
+
+### _Vectorgebra.Graph_.getdegree(vertex)
+
+Returns the degree of vertex.
+
+### _Vectorgebra.Graph_.getindegree(vertex)
+
+Returns the in-degree of vertex if the graph is directed. Otherwise just returns the undirected degree.
+
+### _Vectorgebra.Graph_.getoutdegree(vertex)
+
+Returns the out-degree of vertex if the graph is directed. Otherwise just returns the undirected degree.
+
+### _Vectorgebra.Graph_.getdegrees()
+
+Returns a dictionary of degrees and vertices. Keys are degrees, values are corresponding vertices' labels.
+
+### _Vectorgebra.Graph_.getweight(label)
+
+Returns the weight og the edge given via label.
+
+### Vectorgebra.Graph.isIsomorphic(g, h)
+
+Returns True if g and h are isomorphic, False otherwise. g and h must be Graphs.
+
+### _Vectorgebra.Graph_.isEuler()
+
+Returns True if self is an Euler graph, False otherwise.
 
 <hr>
 
