@@ -532,7 +532,7 @@ class Vector:
         val = maxima - minima
         if val == 0:
             return self
-        return Vector(*[(k - maxima) / val for k in self.values])
+        return Vector(*[(k - minima) / val for k in self.values])
 
     def relu(self, leak=0, cutoff=0):
         if not ((isinstance(leak, int) or isinstance(leak, float) or isinstance(leak, Decimal)
@@ -545,7 +545,7 @@ class Vector:
 
     def sig(self, a=1, cutoff=None):
         if not (isinstance(cutoff, int) or isinstance(cutoff, float) or isinstance(cutoff, Decimal)
-                or isinstance(cutoff, Infinity) or isinstance(cutoff, Undefined)):
+                or isinstance(cutoff, Infinity) or isinstance(cutoff, Undefined)) or (cutoff is None):
             raise ArgTypeError("Must be a numerical value.")
         # The reason i do that, i want this to be as fast as possible. I restrain myself to use almost always comprehensions.
         # This is not a code that needs to be readable or sth.

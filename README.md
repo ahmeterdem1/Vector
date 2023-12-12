@@ -29,6 +29,11 @@ Frobenius product added to Matrix class.
 Random generation based on gaussian distribution is added to
 both Vectors and Matrices. 
 
+#### 2.5.1
+
+Minor bug fixes. Typed maxima instead of minima in Vector.minmax(). The case that
+cutoff could be None in Vector.sig() was not checked before.
+
 ## Vectorgebra.Vector
 
 Includes basic and some sophisticated operations on vectors.
