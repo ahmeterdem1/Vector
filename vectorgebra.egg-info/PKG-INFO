@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: vectorgebra
-Version: 2.4.0
+Version: 2.5.0
 Summary: A numerical methods tool for python, in python.
 Author: Ahmet Erdem
 Classifier: Programming Language :: Python :: 3
@@ -26,17 +26,20 @@ _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
 
-### Update notes on 2.4.0
+### Update notes on 2.5.0
 
-Graph class added with basic functionality. 
+Improvements on matrix operations and generations.
 
-Givens Rotations added to both matrices and vectors.
+Improvements on type-checking.
 
-Jacobi algorithm for solving Ax = b equations is added.
+Some ML operations like softmax are added to Vector class.
 
-Bug fix on Matrix print method. Now it is dynamic.
+ReLU function added.
 
-A = L + D + U decomposition is added to Matrix class.
+Frobenius product added to Matrix class.
+
+Random generation based on gaussian distribution is added to
+both Vectors and Matrices. 
 
 ## Vectorgebra.Vector
 
@@ -114,6 +117,13 @@ are decimal objects.
 Returns _dim_ dimensional vector which has its elements randomly selected
 as booleans. If decimal is true, generated contents are decimal objects.
 
+### Vectorgebra.Vector.randVgauss(dim, mu, sigma, decimal=True)
+
+Returns _dim_ dimensional vector which has its elements randomly selected
+on gaussian curve defined by mu and sigma. Uses _random.gauss_ internally.
+Therefore, limitations of this function should be kept in mind. If decimal 
+is true, generated contents are decimal objects.
+
 ### Vectorgebra.Vector.determinant(*args)
 
 Returns the determinant of the matrix which has rows given as vectors in
@@ -150,6 +160,27 @@ Returns the reshaped matrix.
 Rotates the vector, self, around axes "i" and "j" by "angle". 
 "resolution" argument is passed to cos() and sin(). Rotation
 is done via Givens rotation matrix.
+
+### _Vectorgebra.Vector_.softmax(resolution=15)
+
+Applies softmax operation to self and returns it. "resolution" is passed
+to e() function internally.
+
+### _Vectorgebra.Vector_.minmax()
+
+Applies MinMax operation to self and returns it.
+
+### _Vectorgebra.Vector_.relu(leak=0, cutoff=0)
+
+Maps self with ReLU function and returns the resultant vector. Put a
+non-zero leak for leaky ReLU. You can also implement a cutoff for the
+positive side of the function.
+
+### _Vectorgebra.Vector_.sig(a=1, cutoff=None)
+
+Applies the sigmoid to self and returns the resultant vector. "a" is the
+coefficient of x, you can implement a cutoff which acts as a radius. Above
++cutoff will return 1, below -cutoff will return 0.
 
 <hr>
 
@@ -248,6 +279,12 @@ If decimal is true, generated contents are decimal objects.
 Returns _mxn_ matrix of random booleans. If decimal is true, generated 
 contents are decimal objects.
 
+### Vectorgebra.Matrix.randMgauss(m, n, mu, sigma, decimal=True)
+
+Returns _mxn_ matrix of random values on the gaussian curve described by mu
+and sigma. If decimal is true, generated contents are decimal objects. Beware
+of the limitations of _random.gauss_ for this method.
+
 ### _Vectorgebra.Matrix_.echelon()
 
 Returns reduced row echelon form of self. Also does reorganization on
@@ -307,6 +344,10 @@ Returns the lower triangular Matrix such that A = L + D + U.
 Returns the Givens rotation matrix that applies rotation around axes
 "i"-"j" by "angle". Matrix is dimxdim dimensional. "resolution" is
 passed to cos() and sin()
+
+### Vectorgebra.Matrix.frobenius_product(a, b)
+
+Returns the Frobenius product of matrix a and matrix b.
 
 ### _Vectorgebra.Matrix_.trace()
 
@@ -457,6 +498,10 @@ and over again.
 ### Vectorgebra.sigmoid(x, a=1)
 
 Returns the sigmoid functions value at x, where a is the coefficient of x.
+
+### Vectorgebra.ReLU(x, leak=0, cutoff=0)
+
+Applies rectified linear unit with leak and cutoff given to x.
 
 ### Vectorgebra.Sum(f, a, b, step=Decimal(0.01), control: bool=False, limit=Decimal(0.000001))
 
