@@ -14,6 +14,18 @@ _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
 
+[Github](https://github.com/ahmeterdem1/Vector)
+
+### What can be done with Vectorgebra?
+
+[Here](https://github.com/ahmeterdem1/MLgebra) is a cool little project
+i created with Vectorgebra. I want this library to be applicable to
+more and more bigger projects as scale. And this was a good test to it.
+Creating and training an ML model requires both floating point precision
+and good handling of high dimensional tensors. Here we are talking about
+only matrices and vectors. Still no tensor in this library, but in the plans
+of course.
+
 ### Update notes on 2.5.0
 
 Improvements on matrix operations and generations.
@@ -33,6 +45,11 @@ both Vectors and Matrices.
 
 Minor bug fixes. Typed maxima instead of minima in Vector.minmax(). The case that
 cutoff could be None in Vector.sig() was not checked before.
+
+#### 2.5.2
+
+Apparently the bug on the sigmoid is still there. Was, indeed. Also included a cool
+project that I created with only this library in the readme.
 
 ## Vectorgebra.Vector
 

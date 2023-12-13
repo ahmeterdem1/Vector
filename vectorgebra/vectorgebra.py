@@ -545,7 +545,7 @@ class Vector:
 
     def sig(self, a=1, cutoff=None):
         if not (isinstance(cutoff, int) or isinstance(cutoff, float) or isinstance(cutoff, Decimal)
-                or isinstance(cutoff, Infinity) or isinstance(cutoff, Undefined)) or (cutoff is None):
+                or isinstance(cutoff, Infinity) or isinstance(cutoff, Undefined) or (cutoff is None)):
             raise ArgTypeError("Must be a numerical value.")
         # The reason i do that, i want this to be as fast as possible. I restrain myself to use almost always comprehensions.
         # This is not a code that needs to be readable or sth.
