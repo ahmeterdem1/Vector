@@ -20,7 +20,7 @@ sqrtpi = 1.77245385091
 sqrt2 = 1.41421356237
 sqrt2pi = 2.50662827463
 
-results = {}
+__results = {}
 
 # I leave the DimensionError be...
 class DimensionError(Exception):
@@ -553,6 +553,27 @@ class Vector:
             return Vector(*[1 if (x > cutoff) else 0 if (x < -cutoff) else sigmoid(x, a) for x in self.values])
         return Vector(*[sigmoid(x, a) for x in self.values])
 
+    def toInt(self):
+        return Vector(*[int(k) for k in self.values])
+
+    def toFloat(self):
+        return Vector(*[float(k) for k in self.values])
+
+    def toBool(self):
+        return Vector(*[bool(k) for k in self.values])
+
+    def toDecimal(self):
+        return Vector(*[Decimal(k) for k in self.values])
+
+    def map(self, f):
+        return Vector(*[f(k) for k in self.values])
+
+    def filter(self, f):
+        vals = []
+        for k in self.values:
+            if f(k):
+                vals.append(k)
+        return Vector(*vals)
 
 class Matrix:
     def __init__(self, *args):
@@ -562,10 +583,36 @@ class Matrix:
             if not (args[0].dimension == k.dimension):
                 raise DimensionError(0)
         self.values = [k.values for k in args]
-        self.dimension = f"{args[0].dimension}x{len(args)}"
+        if args:
+            self.dimension = f"{len(args[0])}x{len(args)}"
+        else:
+            self.dimension = "0x0"
 
     def __str__(self):
-        return "\n".join([str(k) for k in self.values])
+        strs = []
+        for k in self.values:
+            for l in k:
+                strs.append(len(str(l)))
+        maximalength = maximum(strs) + 1
+        res = ""
+        index1 = 0
+        for row in self.values:
+            index2 = 0
+            res += "["
+            for item in row:
+                i = str(item)
+                itemlength = len(i)
+                diff = maximalength - itemlength
+                res += " " + i
+                res += " " * (diff - 1 if diff > 0 else 0)
+                if not index2 == len(row) - 1:
+                    res += ","
+                index2 += 1
+            if not index1 == len(self.values) - 1:
+                res += "]\n"
+            index1 += 1
+        res += "]"
+        return res
 
     def __getitem__(self, index):
         return self.values[index]
@@ -1366,7 +1413,6 @@ class Matrix:
 
         return result
 
-
     def trace(self):
         if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
         sum = 0
@@ -1445,6 +1491,42 @@ class Matrix:
         for i in range(resolution):
             x = T * x + C
         return x
+
+    def toInt(self):
+        return Matrix(*[Vector(*[int(item) for item in row]) for row in self.values])
+
+    def toFloat(self):
+        return Matrix(*[Vector(*[float(item) for item in row]) for row in self.values])
+
+    def toBool(self):
+        return Matrix(*[Vector(*[bool(item) for item in row]) for row in self.values])
+
+    def toDecimal(self):
+        return Matrix(*[Vector(*[Decimal(item) for item in row]) for row in self.values])
+
+    def map(self, f):
+        return Matrix(*[Vector(*[f(item) for item in row]) for row in self.values])
+
+    def filter(self, f):
+        # This can easily raise a DimensionError
+        vlist = []
+        for row in self.values:
+            temp = []
+            for item in row:
+                if f(item):
+                    temp.append(item)
+            vlist.append(Vector(*temp))
+        return Matrix(*vlist)
+
+    def submatrix(self, a, b, c, d):
+        # a-b is row, c-d is column
+        if not (isinstance(a, int) or isinstance(b, int) or isinstance(c, int) or isinstance(d, int)):
+            raise ArgTypeError("Must be an integer.")
+
+        vlist = []
+        for row in self.values[a:b]:
+            vlist.append(Vector(*row[c:d]))
+        return Matrix(*vlist)
 
 class Graph:
 
@@ -1934,7 +2016,7 @@ def __find(f, low, high, search_step, res=Decimal(0.0001)):
             and (isinstance(res, int) or isinstance(res, float) or isinstance(res, Decimal))):
         raise ArgTypeError("Must be a numerical value.")
 
-    global results
+    global __results
     last_sign: bool = True if (f(low) >= 0) else False
     for x in Range(low, high, search_step):
         value = f(x)
@@ -1942,12 +2024,12 @@ def __find(f, low, high, search_step, res=Decimal(0.0001)):
         if temp_sign and last_sign and (value // 1 != 0 or value // 1 != -1):
             last_sign = temp_sign
         elif abs(value) < res * 100:
-            results[x] = True
+            __results[x] = True
             return x
         elif search_step > res:
             get = __find(f, x - search_step, x, search_step / 10)
             if get is not None:
-                results[get] = True
+                __results[get] = True
                 return get
 
 def solve(f, low=-50, high=50, search_step=0.1,
@@ -1990,10 +2072,10 @@ def solve(f, low=-50, high=50, search_step=0.1,
     for k in thread_list:
         k.join()
     logger.debug("Joins ended.")
-    for k in results:
+    for k in __results:
         zeroes.append(k)
 
-    results.clear()
+    __results.clear()
 
     zeroes = list(map(lambda x: x if (abs(x) > 0.00001) else 0, zeroes))
 

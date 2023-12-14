@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: vectorgebra
-Version: 2.5.2
+Version: 2.6.0
 Summary: A numerical methods tool for python, in python.
 Author: Ahmet Erdem
 Classifier: Programming Language :: Python :: 3
@@ -38,30 +38,22 @@ and good handling of high dimensional tensors. Here we are talking about
 only matrices and vectors. Still no tensor in this library, but in the plans
 of course.
 
-### Update notes on 2.5.0
+### Update notes on 2.6.0
 
-Improvements on matrix operations and generations.
+Type conversion methods added to both matrices and vectors. Also map and
+filtering methods are added. Those are just wrappers around basic 
+implementations, mostly single line codes.
 
-Improvements on type-checking.
+A "submatrix" method is added to Matrix class. This aims to be for CNN
+operations in the future.
 
-Some ML operations like softmax are added to Vector class.
+Printing of matrices is completely redone. It is heavier now but much
+better to read. For faster inside look just printing the .values list
+will do the work.
 
-ReLU function added.
-
-Frobenius product added to Matrix class.
-
-Random generation based on gaussian distribution is added to
-both Vectors and Matrices. 
-
-#### 2.5.1
-
-Minor bug fixes. Typed maxima instead of minima in Vector.minmax(). The case that
-cutoff could be None in Vector.sig() was not checked before.
-
-#### 2.5.2
-
-Apparently the bug on the sigmoid is still there. Was, indeed. Also included a cool
-project that I created with only this library in the readme.
+Slight change on matrix initialization. Now empty matrices can be generated.
+Before you would need at least 1 Vector as an element to generate a
+matrix.
 
 ## Vectorgebra.Vector
 
@@ -203,6 +195,18 @@ positive side of the function.
 Applies the sigmoid to self and returns the resultant vector. "a" is the
 coefficient of x, you can implement a cutoff which acts as a radius. Above
 +cutoff will return 1, below -cutoff will return 0.
+
+### Type conversions
+
+.toInt(), .toFloat(), .toBool(), .toDecimal().
+
+### _Vectorgebra.Vector_.map(f)
+
+Maps the elements of the self according to the function "f".
+
+### _Vectorgebra.Vector_.filter(f)
+
+Filters the elements of self according to the function "f".
 
 <hr>
 
@@ -400,6 +404,27 @@ Every argument except b is passed to .inverse().
 Solves the equation self * x = b for x via Jacobi algorithm. "resolution" is the
 number of iterations. Returns the x vector.
 
+### Type conversions
+
+.toInt(), .toFloat(), .toBool(), .toDecimal().
+
+### _Vectorgebra.Matrix_.map(f)
+
+Maps the elements of self according to the function "f".
+
+### _Vectorgebra.Matrix_.filter(f)
+
+Filters the elements of self according to the function "f".
+
+Attention! This method is very prone to DimensionError. Be sure
+that for each row, after the filtering, the same amount of elements
+get through.
+
+### _Vectorgebra.Matrix_.submatrix(a, b, c, d)
+
+Slices the self by rows a:b, by columns c:d and returns the resulting
+matrix.
+
 <hr>
 
 ## Vectorgebra.Graph
@@ -412,7 +437,7 @@ is a bool and False by default. If "matrix" is given, "edges" and "weights" are 
 If given, "vertices" is not ignored. If left blank, vertices are named numerically. Matrix
 must be a square, obviously. 
 
-Is manually constructed; "vertices" is the list (or tuple) of vertices names. Items can be
+If manually constructed; "vertices" is the list (or tuple) of vertices names. Items can be
 anything that is hashable. "edges" is a list (or tuple) of length-2 lists (or tuples). Both
 items must be valid names of vertices, also named in the "vertices" argument. Weights to 
 these edges are passed in-order from "weights" list if is not None. If "weights" is left blank,
@@ -459,7 +484,7 @@ Returns a dictionary of degrees and vertices. Keys are degrees, values are corre
 
 ### _Vectorgebra.Graph_.getweight(label)
 
-Returns the weight og the edge given via label.
+Returns the weight of the edge given via label.
 
 ### Vectorgebra.Graph.isIsomorphic(g, h)
 
@@ -645,7 +670,7 @@ Every element of dataset must be of the same type whether they are
 Vectors or not. Type-checking is based on the first row of the dataset.
 
 Returns a 2-element tuple. First element is a list of Vectors which
-point to the cluster centers. Second element is a list of Vectors
+point to the cluster centers. Second element is a list of lists of Vectors
 which consist of the initial data. This list has the same length as
 number of generated cluster centers. Each internal list corresponds
 to the same indexed center point. So this data is grouped by cluster
@@ -709,10 +734,10 @@ function.
 
 ### Vectorgebra.matmul(m1, m2, max=10)
 
-Threaded matrix multiplication. Its speed is depended on dimensions of 
+Threaded matrix multiplication. Its speed depends on dimensions of given
 matrices. Let it be axb and bxc, (a - b) is proportional to this functions
 speed. Worst case scenario is square matrices. 44x44 (On CPython) is limit 
-for this function to be faster than the overload version of matrix multiplication.
+for this function to be faster than the normal version of matrix multiplication.
 
 If b > a, normally this function gets even more slower. But there is a
 way around. Let it be b > a;
