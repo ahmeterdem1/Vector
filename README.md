@@ -19,29 +19,24 @@ https://pypi.org/project/vectorgebra/
 ### What can be done with Vectorgebra?
 
 [Here](https://github.com/ahmeterdem1/MLgebra) is a cool little project
-i created with Vectorgebra. I want this library to be applicable to
+I created with Vectorgebra. I want this library to be applicable to
 more and more bigger projects as scale. And this was a good test to it.
 Creating and training an ML model requires both floating point precision
 and good handling of high dimensional tensors. Here we are talking about
 only matrices and vectors. Still no tensor in this library, but in the plans
 of course.
 
-### Update notes on 2.6.0
+### Update notes on 2.7.0
 
-Type conversion methods added to both matrices and vectors. Also map and
-filtering methods are added. Those are just wrappers around basic 
-implementations, mostly single line codes.
+Median calculating function added.
 
-A "submatrix" method is added to Matrix class. This aims to be for CNN
-operations in the future.
+"unique" and "isALlUnique" functions are added.
 
-Printing of matrices is completely redone. It is heavier now but much
-better to read. For faster inside look just printing the .values list
-will do the work.
+Permutation calculating function added.
 
-Slight change on matrix initialization. Now empty matrices can be generated.
-Before you would need at least 1 Vector as an element to generate a
-matrix.
+Sort method added to Vector class.
+
+Slight changes on argument checking in trigonometric functions and e().
 
 ## Vectorgebra.Vector
 
@@ -195,6 +190,11 @@ Maps the elements of the self according to the function "f".
 ### _Vectorgebra.Vector_.filter(f)
 
 Filters the elements of self according to the function "f".
+
+### _Vectorgebra.Vector_.sort(reverse=False)
+
+Sorts the vector. This function uses built in sort. "reverse" argument is
+directly passed into it.
 
 <hr>
 
@@ -552,6 +552,10 @@ accepted.
 
 Calculates the mean of data. "data" must be a one dimensional iterable.
 
+### Vectorgebra.median(data)
+
+Returns the median of data. "data" must be a one dimensional iterable.
+
 ### Vectorgebra.expectation(values, probabilities, moment: int = 1)
 
 "values" and "probabilities" are one dimensional iterables and their lengths must be
@@ -576,6 +580,20 @@ Returns the maximum value of dataset. Dataset can be anywhere from tuples to Mat
 ### Vectorgebra.minimum(dataset)
 
 Returns the minimum value of dataset. Dataset can be anywhere from tuples to Matrices.
+
+### Vectorgebra.unique(data)
+
+Returns a dictionary that has unique elements as keys and counts of these elements appearances
+in "data" as values. "data" must be an iterable.
+
+### Vectorgebra.isAllUnique(data)
+
+Returns True if all elements in data are unique. "data" must be an iterable.
+
+### Vectorgebra.permutate(sample)
+
+Returns all permutations of "sample" in a list. Only unique elements are counted in "sample".
+This function utilizes helper function "Vectorgebra.__permutate()". "sample" must be an iterable.
 
 ### Vectorgebra.factorial(x: int)
 

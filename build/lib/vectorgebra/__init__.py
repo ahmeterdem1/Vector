@@ -575,6 +575,10 @@ class Vector:
                 vals.append(k)
         return Vector(*vals)
 
+    def sort(self, reverse: bool=False):
+        self.values.sort(reverse=reverse)
+        return self
+
 class Matrix:
     def __init__(self, *args):
         for k in args:
@@ -1889,8 +1893,8 @@ def __cumdiv(x, power: int):
         result *= x / k
     return result
 
-def e(exponent, resolution: int = 15):
-    if resolution < 1: raise RangeError("Resolution must be a positive integer")
+def e(exponent, resolution=15):
+    if not (isinstance(resolution, int) and resolution < 1): raise RangeError("Resolution must be a positive integer")
     if not (isinstance(exponent, int) or isinstance(exponent, float) or isinstance(exponent, Decimal) or isinstance(exponent, Infinity) or isinstance(exponent, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
 
@@ -1899,8 +1903,8 @@ def e(exponent, resolution: int = 15):
         sum += __cumdiv(exponent, k)
     return sum
 
-def sin(angle, resolution: int = 15):
-    if not (resolution % 2) or resolution < 1: raise RangeError("Resolution must be a positive integer")
+def sin(angle, resolution=15):
+    if not (isinstance(resolution, int) and resolution < 1): raise RangeError("Resolution must be a positive integer")
     if not (isinstance(angle, int) or isinstance(angle, float) or isinstance(angle, Decimal) or isinstance(angle, Infinity) or isinstance(angle, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
 
@@ -1911,8 +1915,8 @@ def sin(angle, resolution: int = 15):
         result = result + __cumdiv(radian, k) * pow(-1, (k - 1) / 2)
     return result
 
-def cos(angle, resolution: int = 16):
-    if (resolution % 2) or resolution < 1: raise RangeError("Resolution must be a positive integer")
+def cos(angle, resolution=16):
+    if not (isinstance(resolution, int) and resolution < 1): raise RangeError("Resolution must be a positive integer")
     if not (isinstance(angle, int) or isinstance(angle, float) or isinstance(angle, Decimal) or isinstance(angle, Infinity) or isinstance(angle, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
 
@@ -1923,8 +1927,8 @@ def cos(angle, resolution: int = 16):
         result = result + __cumdiv(radian, k) * pow(-1, k / 2)
     return result
 
-def tan(angle, resolution: int = 16):
-    if (resolution % 2) or resolution < 1: raise RangeError("Resolution must be a positive integer")
+def tan(angle, resolution=16):
+    if not (isinstance(resolution, int) and resolution < 1): raise RangeError("Resolution must be a positive integer")
     try:
         return sin(angle, resolution - 1) / cos(angle, resolution)
         # Because of the error amount, probably cos will never be zero.
@@ -2201,6 +2205,9 @@ def ReLU(x, leak=0, cutoff=0):
     else:
         return cutoff
 
+def deriv_relu(x, leak=0, cutoff=0):
+    return 1 if x >= cutoff else 0 if x >= 0 else leak
+
 def Sum(f, a, b, step=Decimal(0.01), control: bool = False, limit=Decimal(0.000001)):
     # Yes, with infinities this can blow up. It is the users problem to put infinities in.
     if not ((isinstance(a, int) or isinstance(a, float) or isinstance(a, Decimal) or isinstance(a, Infinity))
@@ -2258,7 +2265,7 @@ def mode(arg):
         return max[0]
     raise ArgTypeError()
 
-def mean(arg) -> float:
+def mean(arg):
     if isinstance(arg, tuple) or isinstance(arg, list) or isinstance(arg, Vector):
         sum = 0
         for k in range(len(arg)):
@@ -2279,7 +2286,22 @@ def mean(arg) -> float:
         return sum / count
     raise ArgTypeError()
 
-def expectation(values, probabilities, moment: int = 1) -> float:
+def median(data):
+    if isinstance(data, list):
+        arg = data.copy()
+    elif isinstance(data, tuple):
+        arg = list(data)
+    elif isinstance(data, Vector):
+        arg = data.values.copy()
+    else: raise ArgTypeError()
+    arg.sort()
+    n = len(arg)
+    if n // 2 == n / 2:
+        return arg[n // 2]
+    else:
+        return (arg[n // 2] + arg[(n // 2) + 1]) / 2
+
+def expectation(values, probabilities, moment: int = 1):
     if moment < 0: raise RangeError()
     if (isinstance(values, list) or isinstance(values, tuple) or isinstance(values, Vector)) \
         and (isinstance(probabilities, list) or isinstance(probabilities, tuple) or isinstance(probabilities, Vector)):
@@ -2291,7 +2313,7 @@ def expectation(values, probabilities, moment: int = 1) -> float:
         return sum
     raise ArgTypeError("Arguments must be one dimensional iterables")
 
-def variance(values, probabilities) -> float:
+def variance(values, probabilities):
     if (isinstance(values, list) or isinstance(values, tuple) or isinstance(values, Vector)) \
             and (
             isinstance(probabilities, list) or isinstance(probabilities, tuple) or isinstance(probabilities, Vector)):
@@ -2542,6 +2564,57 @@ def kmeans(dataset, k: int = 2, iterations: int = 15, a=0, b=10):
     # First one is the cluster centers.
     # Second one is data assigned to cluster centers in order.
     return points, assigns
+
+def unique(data):
+    if isinstance(data, tuple) or isinstance(data, list) or isinstance(data, Vector):
+        res = {}
+        for val in data:
+            if val in res:
+                res[val] += 1
+            else:
+                res[val] = 1
+        return res
+    if isinstance(data, Matrix):
+        arg = data.reshape(len(data) * len(data[0]))
+        res = {}
+        for val in arg:
+            if val in res:
+                res[val] += 1
+            else:
+                res[val] = 1
+        return res
+    raise ArgTypeError("Must be an iterable.")
+
+def isAllUnique(data):
+    if isinstance(data, tuple) or isinstance(data, list):
+        return len(data) == len(set(data))
+    if isinstance(data, Vector):
+        return len(data) == len(set(data.values))
+    if isinstance(data, Matrix):
+        val = len(data) * len(data[0])
+        v = data.reshape(val)
+        return val == len(set(v.values))
+    raise ArgTypeError("Must be an iterable.")
+
+def __permutate(sample, count, length, target):
+    if count == length:
+        target.append(sample.copy())
+    for k in range(count, length):
+        sample[k], sample[count] = sample[count], sample[k]
+        __permutate(sample, count + 1, length, target)
+        sample[count], sample[k] = sample[k], sample[count]
+
+def permutate(sample):
+    if isinstance(sample, list) or isinstance(sample, tuple):
+        arg = list(set(sample))
+    elif isinstance(sample, Vector):
+        arg = list(set(sample.values))
+    elif isinstance(sample, Matrix):
+        arg = sample.values
+    else: raise ArgTypeError("Must be an iterable.")
+    target = []
+    __permutate(arg, 0, len(arg), target)
+    return target
 
 class complex:
 
