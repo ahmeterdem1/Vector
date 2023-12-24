@@ -1894,7 +1894,7 @@ def __cumdiv(x, power: int):
     return result
 
 def e(exponent, resolution=15):
-    if not (isinstance(resolution, int) and resolution < 1): raise RangeError("Resolution must be a positive integer")
+    if not (isinstance(resolution, int) and resolution >= 1): raise RangeError("Resolution must be a positive integer")
     if not (isinstance(exponent, int) or isinstance(exponent, float) or isinstance(exponent, Decimal) or isinstance(exponent, Infinity) or isinstance(exponent, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
 
@@ -1904,7 +1904,7 @@ def e(exponent, resolution=15):
     return sum
 
 def sin(angle, resolution=15):
-    if not (isinstance(resolution, int) and resolution < 1): raise RangeError("Resolution must be a positive integer")
+    if not (isinstance(resolution, int) and resolution >= 1): raise RangeError("Resolution must be a positive integer")
     if not (isinstance(angle, int) or isinstance(angle, float) or isinstance(angle, Decimal) or isinstance(angle, Infinity) or isinstance(angle, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
 
@@ -1916,7 +1916,7 @@ def sin(angle, resolution=15):
     return result
 
 def cos(angle, resolution=16):
-    if not (isinstance(resolution, int) and resolution < 1): raise RangeError("Resolution must be a positive integer")
+    if not (isinstance(resolution, int) and resolution >= 1): raise RangeError("Resolution must be a positive integer")
     if not (isinstance(angle, int) or isinstance(angle, float) or isinstance(angle, Decimal) or isinstance(angle, Infinity) or isinstance(angle, Undefined)):
         raise ArgTypeError("Must be a numerical value.")
 
@@ -1928,7 +1928,7 @@ def cos(angle, resolution=16):
     return result
 
 def tan(angle, resolution=16):
-    if not (isinstance(resolution, int) and resolution < 1): raise RangeError("Resolution must be a positive integer")
+    if not (isinstance(resolution, int) and resolution >= 1): raise RangeError("Resolution must be a positive integer")
     try:
         return sin(angle, resolution - 1) / cos(angle, resolution)
         # Because of the error amount, probably cos will never be zero.

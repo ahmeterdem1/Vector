@@ -38,6 +38,10 @@ Sort method added to Vector class.
 
 Slight changes on argument checking in trigonometric functions and e().
 
+### 2.7.1 
+
+Argument checking bug fix. Error was fatal for related functions.
+
 ## Vectorgebra.Vector
 
 Includes basic and some sophisticated operations on vectors.
