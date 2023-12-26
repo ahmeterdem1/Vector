@@ -380,6 +380,7 @@ class Vector:
             for l in range(0, k):
                 temp -= v_list[k].proj(v_list[l])
             v_list[k] = temp.unit()
+        v_list[0] = v_list[0].unit()
         return v_list
 
     def does_span(*args):
@@ -1401,7 +1402,6 @@ class Matrix:
         v_list[j][j] = c
         v_list[i][j] = s
         v_list[j][i] = -s
-
         return Matrix(*[Vector(*k) for k in v_list])
 
     def frobenius_product(a, b):
@@ -1910,9 +1910,11 @@ def sin(angle, resolution=15):
 
     radian: float = (2 * PI * (angle % 360 / 360)) % (2 * PI)
     result: float = 0
-
+    if not resolution % 2:
+        resolution += 1
     for k in range(resolution, 0, -2):
         result = result + __cumdiv(radian, k) * pow(-1, (k - 1) / 2)
+
     return result
 
 def cos(angle, resolution=16):
@@ -1922,6 +1924,9 @@ def cos(angle, resolution=16):
 
     radian: float = (2 * PI * (angle % 360 / 360)) % (2 * PI)
     result: float = 1
+
+    if resolution % 2:
+        resolution += 1
 
     for k in range(resolution, 0, -2):
         result = result + __cumdiv(radian, k) * pow(-1, k / 2)
