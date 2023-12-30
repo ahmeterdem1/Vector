@@ -2325,9 +2325,11 @@ def variance(values, probabilities):
         if len(values) != len(probabilities): raise DimensionError(0)
 
         sum = 0
+        sum2 = 0
         for k in range(len(values)):
-            sum += (values[k]**2) * probabilities[k] - values[k] * probabilities[k]
-        return sum
+            sum += (values[k]**2) * probabilities[k]
+            sum2 += values[k] * probabilities[k]
+        return sum - sum2**2
     raise ArgTypeError("Arguments must be one dimensional iterables")
 
 def sd(values, probabilities) -> float:
