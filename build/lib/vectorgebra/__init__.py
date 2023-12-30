@@ -2412,13 +2412,15 @@ def multinomial(n: int = 0, *args) -> int:
         if not isinstance(k, int): raise ArgTypeError()
         if k < 0: raise RangeError()
         sum += k
+    c = [k for k in args]
     if sum != n: raise RangeError("Sum of partitions must be equal to n")
     result = 1
     while n != 1:
         result *= n
-        for k in args:
-            result /= k
-            k -= 1
+        for k in range(len(c)):
+            if not c[k]: continue
+            result /= c[k]
+            c[k] -= 1
         n -= 1
     return result
 

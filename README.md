@@ -47,6 +47,10 @@ Argument checking bug fix. Error was fatal for related functions.
 Bug fix on trigonometric functions. If resolution was even-odd, cos-sin would
 result in Python built-in complex numbers.
 
+### 2.7.3
+
+Minor bug fix on multinomial
+
 ## Vectorgebra.Vector
 
 Includes basic and some sophisticated operations on vectors.

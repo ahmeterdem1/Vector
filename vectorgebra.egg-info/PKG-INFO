@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: vectorgebra
-Version: 2.7.2
+Version: 2.7.3
 Summary: A numerical methods tool for python, in python.
 Author: Ahmet Erdem
 Classifier: Programming Language :: Python :: 3
@@ -58,6 +58,10 @@ Argument checking bug fix. Error was fatal for related functions.
 
 Bug fix on trigonometric functions. If resolution was even-odd, cos-sin would
 result in Python built-in complex numbers.
+
+### 2.7.3
+
+Minor bug fix on multinomial
 
 ## Vectorgebra.Vector
 
