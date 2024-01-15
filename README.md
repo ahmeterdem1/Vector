@@ -16,6 +16,10 @@ https://pypi.org/project/vectorgebra/
 
 [Github](https://github.com/ahmeterdem1/Vector)
 
+A C++ remake of this library is currently being developed at [here](https://github.com/ahmeterdem1/Vector_cpp).
+
+Tutorials for this library can be found at [here](https://github.com/ahmeterdem1/examples).
+
 ### What can be done with Vectorgebra?
 
 [Here](https://github.com/ahmeterdem1/MLgebra) is a cool little project
@@ -38,18 +42,7 @@ Sort method added to Vector class.
 
 Slight changes on argument checking in trigonometric functions and e().
 
-### 2.7.1 
 
-Argument checking bug fix. Error was fatal for related functions.
-
-### 2.7.2
-
-Bug fix on trigonometric functions. If resolution was even-odd, cos-sin would
-result in Python built-in complex numbers.
-
-### 2.7.3 - 2.7.4
-
-Minor bug fix
 
 ## Vectorgebra.Vector
 
