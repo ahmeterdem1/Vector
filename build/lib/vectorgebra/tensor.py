@@ -665,10 +665,17 @@ class Tensor:
         if len(self.dimension) <= 2:
             return self.copy()
         vlist = []
-        for k in range(self.dimension[0]):
-            row = []
-            for l in range(self.dimension[1]):
-                row.append(self.values[k][l].avg())
-            vlist.append(Vector(*row))
+        if len(self.dimension) == 3:
+            for k in range(self.dimension[0]):
+                row = []
+                for l in range(self.dimension[1]):
+                    row.append(Vector(*(self.values[k][l])).avg())
+                vlist.append(Vector(*row))
+        else:
+            for k in range(self.dimension[0]):
+                row = []
+                for l in range(self.dimension[1]):
+                    row.append(self.values[k][l].avg())
+                vlist.append(Vector(*row))
         return Matrix(*vlist)
 

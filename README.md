@@ -58,6 +58,10 @@ Decimal choice of the library is set to "False" as default.
 
 Matrix.zero and Matrix.one now accepts 2 arguments defining the dimension.
 
+### 3.0.1
+
+Bug fixes on .flatten() method.
+
 ## Vectorgebra.Vector
 
 Includes basic and some sophisticated operations on vectors.

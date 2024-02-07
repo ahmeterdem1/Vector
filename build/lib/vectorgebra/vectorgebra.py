@@ -1,4 +1,4 @@
-from graph import *
+from .graph import *
 
 Vector(1, 2, 3)
 
@@ -14,8 +14,11 @@ if __name__ == "__main__":
 
     print()
     print(t)
-    print(t * Matrix(Vector(1, 2), Vector(3, 4)))
-    print()
-    print(t * t)
+    print(t.flatten())
+    print(t.avg())
 
-
+    m = Matrix(Vector(1, 2, 3), Vector(1, 2, 3))
+    n = Matrix(Vector(1, 2, 3, 4), Vector(1, 2, 3, 4), Vector(1, 2, 3, 4))
+    print(m.dimension)
+    print(m * n)
+    

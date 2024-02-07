@@ -1073,7 +1073,7 @@ class Matrix:
                 raise DimensionError(0)
         self.values = [k.values for k in args]
         if args:
-            self.dimension = f"{len(args[0])}x{len(args)}"
+            self.dimension = f"{len(args)}x{len(args[0])}"
         else:
             self.dimension = "0x0"
 
