@@ -1,12 +1,12 @@
 Metadata-Version: 2.1
 Name: vectorgebra
-Version: 2.7.5
+Version: 3.0.0
 Summary: A numerical methods tool for python, in python.
 Author: Ahmet Erdem
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
-Requires-Python: >=3.6
+Requires-Python: >=3.9
 Description-Content-Type: text/markdown
 License-File: LICENSE.txt
 
@@ -14,7 +14,7 @@ License-File: LICENSE.txt
 
 A numerical methods tool for python, in python.
 
-There are 6 main subclasses; Vector, Matrix, Graph, complex, Infinity, Undefined.
+There are 7 main subclasses; Vector, Matrix, Tensor, Graph, Complex, Infinity, Undefined.
 And also there are functions, constants and exception classes. 
 Each section is explained below.
 
@@ -38,23 +38,37 @@ Tutorials for this library can be found at [here](https://github.com/ahmeterdem1
 I created with Vectorgebra. I want this library to be applicable to
 more and more bigger projects as scale. And this was a good test to it.
 Creating and training an ML model requires both floating point precision
-and good handling of high dimensional tensors. Here we are talking about
-only matrices and vectors. Still no tensor in this library, but in the plans
-of course.
+and good handling of high dimensional tensors.
 
-### Update notes on 2.7.0
+### Update notes on 3.0.0
 
-Median calculating function added.
+Most of the changes in this version are internal changes that are mostly
+invisible to the general user. The file structure of the library has been
+completely changed. The new file structure is much like the C++ counterpart.
+Each important subpart of the code is carried to another file. This doesn't
+really mean classes are carried to separate files. Due to the import chain
+loop problems that are explained [here](https://github.com/ahmeterdem1/Vector_cpp), code separation is not consistent.
+A few functions have duplicate definitions. This does not affect the
+functionality of the library.
 
-"unique" and "isALlUnique" functions are added.
+"complex" name is changed to "Complex", in consistency with other object
+names in the library.
 
-Permutation calculating function added.
+Type checking is now done with the help of the "typing" library. The
+code is more readable now.
 
-Sort method added to Vector class.
+A Tensor class is implemented. Functionality is very much the same as
+Matrix class. Initialization rules are alike. You can generate any
+dimensional tensors, it is not limited to 3. The reason for implementation
+is the upcoming "Visiongebra" library. Tensor class will be the data format
+for loading images. Currently, the implementation has few methods. But
+all the essential ones are there. Even the tensor multiplication is there.
 
-Slight changes on argument checking in trigonometric functions and e().
+Docstrings are added to almost all functions and methods.
 
+Decimal choice of the library is set to "False" as default.
 
+Matrix.zero and Matrix.one now accepts 2 arguments defining the dimension.
 
 ## Vectorgebra.Vector
 
@@ -115,24 +129,24 @@ where n is the number of vectors. Returns False otherwise. Eliminates
 the possible error from Vector.spanify() method. Therefore, this method
 will work just fine regardless the errors from divisions.
 
-### Vectorgebra.Vector.randVint(dim , a, b, decimal=True)
+### Vectorgebra.Vector.randVint(dim , a, b, decimal=False)
 
 Returns _dim_ dimensional vector which has its elements randomly selected
 as integers within the interval (a, b). If decimal is true, generated contents
 are decimal objects.
 
-### Vectorgebra.Vector.randVfloat(dim, a, b, decimal=True)
+### Vectorgebra.Vector.randVfloat(dim, a, b, decimal=False)
 
 Returns _dim_ dimensional vector which has its elements randomly selected
 as floats within the interval (a, b). If decimal is true, generated contents
 are decimal objects.
 
-### Vectorgebra.Vector.randVbool(dim, decimal=True)
+### Vectorgebra.Vector.randVbool(dim, decimal=False)
 
 Returns _dim_ dimensional vector which has its elements randomly selected
 as booleans. If decimal is true, generated contents are decimal objects.
 
-### Vectorgebra.Vector.randVgauss(dim, mu, sigma, decimal=True)
+### Vectorgebra.Vector.randVgauss(dim, mu, sigma, decimal=False)
 
 Returns _dim_ dimensional vector which has its elements randomly selected
 on gaussian curve defined by mu and sigma. Uses _random.gauss_ internally.
@@ -162,7 +176,7 @@ Returns the cumulative sum.
 
 Returns _dim_ dimensional zero vector.
 
-## Vectorgebra.Vector.one(dim)
+### Vectorgebra.Vector.one(dim)
 
 Returns _dim_ dimensional all ones vector.
 
@@ -214,6 +228,10 @@ Filters the elements of self according to the function "f".
 Sorts the vector. This function uses built in sort. "reverse" argument is
 directly passed into it.
 
+### _Vectorgebra.Vector_.avg()
+
+Returns the average of all numbers in self.
+
 <hr>
 
 ## Vectorgebra.Matrix
@@ -264,12 +282,12 @@ Divides self with its determinant.
 
 Returns the Hermitian conjugate of self.
 
-### _Vectorgebra.Matrix_.norm(resolution: int = 15, decimal: bool = True)
+### _Vectorgebra.Matrix_.norm(resolution: int = 15, decimal=False)
 
 Returns the Frobenius norm of self. Utilizes the eigenvalue function.
 Parameters are directly passed to eigenvalue function.
 
-### _Vectorgebra.Matrix_.inverse(method="iteraitve", resolution=10, lowlimit=0.0000000001, highlimit=100000)
+### _Vectorgebra.Matrix_.inverse(method="iteraitve", resolution=10, lowlimit=0.0000000001, highlimit=100000, decimal=False)
 
 Returns the inverse matrix of self. Returns None if not invertible.
 method can ben "analytic", "gauss", "neumann" or "iterative". Default is iterative
@@ -281,37 +299,37 @@ better inside look.
 Neumann will only work for the right conditioned matrices (see [here](https://en.wikipedia.org/wiki/Matrix_norm)). Neumann only uses
 resolution parameter.
 
-### Vectorgebra.Matrix.identity(dim, decimal=True)
+### Vectorgebra.Matrix.identity(dim, decimal=False)
 
 Returns _dimxdim_ dimensional identity matrix. If decimal is true, generated 
 contents are decimal objects.
 
-### Vectorgebra.Matrix.zero(dim, decimal=True)
+### Vectorgebra.Matrix.zero(a, b, decimal=False)
 
-Returns _dimxdim_ dimensional all 0 matrix. If decimal is true, generated 
+Returns _axb_ dimensional all 0 matrix. If decimal is true, generated 
 contents are decimal objects.
 
-### Vectorgebra.Matrix.one(dim, decimal=True)
+### Vectorgebra.Matrix.one(a, b, decimal=False)
 
-Returns _dimxdim_ dimensional all 1 matrix. If decimal is true, generated 
+Returns _axb_ dimensional all 1 matrix. If decimal is true, generated 
 contents are decimal objects.
 
-### Vectorgebra.Matrix.randMint(m, n, a, b, decimal=True)
+### Vectorgebra.Matrix.randMint(m, n, a, b, decimal=False)
 
 Returns _mxn_ matrix of random integers selected from the interval (a, b).
 If decimal is true, generated contents are decimal objects.
 
-### Vectorgebra.Matrix.randMfloat(m, n, a, b, decimal=True)
+### Vectorgebra.Matrix.randMfloat(m, n, a, b, decimal=False)
 
 Returns _mxn_ matrix of random floats selected from the interval (a, b).
 If decimal is true, generated contents are decimal objects.
 
-### Vectorgebra.Matrix.randMbool(m, n, decimal=True)
+### Vectorgebra.Matrix.randMbool(m, n, decimal=False)
 
 Returns _mxn_ matrix of random booleans. If decimal is true, generated 
 contents are decimal objects.
 
-### Vectorgebra.Matrix.randMgauss(m, n, mu, sigma, decimal=True)
+### Vectorgebra.Matrix.randMgauss(m, n, mu, sigma, decimal=False)
 
 Returns _mxn_ matrix of random values on the gaussian curve described by mu
 and sigma. If decimal is true, generated contents are decimal objects. Beware
@@ -393,7 +411,7 @@ Returns the list of diagonals.
 
 Returns the multiplication of diagonals.
 
-### _Vectorgebra.Matrix_.gauss_seidel(b: Vector, initial=None, resolution=15, decimal=True)
+### _Vectorgebra.Matrix_.gauss_seidel(b: Vector, initial=None, resolution=15, decimal=False)
 
 Applies Gauss-Seidel method to the equation self * x = b. Returns the resultant x Vector.
 If "initial" left unchanged, code creates an initial guess by default. This may not converge
@@ -430,6 +448,66 @@ get through.
 
 Slices the self by rows a:b, by columns c:d and returns the resulting
 matrix.
+
+### _Vectorgebra.Matrix_.avg()
+
+Returns the average of all elements in self.
+
+<hr>
+
+## Vectorgebra.Tensor
+
+A Tensor, is a container which contains either matrices or tensors.
+Each element that it contains, has one less dimension factor than
+the parent. This wrapper therefore creates a recursive data structure
+of, eventually, vectorgebra.Matrix. Matrix is the last recursive step
+of this container.
+
+### _Vectorgebra.Tensor_.dot(arg)
+
+Returns the dot product of self and arg. arg must be another Tensor.
+Dimensions have to match.
+
+### _Vectorgebra.Tensor_.append(arg)
+
+Appends the Tensor arg to self. Dimensions need to be matching.
+
+### _Vectorgebra.Tensor_.pop(ord=-1)
+
+Pops the indexed element from the top most layer of the Tensor.
+
+### _Vectorgebra.Tensor_.copy()
+
+Returns the deep copy of self.
+
+### Vectorgebra.Tensor.zero(dim, decimal=False)
+
+Returns an all zero Tensor with the dimensions specified in "dim".
+
+### Vectorgebra.Tensor.one(dim, decimal=False)
+
+Returns an all one Tensor with the dimensions specified in "dim".
+
+### Vectorgebra.Tensor.identity(dim, decimal=False)
+
+Returns the identity Tensor with the dimensions specified in "dim".
+The generated identity here has only ones in the all-dimensional
+diagonal. The filled diagonal is always a "line", not "plane", etc.
+
+### _Vectorgebra.Tensor_.map(f)
+
+Maps the self with function f. Returns the Tensor filled with resultant
+values.
+
+### _Vectorgebra.Tensor_.avg()
+
+Returns the average of all numbers in self.
+
+### _Vectorgebra.Tensor_.flatten()
+
+Flattens the Tensor. If more than 2-dimensional, returns a Matrix filled
+with average values of higher dimensional parts in the original Tensor.
+If not, just returns a deep copy of self.
 
 <hr>
 
@@ -556,7 +634,7 @@ Returns the sigmoid functions value at x, where a is the coefficient of x.
 
 Applies rectified linear unit with leak and cutoff given to x.
 
-### Vectorgebra.Sum(f, a, b, step=Decimal(0.01), control: bool=False, limit=Decimal(0.000001))
+### Vectorgebra.Sum(f, a, b, step=0.01, control: bool=False, limit=0.000001)
 
 Returns the sum of f(x) from a to b. step is the step for Range. If control is true,
 stops the sum when the absolute value of the derivative drops under "limit".
@@ -665,14 +743,14 @@ passed to the e() function.
 Calculates the Laplace distribution given the parameters. "resolution" is directly 
 passed to the e() function.
 
-### Vectorgebra.linear_fit(x, y, rate = Decimal(0.01), iterations: int = 15)
+### Vectorgebra.linear_fit(x, y, rate=0.01, iterations: int = 15)
 
 Returns the b0 and b1 constants for the linear regression of the given data.
 x and y must be one dimensional iterables and their lengths must be equal.
 "rate" is the learning rate. "iterations" is the total number of iterations
 that this functions going to update the coefficients.
 
-### Vectorgebra.general_fit(x, y, rate = Decimal(0.0000002), iterations: int = 15, degree: int = 1)
+### Vectorgebra.general_fit(x, y, rate=0.0000002, iterations: int = 15, degree: int = 1)
 
 Calculates the coefficients for at _degree_ polynomial regression. 
 Default _rate_ argument is much much lower because otherwise result 
@@ -781,23 +859,23 @@ calculate the transpose of it.
 Calculates a single solution of f with Newton's method. x is the starting
 guess. resolution is the number of iterations.
 
-### Vectorgebra.complex 
+### Vectorgebra.Complex 
 
 This is the complex number class. It has + - / * overloaded.
 
-#### _Vectorgebra.complex_.conjugate()
+#### _Vectorgebra.Complex_.conjugate()
 
 Returns the complex conjugate of self.
 
-#### _Vectorgebra.complex_.length()
+#### _Vectorgebra.Complex_.length()
 
 Returns the length of self, with treating it as a vector.
 
-#### _Vectorgebra.complex_.unit()
+#### _Vectorgebra.Complex_.unit()
 
 Treats the complex number as a vector and returns the unit vector.
 
-#### Vectorgebra.complex.sqrt(arg, resolution: int = 200)
+#### Vectorgebra.Complex.sqrt(arg, resolution: int = 200)
 
 Calculates the square root of the complex number _arg_ and returns it
 again, as a complex number. Resolution argument is only passed to arcsin
@@ -809,27 +887,26 @@ least 600.
 The used algorithm calculates the unit vector as e<sup>i*x</sup>. Then halves
 the degree, x. Returns the resultant vector at the proper length.
 
-#### _Vectorgebra.complex_.range(lowreal, highreal, lowimg, highimg, step1, step2)
+#### _Vectorgebra.Complex_.range(lowreal, highreal, lowimg, highimg, step1, step2)
 
 Creates a complex number range, ranging from complex(lowreal, lowimg)
 to complex(highreal, highimg). Steps are 1 by default. Again this is 
 a lazy implementation.
 
-#### _Vectorgebra.complex_.inverse()
+#### _Vectorgebra.Complex_.inverse()
 
 Returns 1 / self. This is used in division. If divisor is complex,
 then this function is applied with multiplication to get the result.
 
-#### _Vectorgebra.complex_.rotate(angle: int or float)
+#### _Vectorgebra.Complex_.rotate(angle: int or float)
 
 Rotates self by angle.
 
-#### _Vectorgebra.complex_.rotationFactor(angle: int or float)
+#### _Vectorgebra.Complex_.rotationFactor(angle: int or float)
 
 Returns e<sup>i*angle</sup> as a complex number.
 
 <hr>
-
 
 ### Vectorgebra.Infinity
 
