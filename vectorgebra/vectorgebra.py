@@ -1,9 +1,11 @@
 from .graph import *
 
-Vector(1, 2, 3)
 
 if __name__ == "__main__":
-    t = Tensor(Matrix.randMint(2, 2, -2, 2),
+    v = Vector(1, 2, 3)
+    m = Matrix(Vector(1, 2, 3), Vector(4, 5, 6))
+    print(m * v)
+    """t = Tensor(Matrix.randMint(2, 2, -2, 2),
                Matrix.randMint(2, 2, -2, 2),
                Matrix.randMint(2, 2, -2, 2))
     print(t.dimension)
@@ -20,5 +22,5 @@ if __name__ == "__main__":
     m = Matrix(Vector(1, 2, 3), Vector(1, 2, 3))
     n = Matrix(Vector(1, 2, 3, 4), Vector(1, 2, 3, 4), Vector(1, 2, 3, 4))
     print(m.dimension)
-    print(m * n)
+    print(m * n)"""
     

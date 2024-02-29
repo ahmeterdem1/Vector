@@ -1,4 +1,4 @@
-from .vectormatrix import *
+from .linalg import *
 
 class Tensor:
     """

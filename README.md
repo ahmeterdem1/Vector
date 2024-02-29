@@ -62,6 +62,10 @@ Matrix.zero and Matrix.one now accepts 2 arguments defining the dimension.
 
 Bug fixes on .flatten() method.
 
+### 3.0.2
+
+Bug fixes on matrix multiplication. Internal file name change.
+
 ## Vectorgebra.Vector
 
 Includes basic and some sophisticated operations on vectors.

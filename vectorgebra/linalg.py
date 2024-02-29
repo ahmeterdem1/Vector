@@ -1235,7 +1235,7 @@ class Matrix:
                 v.append(Vector(*[l * arg for l in k]))
             return Matrix(*v)
         if isinstance(arg, Vector):
-            if not (self.dimension.split("x")[0] == str(arg.dimension)):
+            if not (self.dimension.split("x")[1] == str(arg.dimension)):
                 raise DimensionError(0)
             for k in range(0, len(self.values)):
                 sum = 0
