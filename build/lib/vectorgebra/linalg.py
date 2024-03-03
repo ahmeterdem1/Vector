@@ -2174,7 +2174,7 @@ class Matrix:
         for k in self.transpose():
             v_list.append(Vector(*k))
         if not Vector.does_span(*v_list):
-            m = Matrix.zero(len(self.values), decimal)
+            m = Matrix.zero(len(self.values), len(self.values), decimal)
             return m, m
         result_list = [k.unit() for k in Vector.spanify(*v_list)]
         Q = Matrix(*result_list).transpose()
@@ -2192,7 +2192,7 @@ class Matrix:
                 DimensionError: If the matrix is not square.
         """
         if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
-        L = Matrix.zero(len(self.values), False)
+        L = Matrix.zero(len(self.values), len(self.values), False)
         L.values[0][0] = sqrt(self[0][0])
 
         for i in range(len(self.values)):

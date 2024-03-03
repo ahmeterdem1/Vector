@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: vectorgebra
-Version: 3.0.2
+Version: 3.0.3
 Summary: A numerical methods tool for python, in python.
 Author: Ahmet Erdem
 Classifier: Programming Language :: Python :: 3
@@ -77,6 +77,10 @@ Bug fixes on .flatten() method.
 ### 3.0.2
 
 Bug fixes on matrix multiplication. Internal file name change.
+
+### 3.0.3
+
+Bug fixes on .zero() method and all related methods.
 
 ## Vectorgebra.Vector
 

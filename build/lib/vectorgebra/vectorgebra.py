@@ -1,10 +1,12 @@
-from .graph import *
+from graph import *
 
 
 if __name__ == "__main__":
-    v = Vector(1, 2, 3)
-    m = Matrix(Vector(1, 2, 3), Vector(4, 5, 6))
-    print(m * v)
+    m = Matrix.randMint(5, 5, -2, 2)
+    Q, R = m.qr()
+    print(Q)
+    print()
+    print(R)
     """t = Tensor(Matrix.randMint(2, 2, -2, 2),
                Matrix.randMint(2, 2, -2, 2),
                Matrix.randMint(2, 2, -2, 2))

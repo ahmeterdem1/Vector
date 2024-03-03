@@ -66,6 +66,10 @@ Bug fixes on .flatten() method.
 
 Bug fixes on matrix multiplication. Internal file name change.
 
+### 3.0.3
+
+Bug fixes on .zero() method and all related methods.
+
 ## Vectorgebra.Vector
 
 Includes basic and some sophisticated operations on vectors.
