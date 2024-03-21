@@ -62,6 +62,9 @@ def __cumdiv(x, power: int):
 
         Raises:
             ArgTypeError: If 'x' is not a numerical value.
+
+        Notes:
+            This function optimizes for accuracy, not speed.
     """
     if not isinstance(x, Union[int, float, Decimal, Infinity, Undefined]):
         raise ArgTypeError("Must be a numerical value.")
@@ -300,18 +303,12 @@ class Complex:
 
     def __eq__(self, arg):
         if isinstance(arg, Complex):
-            if self.real == arg.real and self.imaginary == arg.imaginary:
-                return True
-            else:
-                return False
+            return self.real == arg.real and self.imaginary == arg.imaginary
         return False
 
     def __ne__(self, arg):
         if isinstance(arg, Complex):
-            if self.real != arg.real or self.imaginary != arg.imaginary:
-                return True
-            else:
-                return False
+            return self.real != arg.real or self.imaginary != arg.imaginary
         return True
 
     def __gt__(self, arg):
@@ -392,6 +389,7 @@ class Complex:
         raise ArgTypeError()
 
     # noinspection PyMethodFirstArgAssignment
+    @staticmethod
     def range(lowreal, highreal, lowimg, highimg, step1=1, step2=1):
         """
             Generates a range of complex numbers within specified boundaries.
@@ -418,11 +416,12 @@ class Complex:
                 and (isinstance(step1, Union[int, float, Decimal]))
                 and (isinstance(step2, Union[int, float, Decimal, Infinity]))):
             raise ArgTypeError("Must be a numerical value.")
-        if (highreal < lowreal ^ step1 > 0) or (highimg < lowimg ^ step2 > 0): raise RangeError()
+        if (highreal < lowreal ^ step1 > 0) or (highimg < lowimg ^ step2 > 0):
+            raise RangeError()
         reset = lowimg
-        while (not highreal < lowreal ^ step1 > 0) and not highreal == lowreal:
+        while (not highreal < lowreal ^ step1 > 0) and highreal != lowreal:
             lowimg = reset
-            while (not highimg < lowimg ^ step2 > 0) and not highimg == lowimg:
+            while (not highimg < lowimg ^ step2 > 0) and highimg != lowimg:
                 yield Complex(lowreal, lowimg)
                 lowimg += step2
             lowreal += step1
@@ -444,8 +443,9 @@ class Complex:
 
         """
         divisor = self.length()
-        if divisor: return Complex(self.real / divisor, -self.imaginary / divisor)
-        else: return Complex(Infinity(self.real >= 0), Infinity(-self.imaginary >= 0))
+        if divisor:
+            return Complex(self.real / divisor, -self.imaginary / divisor)
+        return Complex(Infinity(self.real >= 0), Infinity(-self.imaginary >= 0))
 
     def rotate(self, angle):
         """
@@ -466,6 +466,7 @@ class Complex:
         """
         return self * Complex(cos(angle), sin(angle))
 
+    @staticmethod
     def rotationFactor(angle):
         if not isinstance(angle, Union[int, float, Decimal]): raise ArgTypeError("Must be a numerical value.")
         """

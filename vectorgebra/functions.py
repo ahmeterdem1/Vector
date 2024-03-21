@@ -46,7 +46,7 @@ def Range(low, high, step=1):
         raise ArgTypeError("Must be a numerical value.")
     if not ((high < low) ^ (step > 0)): raise RangeError()
 
-    while (high < low) ^ (step > 0) and not high == low:
+    while (high < low) ^ (step > 0) and high != low:
         yield low
         low += step
 
@@ -82,6 +82,9 @@ def __cumdiv(x, power: int):
 
         Raises:
             ArgTypeError: If 'x' is not a numerical value.
+
+        Notes:
+            This function optimizes for accuracy, not speed.
     """
     if not isinstance(x, Union[int, float, Decimal, Infinity, Undefined]):
         raise ArgTypeError("Must be a numerical value.")
@@ -139,7 +142,7 @@ def sin(angle, resolution=15):
     if not resolution % 2:
         resolution += 1
     for k in range(resolution, 0, -2):
-        result = result + __cumdiv(radian, k) * pow(-1, (k - 1) / 2)
+        result = result + __cumdiv(radian, k) * (-1)**((k - 1) / 2)
 
     return result
 
@@ -169,7 +172,7 @@ def cos(angle, resolution=16):
         resolution += 1
 
     for k in range(resolution, 0, -2):
-        result = result + __cumdiv(radian, k) * pow(-1, k / 2)
+        result = result + __cumdiv(radian, k) * (-1)**(k / 2)
     return result
 
 def tan(angle, resolution=16):
@@ -187,13 +190,15 @@ def tan(angle, resolution=16):
             ArgTypeError: If 'angle' is not a numerical value.
             RangeError: If 'resolution' is not a positive integer.
     """
-    if not (isinstance(resolution, int) and resolution >= 1): raise RangeError("Resolution must be a positive integer")
+    if not (isinstance(resolution, int) and resolution >= 1):
+        raise RangeError("Resolution must be a positive integer")
     try:
         return sin(angle, resolution - 1) / cos(angle, resolution)
         # Because of the error amount, probably cos will never be zero.
     except ZeroDivisionError:
         # sin * cos is positive in this area
-        if 90 >= (angle % 360) >= 0 or 270 >= (angle % 360) >= 180: return Infinity()
+        if 90 >= (angle % 360) >= 0 or 270 >= (angle % 360) >= 180:
+            return Infinity()
         return Infinity(False)
 
 def cot(angle, resolution: int = 16):
@@ -289,7 +294,8 @@ def coth(x, resolution: int = 15):
     try:
         return cosh(x, resolution) / sinh(x, resolution)
     except ZeroDivisionError:
-        if x >= 0: return Infinity()
+        if x >= 0:
+            return Infinity()
         return Infinity(False)
 
 def arcsin(x, resolution: int = 20):
@@ -309,13 +315,15 @@ def arcsin(x, resolution: int = 20):
     """
     if not isinstance(x, Union[int, float, Decimal, Infinity, Undefined]):
         raise ArgTypeError("Must be a numerical value.")
-    if not (-1 <= x <= 1): raise RangeError()
-    if resolution < 1: raise RangeError("Resolution must be a positive integer")
+    if not (-1 <= x <= 1):
+        raise RangeError()
+    if resolution < 1:
+        raise RangeError("Resolution must be a positive integer")
     c = 1
     sol = x
     for k in range(1, resolution):
         c *= (2 * k - 1) / (2 * k)
-        sol += c * pow(x, 2 * k + 1) / (2 * k + 1)
+        sol += c * x**(2 * k + 1) / (2 * k + 1)
     return sol * 360 / (2 * PI)
 
 def arccos(x: int or float, resolution: int = 20):
@@ -333,8 +341,10 @@ def arccos(x: int or float, resolution: int = 20):
             ArgTypeError: If 'x' is not a numerical value.
             RangeError: If 'x' is not in the range [-1, 1], or if 'resolution' is not a positive integer.
     """
-    if not (-1 <= x <= 1): raise RangeError()
-    if resolution < 1: raise RangeError("Resolution must be a positive integer")
+    if not (-1 <= x <= 1):
+        raise RangeError()
+    if resolution < 1:
+        raise RangeError("Resolution must be a positive integer")
 
     return 90 - arcsin(x, resolution)
 
@@ -355,8 +365,10 @@ def log2(x, resolution: int = 15):
     """
     if not isinstance(x, Union[int, float, Decimal, Infinity, Undefined]):
         raise ArgTypeError("Must be a numerical value.")
-    if x <= 0: raise RangeError()
-    if resolution < 1: raise RangeError()
+    if x <= 0:
+        raise RangeError()
+    if resolution < 1:
+        raise RangeError()
     # finally...
     count = 0
     while x > 2:
@@ -424,7 +436,9 @@ def log(x, base=2, resolution: int = 15):
     """
     if not (isinstance(base, Union[int, float, Decimal])):
         raise ArgTypeError("Must be a numerical value.")
-    if base <= 0 or base == 1: raise RangeError()
+    if base <= 0 or base == 1:
+        raise RangeError()
+
     return log2(x, resolution) / log2(base, resolution)
 
 def __find(f, low, high, search_step, res=0.0001):
@@ -456,10 +470,10 @@ def __find(f, low, high, search_step, res=0.0001):
         raise ArgTypeError(f"f must be a callable.")
 
     global __results
-    last_sign: bool = True if (f(low) >= 0) else False
+    last_sign = (f(low) >= 0)
     for x in Range(low, high, search_step):
         value = f(x)
-        temp_sign = True if (value >= 0) else False
+        temp_sign = (value >= 0)
         if temp_sign and last_sign and (value // 1 != 0 or value // 1 != -1):
             last_sign = temp_sign
         elif abs(value) < res * 100:
@@ -500,16 +514,19 @@ def solve(f: Callable, low=-50, high=50, search_step=0.1, res=0.0001) -> List[Un
     # I couldn't find any other way to check it
     if not isinstance(f, Callable): raise ArgTypeError("f must be a callable")
 
-    if high <= low: raise RangeError()
-    if search_step <= 0: raise RangeError()
-    if res <= 0 or res >= 1: raise RangeError()
+    if high <= low:
+        raise RangeError()
+    if search_step <= 0:
+        raise RangeError()
+    if res <= 0 or res >= 1:
+        raise RangeError()
 
-    zeroes: list = []
-    thread_list: list = []
-    last_sign: bool = True if (f(low) >= 0) else False
+    zeroes = []
+    thread_list = []
+    last_sign = (f(low) >= 0)
     for x in Range(low, high, search_step):
         value = f(x)
-        temp_sign = True if (value >= 0) else False
+        temp_sign = (value >= 0)
         if temp_sign and last_sign and value // 1 != 0 and value // 1 != -1:
             last_sign = temp_sign
         elif abs(value) < 0.001:
@@ -556,7 +573,8 @@ def derivative(f, x, h=0.0000000001):
     if not ((isinstance(x, Union[int, float, Decimal]))
             and (isinstance(h, Union[int, float, Decimal]))):
         raise ArgTypeError("Must be a numerical value.")
-    if not isinstance(f, Callable): raise ArgTypeError("f must be a callable.")
+    if not isinstance(f, Callable):
+        raise ArgTypeError("f must be a callable.")
 
     return (f(x + h) - f(x)) / h
 
@@ -585,7 +603,7 @@ def integrate(f, a, b, delta=0.01):
     if not isinstance(f, Callable): raise ArgTypeError("f must be a callable.")
 
     if a == b:
-        return .0
+        return 0
     half = delta / 2
     sum = 0
 
@@ -600,7 +618,7 @@ def integrate(f, a, b, delta=0.01):
         a += delta
     return sum * delta
 
-def findsol(f, x=0, resolution = 15):
+def findsol(f, x = 0, resolution = 15):
     """
         Find a numerical solution to the equation f(x) = 0 using Newton's method.
 
@@ -618,17 +636,16 @@ def findsol(f, x=0, resolution = 15):
             The initial guess for the root is provided by the x parameter, and the resolution parameter determines
             the number of iterations used to refine the solution.
     """
-    if not isinstance(f, Callable): raise ArgTypeError("f must be a callable")
-    if resolution < 1 or not isinstance(resolution, int): raise RangeError("Resolution must be a positive integer")
+    if not isinstance(f, Callable):
+        raise ArgTypeError("f must be a callable")
+    if resolution < 1 or not isinstance(resolution, int):
+        raise RangeError("Resolution must be a positive integer")
 
     for k in range(resolution):
         try:
             x = x - (f(x) / derivative(f, x))
         except ZeroDivisionError:
-            if f(x) >= 0:
-                x = Infinity(False)
-            else:
-                x = Infinity()
+            x = Infinity(f(x) < 0)
     return x
 
 def sigmoid(x, a=1):
@@ -752,9 +769,12 @@ def factorial(x=0):
             ArgTypeError: If the input 'x' is not an integer.
             RangeError: If the input 'x' is negative.
         """
-    if not isinstance(x, int): raise ArgTypeError("Must be an integer.")
-    if x < 0: raise RangeError()
-    if x <= 1: return 1
+    if not isinstance(x, int):
+        raise ArgTypeError("Must be an integer.")
+    if x < 0:
+        raise RangeError()
+    if x <= 1:
+        return 1
     mul = 1
     for k in range(2, x):
         mul *= k
@@ -830,10 +850,12 @@ def multinomial(n=0, *args):
     c = [k for k in args]
     if sum != n: raise RangeError("Sum of partitions must be equal to n")
     result = 1
+    N = len(c)
     while n != 1:
         result *= n
-        for k in range(len(c)):
-            if not c[k]: continue
+        for k in range(N):
+            if not c[k]:
+                continue
             result /= c[k]
             c[k] -= 1
         n -= 1
@@ -856,11 +878,13 @@ def binomial(n, k, p):
             ArgTypeError: If 'n' or 'k' is not an integer, or if 'p' is not a numerical value.
             RangeError: If 'p' is outside the range [0, 1].
     """
-    if not (isinstance(n, int) and isinstance(k, int)): raise ArgTypeError("Must be an integer.")
+    if not (isinstance(n, int) and isinstance(k, int)):
+        raise ArgTypeError("Must be an integer.")
     if not (isinstance(p, Union[int, float, Decimal])):
         raise ArgTypeError("Must be a numerical value.")
-    if p < 0 or p > 1: raise RangeError("Probability cannot be negative or bigger than 1")
-    return combination(n, k) * pow(p, k) * pow(1 - p, k)
+    if p < 0 or p > 1:
+        raise RangeError("Probability cannot be negative or bigger than 1")
+    return combination(n, k) * p**k * (1-p)**k
 
 def geometrical(n, p):
     """
@@ -878,13 +902,17 @@ def geometrical(n, p):
             ArgTypeError: If 'n' is not an integer, or if 'p' is not a numerical value.
             RangeError: If 'p' is outside the range [0, 1], or if 'n' is negative.
     """
-    if not isinstance(n, int): raise ArgTypeError("Must be an integer.")
+    if not isinstance(n, int):
+        raise ArgTypeError("Must be an integer.")
     if not (isinstance(p, Union[int, float, Decimal])):
         raise ArgTypeError("Must be a numerical value.")
-    if p < 0 or p > 1: raise RangeError("Probability cannot be negative or bigger than 1")
-    if n < 0: raise RangeError("Trial number cannot be negative")
-    if n == 0: return Undefined()
-    return p * pow(1 - p, n - 1)
+    if p < 0 or p > 1:
+        raise RangeError("Probability cannot be negative or bigger than 1")
+    if n < 0:
+        raise RangeError("Trial number cannot be negative")
+    if n == 0:
+        return Undefined()
+    return p * (1-p)**(n-1)
 
 def poisson(k, l):
     """
@@ -912,8 +940,9 @@ def poisson(k, l):
     if not ((isinstance(k, Union[int, float, Decimal]))
             and (isinstance(l, Union[int, float, Decimal]))):
         raise ArgTypeError("Must be a numerical value.")
-    if l < 0 or k < 0: raise RangeError()
-    return pow(l, k) * e(-l) / factorial(k)
+    if l < 0 or k < 0:
+        raise RangeError()
+    return l**k * e(-l) / factorial(k)
 
 def normal(x, resolution: int = 15):
     """
@@ -931,8 +960,10 @@ def normal(x, resolution: int = 15):
         Raises:
             ArgTypeError: If 'x' is not a numerical value, or if 'resolution' is not an integer.
     """
-    if not (isinstance(x, Union[int, float, Decimal, Infinity])): raise ArgTypeError("Must be a numerical value.")
-    if not isinstance(resolution, int): raise ArgTypeError("Must be an integer.")
+    if not (isinstance(x, Union[int, float, Decimal, Infinity])):
+        raise ArgTypeError("Must be a numerical value.")
+    if not isinstance(resolution, int):
+        raise ArgTypeError("Must be an integer.")
     return e(-(x**2) / 2, resolution=resolution) / sqrt2pi
 
 def gaussian(x, mean, sigma, resolution: int = 15):
@@ -959,9 +990,10 @@ def gaussian(x, mean, sigma, resolution: int = 15):
             and (isinstance(mean, Union[int, float, Decimal, Infinity]))
             and (isinstance(sigma, Union[int, float, Decimal, Infinity]))):
         raise ArgTypeError("Must be a numerical value.")
-    if not isinstance(resolution, int): raise ArgTypeError("Must be an integer.")
+    if not isinstance(resolution, int):
+        raise ArgTypeError("Must be an integer.")
     coef = 1 / (sqrt2pi * sigma)
-    power = - pow(x - mean, 2) / (2 * pow(sigma, 2))
+    power = - (x - mean)**2 / (2 * sigma**2)
     return coef * e(power, resolution=resolution)
 
 def laplace(x, sigma, resolution: int = 15):
@@ -985,7 +1017,8 @@ def laplace(x, sigma, resolution: int = 15):
     if not ((isinstance(x, Union[int, float, Decimal, Infinity]))
             and (isinstance(sigma, Union[int, float, Decimal, Infinity]))):
         raise ArgTypeError("Must be a numerical value.")
-    if not isinstance(resolution, int): raise ArgTypeError("Must be an integer.")
+    if not isinstance(resolution, int):
+        raise ArgTypeError("Must be an integer.")
     coef = 1 / (sqrt2 * sigma)
     power = - (sqrt2 / sigma) * abs(x)
     return coef * e(power, resolution=resolution)

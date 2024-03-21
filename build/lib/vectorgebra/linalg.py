@@ -17,10 +17,10 @@ class Vector:
                     *args: Variable number of arguments representing the elements of the vector.
 
                 Raises:
-                    ArgTypeError: If any argument is not numeric or boolean.
+                    ArgTypeError: If any argument is not numeric, boolean, Vector, Matrix or callable.
         """
         for k in args:
-            if not isinstance(k, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+            if not isinstance(k, Union[int, float, Decimal, Infinity, Undefined, Complex, Callable, Vector, Matrix]):
                 raise ArgTypeError("Arguments must be numeric or boolean.")
         self.dimension = len(args)
         self.values = [_ for _ in args]
@@ -57,6 +57,15 @@ class Vector:
         """
         self.values[key] = value
 
+    def __call__(self, *args):
+        """
+        Returns the value at tuple "args" of the vector-function.
+
+        Returns:
+            number: Return value of each function in the vector.
+        """
+        return Vector(*[k(*args) for k in self.values])
+
     def __len__(self):
         """
         Returns the number of elements in the vector.
@@ -67,32 +76,86 @@ class Vector:
         return len(self.values)
 
     def __add__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
-            return Vector(*[self.values[k] + arg for k in range(0, self.dimension)])
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and not isinstance(self.values[0], Callable):
+            return Vector(*[self.values[k] + arg for k in range(self.dimension)])
+
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and isinstance(self.values[0], Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) + arg for k in range(self.dimension)])
+
+        if isinstance(arg, Callable) and not isinstance(arg, Vector) and not isinstance(self.values[0], Callable):
+            return Vector(
+                *[lambda *args, k=k: self.values[k] + arg(*args) for k in range(len(self.values))])
+
+        if isinstance(arg, Callable) and not isinstance(arg, Vector) and isinstance(self.values[0], Callable):
+            return Vector(
+                *[lambda *args, k=k: self.values[k](*args) + arg(*args) for k in range(len(self.values))])
+
         if not isinstance(arg, Vector):
-            raise ArgTypeError("Must be a numerical value.")
-        if not (self.dimension == arg.dimension):
+            raise ArgTypeError("Must be a numerical value or a callable.")
+
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
-        return Vector(*[self.values[k] + arg.values[k] for k in range(0, self.dimension)])
+
+        if isinstance(self.values[0], Callable) and isinstance(arg.values[0], Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) + arg.values[k](*args) for k in range(len(self.values))])
+
+        return Vector(*[self.values[k] + arg.values[k] for k in range(self.dimension)])
 
     def __radd__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
-            return Vector(*[self.values[k] + arg for k in range(0, self.dimension)])
-        raise ArgTypeError("Must be a numerical value.")
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and not isinstance(self.values[0], Callable):
+            return Vector(*[self.values[k] + arg for k in range(self.dimension)])
+
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and isinstance(self.values[0], Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) + arg for k in range(self.dimension)])
+
+        if isinstance(arg, Callable) and isinstance(self.values[0], Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) + arg(*args) for k in range(self.dimension)])
+
+        if isinstance(arg, Callable):
+            return Vector(*[lambda *args, k=k: self.values[k] + arg(*args) for k in range(self.dimension)])
+
+        raise ArgTypeError("Must be a numerical value or a callable.")
 
     def __sub__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and not isinstance(self.values[0], Callable):
             return Vector(*[self.values[k] - arg for k in range(0, self.dimension)])
+
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and isinstance(self.values[0], Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) - arg  for k in range(self.dimension)])
+
+        if isinstance(arg, Callable) and not isinstance(arg, Vector) and not isinstance(self.values[0], Callable):
+            return Vector(
+                *[lambda *args, k=k: self.values[k] - arg(*args) for k in range(len(self.values))])
+
+        if isinstance(arg, Callable) and not isinstance(arg, Vector) and isinstance(self.values[0], Callable):
+            return Vector(
+                *[lambda *args, k=k: self.values[k](*args) - arg(*args) for k in range(len(self.values))])
+
         if not isinstance(arg, Vector):
-            raise ArgTypeError("Must be a numerical value.")
-        if not (self.dimension == arg.dimension):
+            raise ArgTypeError("Must be a numerical value or a callable.")
+
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
-        return Vector(*[self.values[k] - arg.values[k] for k in range(0, self.dimension)])
+
+        if isinstance(self.values[0], Callable) and isinstance(arg.values[0], Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) - arg.values[k](*args) for k in range(len(self.values))])
+
+        return Vector(*[self.values[k] - arg.values[k] for k in range(self.dimension)])
 
     def __rsub__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
-            return -Vector(*[self.values[k] - arg for k in range(0, self.dimension)])
-        raise ArgTypeError("Must be a numerical value.")
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and not isinstance(self.values[0], Callable):
+            return Vector(*[arg - self.values[k] for k in range(0, self.dimension)])
+
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and isinstance(self.values[0], Callable):
+            return Vector(*[lambda *args, k=k: arg - self.values[k](*args) for k in range(self.dimension)])
+
+        if isinstance(arg, Callable) and isinstance(self.values[0], Callable):
+            return Vector(*[lambda *args, k=k: arg(*args) - self.values[k](*args) for k in range(self.dimension)])
+
+        if isinstance(arg, Callable):
+            return Vector(*[lambda *args, k=k: arg(*args) - self.values[k] for k in range(self.dimension)])
+
+        raise ArgTypeError("Must be a numerical value or a callable.")
 
     def dot(self, arg):
         """
@@ -110,152 +173,189 @@ class Vector:
         """
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a vector.")
-        if not (self.dimension == arg.dimension):
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
-        mul = [self.values[k] * arg.values[k] for k in range(0, self.dimension)]
+        mul = [self.values[k] * arg.values[k] for k in range(self.dimension)]
         sum = 0
         for k in mul:
             sum += k
         return sum
 
     def __mul__(self, arg):
-        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Callable]):
             raise ArgTypeError("Must be a numerical value.")
-        return Vector(*[self.values[k] * arg for k in range(0, self.dimension)])
+
+        if isinstance(self.values[0], Callable) and not isinstance(arg, Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) * arg for k in range(self.dimension)])
+
+        if isinstance(self.values[0], Callable) and isinstance(arg, Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) * arg(*args) for k in range(self.dimension)])
+
+        return Vector(*[self.values[k] * arg for k in range(self.dimension)])
 
     def __rmul__(self, arg):
-        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Callable]):
             raise ArgTypeError("Must be a numerical value.")
-        return Vector(*[self.values[k] * arg for k in range(0, self.dimension)])
+
+        if isinstance(self.values[0], Callable) and not isinstance(arg, Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) * arg for k in range(self.dimension)])
+
+        if isinstance(self.values[0], Callable) and isinstance(arg, Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) * arg(*args) for k in range(self.dimension)])
+
+        return Vector(*[self.values[k] * arg for k in range(self.dimension)])
 
     def __truediv__(self, arg):
         if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
             raise ArgTypeError("Must be a numerical value.")
-        return Vector(*[self.values[k] / arg for k in range(0, self.dimension)])
 
+        if isinstance(self.values[0], Callable) and not isinstance(arg, Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) / arg for k in range(self.dimension)])
+
+        if isinstance(self.values[0], Callable) and isinstance(arg, Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) / arg(*args) for k in range(self.dimension)])
+
+        return Vector(*[self.values[k] / arg for k in range(self.dimension)])
 
     def __floordiv__(self, arg):
         if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
             raise ArgTypeError("Must be a numerical value.")
-        return Vector(*[self.values[k] // arg for k in range(0, self.dimension)])
+
+        if isinstance(self.values[0], Callable) and not isinstance(arg, Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) // arg for k in range(self.dimension)])
+
+        if isinstance(self.values[0], Callable) and isinstance(arg, Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) // arg(*args) for k in range(self.dimension)])
+
+        return Vector(*[self.values[k] // arg for k in range(self.dimension)])
 
     def __iadd__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
-            return Vector(*[self.values[k] + arg for k in range(0, self.dimension)])
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and not isinstance(self.values[0], Callable):
+            return Vector(*[self.values[k] + arg for k in range(self.dimension)])
+
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and isinstance(self.values[0], Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) + arg for k in range(self.dimension)])
+
+        if isinstance(arg, Callable) and not isinstance(arg, Vector) and not isinstance(self.values[0], Callable):
+            return Vector(
+                *[lambda *args, k=k: self.values[k] + arg(*args) for k in range(len(self.values))])
+
+        if isinstance(arg, Callable) and not isinstance(arg, Vector) and isinstance(self.values[0], Callable):
+            return Vector(
+                *[lambda *args, k=k: self.values[k](*args) + arg(*args) for k in range(len(self.values))])
+
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a numerical value.")
-        if not (self.dimension == arg.dimension):
+
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
-        return Vector(*[self.values[k] + arg.values[k] for k in range(0, self.dimension)])
+
+        if isinstance(self.values[0], Callable) and isinstance(arg.values[0], Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) + arg.values[k](*args) for k in range(len(self.values))])
+
+        return Vector(*[self.values[k] + arg.values[k] for k in range(self.dimension)])
 
     def __isub__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
-            return Vector(*[self.values[k] - arg for k in range(0, self.dimension)])
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and not isinstance(self.values[0], Callable):
+            return Vector(*[self.values[k] - arg for k in range(self.dimension)])
+
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and isinstance(self.values[0], Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) - arg  for k in range(self.dimension)])
+
+        if isinstance(arg, Callable) and not isinstance(arg, Vector) and not isinstance(self.values[0], Callable):
+            return Vector(
+                *[lambda *args, k=k: self.values[k] - arg(*args) for k in range(len(self.values))])
+
+        if isinstance(arg, Callable) and not isinstance(arg, Vector) and isinstance(self.values[0], Callable):
+            return Vector(
+                *[lambda *args, k=k: self.values[k](*args) - arg(*args) for k in range(len(self.values))])
+
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a numerical value.")
-        if not (self.dimension == arg.dimension):
+
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
-        return Vector(*[self.values[k] - arg.values[k] for k in range(0, self.dimension)])
+
+        if isinstance(self.values[0], Callable) and isinstance(arg.values[0], Callable):
+            return Vector(*[lambda *args, k=k: self.values[k](*args) - arg.values[k](*args) for k in range(len(self.values))])
+
+        return Vector(*[self.values[k] - arg.values[k] for k in range(self.dimension)])
 
     def __gt__(self, arg):
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
             sum = 0
             for k in self.values:
-                sum += k * k
-            if sum > arg * arg:
-                return True
-            return False
+                sum += k**2
+            return sum > arg**2
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a numerical value.")
-        if not (self.dimension == arg.dimension):
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
         sum = 0
-        for k in self.values:
-            sum += k*k
-        for k in arg.values:
-            sum -= k*k
-        if sum > 0:
-            return True
-        return False
+        for k in range(self.dimension):
+            sum += (self.values[k] - arg.values[k]) * (self.values[k] + arg.values[k])
+        return sum > 0
 
     def __ge__(self, arg):
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
             sum = 0
             for k in self.values:
-                sum += k * k
-            if sum >= arg * arg:
-                return True
-            return False
+                sum += k**2
+            return sum >= arg**2
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a numerical value.")
-        if not (self.dimension == arg.dimension):
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
         sum = 0
-        for k in self.values:
-            sum += k*k
-        for k in arg.values:
-            sum -= k*k
-        if sum >= 0:
-            return True
-        return False
+        for k in range(self.dimension):
+            sum += (self.values[k] - arg.values[k]) * (self.values[k] + arg.values[k])
+        return sum >= 0
 
     def __lt__(self, arg):
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
             sum = 0
             for k in self.values:
-                sum += k * k
-            if sum > arg * arg:
-                return True
-            return False
+                sum += k**2
+            return sum < arg**2
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a numerical value.")
-        if not (self.dimension == arg.dimension):
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
         sum = 0
-        for k in self.values:
-            sum += k*k
-        for k in arg.values:
-            sum -= k*k
-        if sum < 0:
-            return True
-        return False
+        for k in range(self.dimension):
+            sum += (self.values[k] - arg.values[k]) * (self.values[k] + arg.values[k])
+        return sum < 0
 
     def __le__(self, arg):
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
             sum = 0
             for k in self.values:
-                sum += k * k
-            if sum <= arg * arg:
-                return True
-            return False
+                sum += k**2
+            return sum <= arg**2
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a numerical value.")
-        if not (self.dimension == arg.dimension):
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
         sum = 0
-        for k in self.values:
-            sum += k*k
-        for k in arg.values:
-            sum -= k*k
-        if sum <= 0:
-            return True
-        return False
+        for k in range(self.dimension):
+            sum += (self.values[k] - arg.values[k]) * (self.values[k] + arg.values[k])
+        return sum <= 0
 
     def __eq__(self, arg):
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
             for k in self.values:
-                if not (k == arg):
+                if k != arg:
                     return False
             return True
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a numerical value.")
-        if not (self.dimension == arg.dimension):
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
-        factor = True
-        for k in self.values:
-            for l in arg.values:
-                factor = factor and (k == l)
-        return factor
+
+        for k in range(self.dimension):
+            if self.values[k] != arg.values[k]:
+                return False
+        return True
 
     def __neg__(self):
         return Vector(*[-k for k in self.values])
@@ -266,47 +366,47 @@ class Vector:
     def __and__(self, arg):
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a vector.")
-        if not (self.dimension == arg.dimension):
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
-        return Vector(*[(self.values[k] and arg.values[k]) for k in range(0, self.dimension)])
+        return Vector(*[(self.values[k] and arg.values[k]) for k in range(self.dimension)])
 
     def __iand__(self, arg):
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a vector.")
-        if not (self.dimension == arg.dimension):
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
-        return Vector(*[(self.values[k] and arg.values[k]) for k in range(0, self.dimension)])
+        return Vector(*[(self.values[k] and arg.values[k]) for k in range(self.dimension)])
 
     def __or__(self, arg):
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a vector.")
-        if not (self.dimension == arg.dimension):
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
-        return Vector(*[(self.values[k] or arg.values[k]) for k in range(0, self.dimension)])
+        return Vector(*[(self.values[k] or arg.values[k]) for k in range(self.dimension)])
 
     def __ior__(self, arg):
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a vector.")
-        if not (self.dimension == arg.dimension):
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
-        return Vector(*[(self.values[k] or arg.values[k]) for k in range(0, self.dimension)])
+        return Vector(*[(self.values[k] or arg.values[k]) for k in range(self.dimension)])
 
     def __xor__(self, arg):
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a vector.")
-        if not (self.dimension == arg.dimension):
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
-        return Vector(*[(self.values[k] ^ arg.values[k]) for k in range(0, self.dimension)])
+        return Vector(*[(self.values[k] ^ arg.values[k]) for k in range(self.dimension)])
 
     def __ixor__(self, arg):
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a vector.")
-        if not (self.dimension == arg.dimension):
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
-        return Vector(*[(self.values[k] ^ arg.values[k]) for k in range(0, self.dimension)])
+        return Vector(*[(self.values[k] ^ arg.values[k]) for k in range(self.dimension)])
 
     def __invert__(self):
-        return Vector(*[int(not self.values[k]) for k in range(0, self.dimension)])
+        return Vector(*[int(not self.values[k]) for k in range(self.dimension)])
 
     def append(self, arg):
         """
@@ -319,7 +419,7 @@ class Vector:
             Raises:
                 ArgTypeError: If the argument is not a numeric value, boolean, vector, list, or tuple.
         """
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Callable]):
             self.values.append(arg)
             self.dimension += 1
             return
@@ -357,12 +457,11 @@ class Vector:
                 RangeError: If the specified index is out of range.
         """
         try:
-            self.values[ord]
+            popped = self.values.pop(ord)
+            self.dimension -= 1
+            return popped
         except IndexError:
             raise RangeError()
-        popped = self.values.pop(ord)
-        self.dimension -= 1
-        return popped
 
     def length(self):
         """
@@ -377,7 +476,7 @@ class Vector:
         """
         sum = 0
         for k in self.values:
-            sum += k*k
+            sum += k**2
         return sqrt(sum)
 
     def proj(self, arg):
@@ -399,16 +498,16 @@ class Vector:
         """
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a vector.")
-        if not (self.dimension == arg.dimension):
+        if self.dimension != arg.dimension:
             raise DimensionError(0)
         if not self.dimension:
             return 0
         dot = self.dot(arg)
         sum = 0
         for k in arg.values:
-            sum += k*k
+            sum += k**2
         try:
-            dot = dot/sum
+            dot /= sum
         except ZeroDivisionError:
             # Can only be positive or 0
             dot = Infinity()
@@ -428,11 +527,10 @@ class Vector:
         """
         l = self.length()
         if l:
-            temp = [k/l for k in self.values]
-        else:
-            temp = [Infinity()] * self.dimension
-        return Vector(*temp)
+            return Vector(*[k / l for k in self.values])
+        return Vector(*[Infinity() for k in range(self.dimension)])
 
+    @staticmethod
     def spanify(*args):
         """
             Computes a set of orthogonal unit vectors that span the subspace defined by the input vectors.
@@ -455,17 +553,18 @@ class Vector:
         for k in args:
             if not isinstance(k, Vector):
                 raise ArgTypeError("Must be a vector.")
-            if not (k.dimension == (len(args))):
-                raise AmountError
+            if k.dimension != len(args):
+                raise AmountError()
             v_list.append(k)
         for k in range(1, len(v_list)):
             temp = v_list[k]
-            for l in range(0, k):
+            for l in range(k):
                 temp -= v_list[k].proj(v_list[l])
             v_list[k] = temp.unit()
         v_list[0] = v_list[0].unit()
         return v_list
 
+    @staticmethod
     def does_span(*args):
         """
             Checks whether the input vectors form a spanning set for their respective subspace.
@@ -485,12 +584,14 @@ class Vector:
                 AmountError: If the number of vectors provided does not match their dimensions.
         """
         v_list = Vector.spanify(*args)
-        for k in range(0, len(v_list)):
-            for l in range(0, len(v_list)):
-                if not v_list[k].dot(v_list[l]) < 0.0000000001 and not k == l:
+        N = len(v_list)
+        for k in range(N):
+            for l in range(N):
+                if v_list[k].dot(v_list[l]) >= 0.0000000001 and k != l:
                     return False
         return True
 
+    @staticmethod
     def randVint(dim: int, a: int, b: int, decimal: bool = False):
         """
             Generates a random integer vector with specified dimensions and range.
@@ -513,12 +614,13 @@ class Vector:
         """
         if not (isinstance(dim, int) and isinstance(a, int) and isinstance(b, int)):
             raise ArgTypeError("Must be an integer.")
-        if not (dim > 0):
-            raise RangeError
+        if dim <= 0:
+            raise RangeError()
         if decimal:
-            return Vector(*[Decimal(random.randint(a, b)) for k in range(0, dim)])
-        return Vector(*[random.randint(a, b) for k in range(0, dim)])
+            return Vector(*[Decimal(random.randint(a, b)) for k in range(dim)])
+        return Vector(*[random.randint(a, b) for k in range(dim)])
 
+    @staticmethod
     def randVfloat(dim, a: float, b: float, decimal: bool = False):
         """
             Generates a random float vector with specified dimensions and range.
@@ -543,12 +645,13 @@ class Vector:
                 (isinstance(a, Union[int, float, Decimal])) and
                 (isinstance(b, Union[int, float, Decimal]))):
             raise ArgTypeError("Must be a numerical value.")
-        if not (dim > 0):
-            raise RangeError
+        if dim <= 0:
+            raise RangeError()
         if decimal:
-            return Vector(*[Decimal(random.uniform(a, b)) for k in range(0, dim)])
-        return Vector(*[random.uniform(a, b) for k in range(0, dim)])
+            return Vector(*[Decimal(random.uniform(a, b)) for k in range(dim)])
+        return Vector(*[random.uniform(a, b) for k in range(dim)])
 
+    @staticmethod
     def randVbool(dim, decimal: bool = False):
         """
             Generates a random boolean vector with specified dimensions.
@@ -566,12 +669,16 @@ class Vector:
                 ArgTypeError: If the dimension is not an integer.
                 RangeError: If the dimension is not a positive integer.
         """
-        if not isinstance(dim, int): raise ArgTypeError("Must be an integer.")
-        if not (dim > 0): raise RangeError
-        if decimal:
-            return Vector(*[Decimal(random.randrange(0, 2)) for k in range(0, dim)])
-        return Vector(*[random.randrange(0, 2) for k in range(0, dim)])
+        if not isinstance(dim, int):
+            raise ArgTypeError("Must be an integer.")
+        if dim <= 0:
+            raise RangeError()
 
+        if decimal:
+            return Vector(*[Decimal(random.randrange(0, 2)) for k in range(dim)])
+        return Vector(*[random.randrange(0, 2) for k in range(dim)])
+
+    @staticmethod
     def randVgauss(dim, mu=0, sigma=0, decimal: bool = False):
         """
             Generates a random vector of Gaussian (normal) distribution with specified dimensions.
@@ -596,11 +703,14 @@ class Vector:
         if not ((isinstance(mu, Union[int, float, Decimal])) and
                 (isinstance(sigma, Union[int, float, Decimal]))):
             raise ArgTypeError("Must be a numerical value.")
-        if not (dim > 0): raise RangeError
+        if dim <= 0:
+            raise RangeError()
+
         if decimal:
             return Vector(*[Decimal(random.gauss(mu, sigma)) for k in range(dim)])
         return Vector(*[random.gauss(mu, sigma) for k in range(dim)])
 
+    @staticmethod
     def determinant(*args):
         """
             Calculates the determinant of a square matrix represented by the given vectors.
@@ -619,26 +729,31 @@ class Vector:
                 DimensionError: If the dimensions of the vectors do not form a square matrix.
                 AmountError: If the number of vectors does not match the dimension of the square matrix.
         """
+        N = args[0].dimension
         for k in args:
-            if not isinstance(k, Vector): raise ArgTypeError("Must be a vector.")
-            if not (args[0].dimension == k.dimension): raise DimensionError(0)
-        if not (len(args) == args[0].dimension): raise AmountError
+            if not isinstance(k, Vector):
+                raise ArgTypeError("Must be a vector.")
+            if N != k.dimension:
+                raise DimensionError(0)
+        if len(args) != N:
+            raise AmountError()
 
-        if len(args) == 2 and args[0].dimension == 2:
+        if len(args) == 2 and N == 2:
             return (args[0].values[0] * args[1].values[1]) - (args[0].values[1] * args[1].values[0])
 
         result = 0
-        for k in range(0, args[0].dimension):
-            vector_list = list()
-            for a in range(1, args[0].dimension):
-                temp = list()
-                for b in range(0, args[0].dimension):
-                    if not b == k:
+        for k in range(N):
+            vector_list = []
+            for a in range(1, N):
+                temp = []
+                for b in range(N):
+                    if b != k:
                         temp.append(args[a].values[b])
                 vector_list.append(Vector(*temp))
-            result += Vector.determinant(*vector_list) * pow(-1, k) * args[0].values[k]
+            result += Vector.determinant(*vector_list) * ((-1)**(k)) * args[0].values[k]
         return result
 
+    @staticmethod
     def cross(*args):
         """
             Calculates the cross product of vectors.
@@ -657,24 +772,28 @@ class Vector:
                 ArgTypeError: If any argument is not a vector or if the dimensions of the vectors are inconsistent.
                 DimensionError: If the dimensions of the vectors do not match the requirements for calculating the cross product.
         """
+        N = args[0].dimension
         for k in args:
-            if not isinstance(k, Vector): raise ArgTypeError("Must be a vector.")
-            if not (args[0].dimension == k.dimension): raise DimensionError(0)
+            if not isinstance(k, Vector):
+                raise ArgTypeError("Must be a vector.")
+            if N != k.dimension:
+                raise DimensionError(0)
 
-        if len(args) == 2 and args[0].dimension == 2:
+        if len(args) == 2 and N == 2:
             return args[0].values[0] * args[1].values[1] - args[0].values[1] * args[1].values[0]
-        if not (len(args) == args[0].dimension - 1): raise AmountError
+        if len(args) != N - 1:
+            raise AmountError()
 
-        end_list = list()
-        for k in range(0, args[0].dimension):
-            vector_list = list()
-            for a in range(0, args[0].dimension-1):
-                temp = list()
-                for b in range(0, args[0].dimension):
-                    if not b == k:
+        end_list = []
+        for k in range(N):
+            vector_list = []
+            for a in range(N - 1):
+                temp = []
+                for b in range(N):
+                    if b != k:
                         temp.append(args[a].values[b])
                 vector_list.append(Vector(*temp))
-            end_list.append((Vector.determinant(*vector_list)) * pow(-1, k))
+            end_list.append((Vector.determinant(*vector_list)) * (-1)**(k))
         return Vector(*end_list)
 
     def outer(v, w):
@@ -695,17 +814,19 @@ class Vector:
                 ArgTypeError: If either v or w is not a vector.
                 DimensionError: If the dimensions of v and w are not compatible for computing the outer product.
         """
-        if not (isinstance(v, Vector) and isinstance(w, Vector)): raise ArgTypeError("Must be a vector.")
-        if v.dimension != w.dimension: raise DimensionError(0)
+        if not (isinstance(v, Vector) and isinstance(w, Vector)):
+            raise ArgTypeError("Must be a vector.")
+        if v.dimension != w.dimension:
+            raise DimensionError(0)
 
-        v_list = []
-        for i in range(v.dimension):
-            temp = []
-            for j in range(v.dimension):
-                temp.append(v.values[i] * w.values[j])
-            v_list.append(Vector(*temp))
+        #v_list = []
+        #for i in range(v.dimension):
+            #temp = [v.values[i] * w.values[j] for j in range(v.dimension)]
+            #for j in range(v.dimension):
+            #    temp.append(v.values[i] * w.values[j])
+            #v_list.append(Vector(*temp))
 
-        return Matrix(*v_list)
+        return Matrix(*[Vector(*[v.values[i] * w.values[j] for j in range(v.dimension)]) for i in range(v.dimension)])
 
     def cumsum(self):
         """
@@ -724,6 +845,7 @@ class Vector:
             sum += k
         return sum
 
+    @staticmethod
     def zero(dim: int, decimal: bool = False):
         """
             Generates a zero vector of a specified dimension.
@@ -739,12 +861,14 @@ class Vector:
                 RangeError: If the dimension specified is negative.
         """
         # We use the RangeError because dimension can be 0.
-        if dim < 0: raise RangeError()
+        if dim < 0:
+            raise RangeError()
         if decimal:
             return Vector(*[Decimal(0) for k in range(dim)])
         else:
             return Vector(*[0 for k in range(dim)])
 
+    @staticmethod
     def one(dim: int, decimal: bool = False):
         """
             Generates a vector with all elements set to one.
@@ -759,7 +883,8 @@ class Vector:
             Raises:
                 RangeError: If the dimension specified is negative.
         """
-        if dim < 0: raise RangeError()
+        if dim < 0:
+            raise RangeError()
         if decimal:
             return Vector(*[Decimal(1) for k in range(dim)])
         else:
@@ -779,7 +904,8 @@ class Vector:
             Raises:
                 RangeError: If the product of m and n does not equal the dimension of the vector.
         """
-        if not m * n == self.dimension: raise RangeError()
+        if not m * n == self.dimension:
+            raise RangeError()
         v_list = []
         count = 0
         temp = []
@@ -826,6 +952,7 @@ class Vector:
                 If `v` is a vector, `v.softmax()` computes the softmax function of `v`,
                 normalizing each element of the vector such that the resulting vector sums to 1.
         """
+
         temp = Vector(*[e(k, resolution) for k in self.values])
         temp /= temp.cumsum()
         return temp
@@ -999,7 +1126,8 @@ class Vector:
             Raises:
                 TypeError: If the predicate function `f` is not callable.
         """
-        if not isinstance(f, Callable): raise ArgTypeError("f must be a callable.")
+        if not isinstance(f, Callable):
+            raise ArgTypeError("f must be a callable.")
         vals = []
         for k in self.values:
             if f(k):
@@ -1144,89 +1272,98 @@ class Matrix:
         """
         self.values[key] = value
 
+    def __call__(self, *args):
+        """
+            Returns the value at tuple "args" of each function member of the matrix, as a matrix.
+
+            Returns: the value at tuple "args" of each function member of the matrix, as a matrix.
+
+        """
+        return Matrix(*[Vector(*[l(*args) for l in k]) for k in self.values])
+
     def __add__(self, arg):
-        v = []
+        #v = []
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
-            for k in self.values:
-                v.append(Vector(*[l + arg for l in k]))
-            return Matrix(*v)
+            #for k in self.values:
+                #v.append(Vector(*[l + arg for l in k]))
+            return Matrix(*[Vector(*[l + arg for l in k]) for k in self.values])
         if not isinstance(arg, Matrix):
             raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
-        for k in range(0, len(self.values)):
+        """for k in range(len(self.values)):
             m = []
-            for l in range(0, len(self.values[0])):
+            for l in range(len(self.values[0])):
                 m.append(self.values[k][l] + arg.values[k][l])
-            v.append(m)
-        return Matrix(*[Vector(*k) for k in v])
+            v.append(m)"""
+        return Matrix(*[Vector(*[self.values[k][l] + arg.values[k][l] for l in range(len(self.values[0]))]) for k in range(len(self.values))])
 
     def __radd__(self, arg):
-        v = []
+        #v = []
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
-            for k in self.values:
-                v.append(Vector(*[l + arg for l in k]))
-            return Matrix(*v)
+            #for k in self.values:
+                #v.append(Vector(*[l + arg for l in k]))
+            return Matrix(*[Vector(*[l + arg for l in k]) for k in self.values])
         raise ArgTypeError("Must be a numerical value.")
 
     def __iadd__(self, arg):
-        v = []
+        #v = []
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
-            for k in self.values:
-                v.append(Vector(*[l + arg for l in k]))
-            return Matrix(*v)
+            #for k in self.values:
+                #v.append(Vector(*[l + arg for l in k]))
+            return Matrix(*[Vector(*[l + arg for l in k]) for k in self.values])
         if not isinstance(arg, Matrix):
             raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
-        for k in range(0, len(self.values)):
-            m = []
-            for l in range(0, len(self.values[0])):
-                m.append(self.values[k][l] + arg.values[k][l])
-            v.append(m)
-        return Matrix(*[Vector(*k) for k in v])
+        #for k in range(len(self.values)):
+            #m = [self.values[k][l] + arg.values[k][l] for k in range(len(self.values))]
+            #for l in range(len(self.values[0])):
+            #    m.append(self.values[k][l] + arg.values[k][l])
+            #v.append(m)
+        return Matrix(*[Vector(*[self.values[k][l] + arg.values[k][l] for l in range(len(self.values[0]))]) for k in range(len(self.values))])
 
     def __sub__(self, arg):
-        v = []
+        #v = []
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
-            for k in self.values:
-                v.append(Vector(*[l - arg for l in k]))
-            return Matrix(*v)
+            #for k in self.values:
+                #v.append(Vector(*[l - arg for l in k]))
+            return Matrix(*[Vector(*[l - arg for l in k]) for k in self.values])
         if not isinstance(arg, Matrix):
             raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
-        for k in range(0, len(self.values)):
-            m = []
-            for l in range(0, len(self.values[0])):
-                m.append(self.values[k][l] - arg.values[k][l])
-            v.append(m)
-        return Matrix(*[Vector(*k) for k in v])
+        #for k in range(len(self.values)):
+            #m = [self.values[k][l] - arg.values[k][l] for l in range(len(self.values[0]))]
+            #for l in range(len(self.values[0])):
+            #    m.append(self.values[k][l] - arg.values[k][l])
+            #v.append(m)
+        return Matrix(*[Vector(*[self.values[k][l] - arg.values[k][l] for l in range(len(self.values[0]))]) for k in range(len(self.values))])
 
     def __rsub__(self, arg):
-        v = []
+        #v = []
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
-            for k in self.values:
-                v.append(Vector(*[l - arg for l in k]))
-            return -Matrix(*v)
+            #for k in self.values:
+                #v.append(Vector(*[arg - l for l in k]))
+            return Matrix(*[Vector(*[arg - l for l in k]) for k in self.values])
         raise ArgTypeError("Must be a numerical value.")
 
     def __isub__(self, arg):
-        v = []
+        #v = []
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
-            for k in self.values:
-                v.append(Vector(*[l - arg for l in k]))
-            return Matrix(*v)
+            #for k in self.values:
+            #    v.append(Vector(*[l - arg for l in k]))
+            return Matrix(*[Vector(*[l - arg for l in k]) for k in self.values])
         if not isinstance(arg, Matrix):
             raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
-        for k in range(0, len(self.values)):
-            m = []
-            for l in range(0, len(self.values[0])):
-                m.append(self.values[k][l] - arg.values[k][l])
-            v.append(m)
-        return Matrix(*[Vector(*k) for k in v])
+        #for k in range(len(self.values)):
+            #m = [self.values[k][l] - arg.values[k][l] for l in range(len(self.values[0]))]
+            #for l in range(len(self.values[0])):
+            #    m.append(self.values[k][l] - arg.values[k][l])
+            #v.append(m)
+        return Matrix(*[Vector(*[self.values[k][l] - arg.values[k][l] for l in range(len(self.values[0]))]) for k in range(len(self.values))])
 
     def __mul__(self, arg):
         v = []
@@ -1237,9 +1374,9 @@ class Matrix:
         if isinstance(arg, Vector):
             if not (self.dimension.split("x")[1] == str(arg.dimension)):
                 raise DimensionError(0)
-            for k in range(0, len(self.values)):
+            for k in range(len(self.values)):
                 sum = 0
-                for l in range(0, len(arg.values)):
+                for l in range(len(arg.values)):
                     sum += self.values[k][l] * arg.values[l]
                 v.append(sum)
             return Vector(*v)
@@ -1248,9 +1385,9 @@ class Matrix:
             raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension.split("x")[1] == arg.dimension.split("x")[0]):
             raise DimensionError(0)
-        for k in range(0, len(self.values)):
+        for k in range(len(self.values)):
             n = []
-            for l in range(0, len(arg.values[0])):
+            for l in range(len(arg.values[0])):
                 sum = 0
                 for m in range(0, len(arg.values)):
                     sum += self.values[k][m] * arg.values[m][l]
@@ -1259,31 +1396,31 @@ class Matrix:
         return Matrix(*[Vector(*k) for k in v])
 
     def __rmul__(self, arg):
-        v = []
+        #v = []
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
-            for k in self.values:
-                v.append(Vector(*[l * arg for l in k]))
-            return Matrix(*v)
+            #for k in self.values:
+            #    v.append(Vector(*[l * arg for l in k]))
+            return Matrix(*[Vector(*[l * arg for l in k]) for k in self.values])
         raise ArgTypeError("Must be a numerical value.")
 
     def __neg__(self):
         return Matrix(*[Vector(*[-l for l in k]) for k in self.values])
 
     def __truediv__(self, arg):
-        v = []
+        #v = []
         if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
             raise ArgTypeError("Must be a numerical value.")
-        for k in self.values:
-            v.append(Vector(*[l / arg for l in k]))
-        return Matrix(*v)
+        #for k in self.values:
+        #    v.append(Vector(*[l / arg for l in k]))
+        return Matrix(*[Vector(*[l / arg for l in k]) for k in self.values])
 
     def __floordiv__(self, arg):
-        v = []
+        #v = []
         if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
             raise ArgTypeError("Must be a numerical value.")
-        for k in self.values:
-            v.append(Vector(*[l // arg for l in k]))
-        return Matrix(*v)
+        #for k in self.values:
+        #    v.append(Vector(*[l // arg for l in k]))
+        return Matrix(*[Vector(*[l // arg for l in k]) for k in self.values])
 
     def __pow__(self, p, decimal: bool = False):
         temp = Matrix.identity(len(self.values), decimal)
@@ -1305,92 +1442,97 @@ class Matrix:
         """
         if self.dimension == "1x1":
             return self.values[0][0]
+
         if choice == "analytic":
             return Vector.determinant(*[Vector(*k) for k in self.values])
-        elif choice == "echelon":
+
+        if choice == "echelon":
             a = self.echelon()
             sum = 1
-            for k in range(0, len(a.values)):
+            for k in range(len(a.values)):
                 sum *= a.values[k][k]
             return sum
 
+        raise RangeError("Not a correct method choice.")
+
     def __or__(self, arg):
-        v = []
+        #v = []
         if not isinstance(arg, Matrix):
             raise ArgTypeError("Must be a numerical value.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
-        for k in range(0, len(self.values)):
+        """for k in range(0, len(self.values)):
             m = []
             for l in range(0, len(self.values[k])):
                 m.append(self.values[k][l] or arg.values[k][l])
-            v.append(Vector(*m))
-        return Matrix(*v)
+            v.append(Vector(*m))"""
+        return Matrix(*[Vector(*[self.values[k][l] or arg.values[k][l] for l in range(len(self.values[0]))]) for k in range(len(self.values))])
 
     def __ior__(self, arg):
-        v = []
+        #v = []
         if not isinstance(arg, Matrix):
             raise ArgTypeError("Must be a matrix.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
-        for k in range(0, len(self.values)):
+        """for k in range(0, len(self.values)):
             m = []
             for l in range(0, len(self.values[k])):
                 m.append(self.values[k][l] or arg.values[k][l])
-            v.append(Vector(*m))
-        return Matrix(*v)
+            v.append(Vector(*m))"""
+        return Matrix(*[Vector(*[self.values[k][l] or arg.values[k][l] for l in range(len(self.values[0]))]) for k in range(len(self.values))])
 
     def __and__(self, arg):
-        v = []
+        #v = []
         if not isinstance(arg, Matrix):
             raise ArgTypeError("Must be a matrix.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
-        for k in range(0, len(self.values)):
+        """for k in range(0, len(self.values)):
             m = []
             for l in range(0, len(self.values[k])):
                 m.append(self.values[k][l] and arg.values[k][l])
-            v.append(Vector(*m))
-        return Matrix(*v)
+            v.append(Vector(*m))"""
+        return Matrix(*[Vector(*[self.values[k][l] and arg.values[k][l] for l in range(len(self.values[0]))]) for k in range(len(self.values))])
 
     def __iand__(self, arg):
-        v = []
+        #v = []
         if not isinstance(arg, Matrix):
             raise ArgTypeError("Must be a matrix.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
-        for k in range(0, len(self.values)):
+        """for k in range(0, len(self.values)):
             m = []
             for l in range(0, len(self.values[k])):
                 m.append(self.values[k][l] and arg.values[k][l])
-            v.append(Vector(*m))
-        return Matrix(*v)
+            v.append(Vector(*m))"""
+        return Matrix(*[Vector(*[self.values[k][l] and arg.values[k][l] for l in range(len(self.values[0]))]) for k in range(len(self.values))])
 
     def __xor__(self, arg):
-        v = []
+        #v = []
         if not isinstance(arg, Matrix):
             raise ArgTypeError("Must be a matrix.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
-        for k in range(0, len(self.values)):
+        """for k in range(0, len(self.values)):
             m = []
             for l in range(0, len(self.values[k])):
                 m.append(self.values[k][l] ^ arg.values[k][l])
-            v.append(Vector(*m))
-        return Matrix(*v)
+            v.append(Vector(*m))"""
+        return Matrix(*[Vector(*[self.values[k][l] ^ arg.values[k][l] for l in range(len(self.values[0]))]) for k in range(len(self.values))])
 
     def __ixor__(self, arg):
-        v = []
+        #v = []
         if not isinstance(arg, Matrix):
             raise ArgTypeError("Must be a matrix.")
         if not (self.dimension == arg.dimension):
             raise DimensionError(0)
-        for k in range(0, len(self.values)):
-            m = []
-            for l in range(0, len(self.values[k])):
-                m.append(self.values[k][l] ^ arg.values[k][l])
-            v.append(Vector(*m))
-        return Matrix(*v)
+
+        #for k in range(len(self.values)):
+            #m = [self.values[k][l] ^ arg.values[k][l] for l in range(len(self.values[0]))]
+            #for l in range(len(self.values[k])):
+            #    m.append(self.values[k][l] ^ arg.values[k][l])
+            #v.append(Vector(*[self.values[k][l] ^ arg.values[k][l] for l in range(len(self.values[0]))]))
+        return Matrix(*[Vector(*[self.values[k][l] ^ arg.values[k][l] for l in range(len(self.values[0]))]) for k in range(len(self.values))])
 
     def __invert__(self):
         return Matrix(*[Vector(*[int(not l) for l in k]) for k in self.values])
@@ -1398,9 +1540,7 @@ class Matrix:
     def __eq__(self, arg):
         if not isinstance(arg, Matrix):
             raise ArgTypeError("Must be a matrix.")
-        if self.values == arg.values:
-            return True
-        return False
+        return self.values == arg.values
 
     def append(self, arg):
         """
@@ -1432,7 +1572,7 @@ class Matrix:
             Notes:
                 The copy method performs a deep copy of the matrix, including its values and dimension.
         """
-        return Matrix(*[Vector(*k.copy()) for k in self.values])
+        return Matrix(*[Vector(*k) for k in self.values])
 
     def pop(self, ord=-1):
         """
@@ -1452,6 +1592,7 @@ class Matrix:
             self.values[ord]
         except IndexError:
             raise RangeError()
+
         popped = self.values.pop(ord)
         temp = self.dimension.split("x")
         temp[0] = str(int(temp[0]) - 1)
@@ -1477,11 +1618,15 @@ class Matrix:
                 of corresponding elements in the matrices. Main purpose of this method is the
                 compatibility with the Tensor class.
         """
-        if not isinstance(arg, Matrix): raise ArgTypeError("Must be a matrix.")
-        if self.dimension != arg.dimension: raise DimensionError(0)
+        if not isinstance(arg, Matrix):
+            raise ArgTypeError("Must be a matrix.")
+        if self.dimension != arg.dimension:
+            raise DimensionError(0)
+
         sum = 0
+        M = len(self.values[0])
         for k in range(len(self.values)):
-            for l in range(len(self.values[0])):
+            for l in range(M):
                 sum += self.values[k][l] * arg.values[k][l]
         return sum
 
@@ -1492,13 +1637,13 @@ class Matrix:
             Returns:
                 Matrix: The transposed matrix.
         """
-        v = []
-        for k in range(0, len(self.values[0])):
-            m = []
-            for l in range(0, len(self.values)):
-                m.append(self.values[l][k])
-            v.append(Vector(*m))
-        return Matrix(*v)
+        #v = []
+        #for k in range(len(self.values[0])):
+            #m = [self.values[l][k] for l in range(len(self.values))]
+            #for l in range(len(self.values)):
+            #    m.append(self.values[l][k])
+            #v.append(Vector(*[self.values[l][k] for l in range(len(self.values))]))
+        return Matrix(*[Vector(*[self.values[l][k] for l in range(len(self.values))]) for k in range(len(self.values[0]))])
 
     def conjugate(self):
         """
@@ -1608,8 +1753,10 @@ class Matrix:
                 the convergence behavior of the gauss method. The inverse matrix is obviously only defined for
                 square matrices.
         """
-        if method not in ["gauss", "analytic", "iterative", "neumann"]: raise ArgTypeError()
-        if resolution < 1: raise RangeError()
+        if method not in ["gauss", "analytic", "iterative", "neumann"]:
+            raise ArgTypeError()
+        if resolution < 1:
+            raise RangeError()
         if not ((isinstance(lowlimit, Union[int, float, Decimal]))
                 and (isinstance(highlimit, Union[int, float, Decimal]))):
             raise ArgTypeError("Must be a numerical value.")
@@ -1622,35 +1769,35 @@ class Matrix:
             det = Matrix.determinant(self)
             if not det:
                 return
-            end = list()
-            for k in range(0, len(self.values)):
-                temp = list()
-                for l in range(0, len(self.values)):
-                    sub = list()
-                    for a in range(0, len(self.values)):
-                        n = list()
-                        for b in range(0, len(self.values)):
-                            if (not k == a) and (not l == b):
+            end = []
+            N = len(self.values)
+            for k in range(N):
+                temp = []
+                for l in range(N):
+                    sub = []
+                    for a in range(N):
+                        n = []
+                        for b in range(N):
+                            if k != a and l != b:
                                 n.append(self.values[a][b])
                         if len(n) > 0:
                             sub.append(Vector(*n))
-                    temp.append(pow(-1, k + l) * Matrix.determinant(Matrix(*sub)))
+                    temp.append(((-1)**(k+l)) * Matrix.determinant(Matrix(*sub)))
                 end.append(temp)
             return Matrix(*[Vector(*k) for k in end]).transpose() / det
 
         elif method == "gauss":
-            if isinstance(self[0][0], Decimal):
-                i = Matrix.identity(len(self.values))
-            else:
-                i = Matrix.identity(len(self.values), decimal)
+
+            N = len(self.values)
+            i = Matrix.identity(N, decimal)
             i_values = i.values.copy()
             v = self.values.copy()
             taken_list = []
             taken_list_i = []
             counter = 0
 
-            for k in range(0, len(self.values)):
-                for l in range(0, len(self.values[0])):
+            for k in range(N):
+                for l in range(N):
                     if not self.values[k][l] == 0 and l not in taken_list:
                         v[l] = self.values[k]
                         i_values[l] = i.values[k]
@@ -1665,7 +1812,7 @@ class Matrix:
                         taken_list_i.append(l)
                         break
                     elif not self.values[k][l] == 0 and l in taken_list:
-                        for m in range(l, len(self.values)):
+                        for m in range(l, N):
                             if m not in taken_list:
                                 v[m] = self.values[k]
                                 i_values[m] = i.values[k]
@@ -1676,19 +1823,19 @@ class Matrix:
 
 
 
-            for k in range(0, len(self.values[0])):
+            for k in range(N):
                 if v[k][k] == 0:
                     continue
-                for l in range(0, len(self.values)):
+                for l in range(N):
                     if l == k:
                         continue
                     try:
                         factor = (v[l][k]) / (v[k][k])
                         if abs(factor) < lowlimit or abs(factor) > highlimit:
                             factor = 0
-                        factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
+                        factored_list = [v[l][m] - (factor * v[k][m]) for m in range(N)]
                         factored_list_i = [i_values[l][m] - (factor * i_values[k][m]) for m in
-                                           range(0, len(self.values[0]))]
+                                           range(N)]
                         v[l] = factored_list
                         i_values[l] = factored_list_i
                     except ZeroDivisionError:
@@ -1698,50 +1845,49 @@ class Matrix:
             iden_values = i_values.copy()
             iden_values = iden_values[::-1]
 
-            for k in range(0, len(self.values[0])):
+            for k in range(N):
                 if v[k][k] == 0:
                     continue
-                for l in range(0, len(self.values)):
+                for l in range(N):
                     if l == k:
                         continue
                     try:
                         factor = (v[l][k]) / (v[k][k])
                         if abs(factor) < lowlimit or abs(factor) > highlimit:
                             factor = 0
-                        factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
+                        factored_list = [v[l][m] - (factor * v[k][m]) for m in range(N)]
                         factored_list_i = [iden_values[l][m] - (factor * iden_values[k][m]) for m in
-                                           range(0, len(self.values[0]))]
+                                           range(N)]
                         v[l] = factored_list
                         iden_values[l] = factored_list_i
                     except ZeroDivisionError:
                         continue
 
-            iden_values = iden_values[::-1].copy()
-            v = v[::-1].copy()
+            iden_values = iden_values[::-1]
+            v = v[::-1]
 
-            for k in range(0, len(self.values[0])):
+            for k in range(N):
                 if v[k][k] == 0:
                     continue
-                for l in range(0, len(self.values)):
+                for l in range(N):
                     if l == k:
                         continue
                     try:
                         factor = (v[l][k]) / (v[k][k])
                         if abs(factor) < lowlimit or abs(factor) > highlimit:
                             factor = 0
-                        factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
+                        factored_list = [v[l][m] - (factor * v[k][m]) for m in range(N)]
                         factored_list_i = [iden_values[l][m] - (factor * iden_values[k][m]) for m in
-                                           range(0, len(self.values[0]))]
+                                           range(N)]
                         v[l] = factored_list
                         iden_values[l] = factored_list_i
                     except ZeroDivisionError:
                         continue
 
-            for k in range(len(self.values[0])):
+            for k in range(N):
                 try:
                     iden_values[k] = list(map(lambda x: x if (abs(x) > lowlimit) else 0,
-                                              [iden_values[k][l] / v[k][k] for l in range(len(self.values[0]))]))
-
+                                              [iden_values[k][l] / v[k][k] for l in range(N)]))
                 except:
                     pass
 
@@ -1756,7 +1902,7 @@ class Matrix:
                 for l in k:
                     sum += abs(l)
                 sum_list.append(sum)
-            max = 0
+            max = 0  # Sums consist of absolute values, this is perfectly fine to do.
             for k in sum_list:
                 if k > max:
                     max = k
@@ -1769,7 +1915,7 @@ class Matrix:
 
             for k in range(resolution):
                 guess = guess * (identity - self * guess)
-                #guess = guess * 2 - guess * self * guess
+
             return guess
 
         elif method == "neumann":
@@ -1778,10 +1924,11 @@ class Matrix:
             M = self - i
 
             for k in range(resolution):
-                i += pow(-1, k + 1) * pow(M, k + 1, decimal)
+                i += (-1)**(k+1) * pow(M, k + 1, decimal)
 
             return i
 
+    @staticmethod
     def identity(dim, decimal: bool = False):
         """
             Creates an identity matrix of the specified dimension.
@@ -1797,22 +1944,28 @@ class Matrix:
                 ArgTypeError: If the dimension is not an integer.
                 RangeError: If the dimension is less than or equal to 0.
         """
-        if not isinstance(dim, int): raise ArgTypeError("Must be an integer.")
+        if not isinstance(dim, int):
+            raise ArgTypeError("Must be an integer.")
         if dim <= 0:
             raise RangeError()
-        v = []
+
+        #v = []
         if decimal:
-            for k in range(0, dim):
-                temp = [Decimal(0)] * dim
+            """for k in range(dim):
+                temp = [Decimal(0) for l in range(dim)] 
                 temp[k] = Decimal(1)
-                v.append(Vector(*temp))
-        else:
-            for k in range(0, dim):
-                temp = [0] * dim
+                v.append(Vector(*temp))"""
+            return Matrix(*[Vector(*[Decimal(1) if k == l else Decimal(0) for l in range(dim)]) for k in range(dim)])
+        """else:
+            for k in range(dim):
+                temp = [0 for l in range(dim)]
                 temp[k] = 1
                 v.append(Vector(*temp))
-        return Matrix(*v)
+            return Matrix(*[Vector(*[1 if k == l else 0 for l in range(dim)]) for k in range(dim)])"""
+        return Matrix(*[Vector(*[1 if k == l else 0 for l in range(dim)]) for k in range(dim)])
+        #return Matrix(*[Vector(*[1 if k == l else 0 for l in range(dim)]) for k in range(dim)])
 
+    @staticmethod
     def zero(a, b, decimal: bool = False):
         """
             Creates a zero matrix with the specified number of rows and columns.
@@ -1837,6 +1990,7 @@ class Matrix:
             return Matrix(*[Vector(*[Decimal(0) for l in range(b)]) for k in range(a)])
         return Matrix(*[Vector(*[0 for l in range(b)]) for k in range(a)])
 
+    @staticmethod
     def one(a, b, decimal: bool = False):
         """
             Creates a one matrix with the specified number of rows and columns.
@@ -1861,6 +2015,7 @@ class Matrix:
             return Matrix(*[Vector(*[Decimal(1) for l in range(b)]) for k in range(a)])
         return Matrix(*[Vector(*[1 for l in range(b)]) for k in range(a)])
 
+    @staticmethod
     def randMint(m, n, a, b, decimal: bool = False):
         """
             Generates a matrix of random integers with the specified dimensions and range.
@@ -1888,6 +2043,7 @@ class Matrix:
             return Matrix(*[Vector(*[Decimal(random.randint(0, 1)) for l in range(n)]) for k in range(m)])
         return Matrix(*[Vector(*[random.randint(a, b) for l in range(n)]) for k in range(m)])
 
+    @staticmethod
     def randMfloat(m, n, a, b, decimal: bool = False):
         """
             Generates a matrix of random floating-point numbers with the specified dimensions and range.
@@ -1917,6 +2073,7 @@ class Matrix:
             return Matrix(*[Vector(*[Decimal(random.uniform(a, b)) for l in range(n)]) for k in range(m)])
         return Matrix(*[Vector(*[random.uniform(a, b) for l in range(n)]) for k in range(m)])
 
+    @staticmethod
     def randMbool(m, n, decimal: bool = False):
         """
             Generates a matrix of random boolean values with the specified dimensions.
@@ -1941,6 +2098,7 @@ class Matrix:
             return Matrix(*[Vector(*[Decimal(random.randint(0, 1)) for l in range(n)]) for k in range(m)])
         return Matrix(*[Vector(*[random.randint(0, 1) for l in range(n)]) for k in range(m)])
 
+    @staticmethod
     def randMgauss(m, n, mu, sigma, decimal: bool = False):
         """
             Generates a matrix of random numbers following a Gaussian (normal) distribution.
@@ -1978,10 +2136,14 @@ class Matrix:
                 Matrix: The echelon form of the matrix.
         """
         v = self.values.copy()
-        taken_list = list()
+        taken_list = []
         counter = 0
-        for k in range(0, len(self.values)):
-            for l in range(0, len(self.values[0])):
+
+        N = len(self.values)
+        M = len(self.values[0])
+
+        for k in range(N):
+            for l in range(M):
                 if not self.values[k][l] == 0 and l not in taken_list:
                     v[l] = self.values[k]
                     counter += 1
@@ -1992,30 +2154,30 @@ class Matrix:
                     taken_list.append(l)
                     break
                 elif not self.values[k][l] == 0 and l in taken_list:
-                    for m in range(l, len(self.values)):
+                    for m in range(l, N):
                         if m not in taken_list:
                             v[m] = self.values[k]
                             counter += 1
                             if not m == k and counter % 2 == 0:
                                 v[m] = [-z for z in self.values[k]]
-        for k in range(0, len(self.values[0])):
+        for k in range(M):
             if v[k][k] == 0:
                 continue
-            for l in range(0, len(self.values)):
+            for l in range(N):
                 if l == k:
                     continue
                 try:
                     factor = (v[l][k]) / (v[k][k])
                     if abs(factor) < 0.0000000001:
                         factor = 0
-                    factored_list = [v[l][m] - (factor * v[k][m]) for m in range(0, len(self.values[0]))]
+                    factored_list = [v[l][m] - (factor * v[k][m]) for m in range(M)]
                     v[l] = factored_list
                 except ZeroDivisionError:
                     continue
-        taken_list = list()
+        taken_list = []
         end_list = v.copy()
-        for k in range(0, len(self.values)):
-            for l in range(0, len(self.values[0])):
+        for k in range(N):
+            for l in range(M):
                 if not v[k][l] == 0 and l not in taken_list:
                     end_list[l] = v[k]
                     counter += 1
@@ -2024,7 +2186,7 @@ class Matrix:
                     taken_list.append(l)
                     break
                 elif not v[k][l] == 0 and l in taken_list:
-                    for m in range(l, len(self.values)):
+                    for m in range(l, N):
                         if m not in taken_list:
                             end_list[m] = v[k]
                             counter += 1
@@ -2032,7 +2194,7 @@ class Matrix:
                                 end_list[m] = [-z for z in v[k]]
         return Matrix(*[Vector(*k) for k in end_list])
 
-    def cramer(a, number: int):
+    def cramer(self, number: int):
         """
             Solves a linear system using Cramer's Rule.
 
@@ -2047,29 +2209,33 @@ class Matrix:
                 ArgTypeError: If a is not a Matrix object or number is not an integer.
                 RangeError: If number is out of range.
         """
-        if not isinstance(a, Matrix):
-            raise ArgTypeError("Must be a numerical value.")
-        if not number < len(a.values[0]) - 1 or number < 0:
+
+        N = len(self.values[0]) - 1
+        if not number < N or number < 0:
             raise RangeError()
-        v = []
-        for k in range(0, len(a.values)):
-            m = []
-            for l in range(0, len(a.values[0]) - 1):
-                if not l == number:
+
+        #v = []
+        #N = len(a.values[0]) - 1
+        M = len(self.values)
+        """for k in range(len(a.values)):
+            #m = [a.values[k][l] if l != number else a.values[k][N] for l in range(N)]
+            for l in range(len(a.values[0]) - 1):
+                if l != number:
                     m.append(a.values[k][l])
                 else:
                     m.append(a.values[k][len(a.values[0]) - 1])
-            v.append(Vector(*m))
-        first = Matrix(*v).determinant()
-        v.clear()
-        for k in range(0, len(a.values)):
-            m = []
-            for l in range(0, len(a.values[0]) - 1):
-                m.append(a.values[k][l])
-            v.append(Vector(*m))
-        second = Matrix(*v).determinant()
+            v.append(Vector(*[a.values[k][l] if l != number else a.values[k][N] for l in range(N)]))"""
+        first = Matrix(*[Vector(*[self.values[k][l] if l != number else self.values[k][N] for l in range(N)]) for k in range(M)]).determinant()
+
+        #v.clear()
+        """for k in range(len(a.values)):
+            m = [a.values[k][l] for l in range(N)]
+            #for l in range(len(a.values[0]) - 1):
+            #    m.append(a.values[k][l])
+            v.append(Vector(*[a.values[k][l] for l in range(N)]))"""
+        second = Matrix(*[Vector(*[self.values[k][l] for l in range(N)]) for k in range(M)]).determinant()
         try:
-            sol = first/second
+            sol = first / second
         except ZeroDivisionError:
             sol = None
         return sol
@@ -2108,9 +2274,11 @@ class Matrix:
             Notes:
                 This method reshapes the matrix to the specified dimensions while preserving the order of elements.
         """
-        if not (0 < len(args) < 3): raise AmountError()
+        if not (0 < len(args) < 3):
+            raise AmountError()
         for k in args:
-            if not isinstance(k, int): raise RangeError()
+            if not isinstance(k, int):
+                raise RangeError()
             if k <= 0: raise RangeError()
 
         temp = []
@@ -2119,13 +2287,15 @@ class Matrix:
                 temp.append(l)
         v = Vector(*temp)
         if len(args) == 1:
-            if args[0] != len(self.values) * len(self.values[0]): raise RangeError()
+            if args[0] != len(self.values) * len(self.values[0]):
+                raise RangeError()
             temp = []
             for k in self.values:
                 for l in k:
                     temp.append(l)
             return v
-        if args[0] * args[1] != len(self.values) * len(self.values[0]): raise RangeError()
+        if args[0] * args[1] != len(self.values) * len(self.values[0]):
+            raise RangeError()
         return v.reshape(args[0], args[1])
 
     def eigenvalue(self, resolution: int = 10, decimal: bool = False):
@@ -2143,18 +2313,21 @@ class Matrix:
                 DimensionError: If the matrix is not square.
                 RangeError: If resolution is less than 1.
         """
-        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
-        if resolution < 1: raise RangeError()
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]:
+            raise DimensionError(2)
+        if resolution < 1:
+            raise RangeError()
 
         to_work = self.copy()
         for k in range(resolution):
             Q, R = to_work.qr(decimal)
             to_work = R * Q
-        result = []
-        for k in range(len(to_work.values)):
-            result.append(to_work.values[k][k])
 
-        return result
+        #result = []
+        #for k in range(len(to_work.values)):
+        #    result.append(to_work.values[k][k])
+
+        return [to_work.values[k][k] for k in range(len(to_work.values))]
 
     def qr(self, decimal: bool = False):
         """
@@ -2169,17 +2342,22 @@ class Matrix:
             Raises:
                 DimensionError: If the matrix is not square.
         """
-        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
-        v_list = []
-        for k in self.transpose():
-            v_list.append(Vector(*k))
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]:
+            raise DimensionError(2)
+
+        v_list = [Vector(*k) for k in self.transpose()]
+        #for k in self.transpose():
+        #    v_list.append(Vector(*k))
+
         if not Vector.does_span(*v_list):
             m = Matrix.zero(len(self.values), len(self.values), decimal)
             return m, m
         result_list = [k.unit() for k in Vector.spanify(*v_list)]
-        Q = Matrix(*result_list).transpose()
-        R = Q.transpose() * self
-        return Q, R
+        #Q = Matrix(*result_list).transpose()
+        #R = Q.transpose() * self
+
+        Q_t = Matrix(*result_list)
+        return Q_t.transpose(), Q_t * self
 
     def cholesky(self):
         """
@@ -2191,7 +2369,9 @@ class Matrix:
             Raises:
                 DimensionError: If the matrix is not square.
         """
-        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]:
+            raise DimensionError(2)
+
         L = Matrix.zero(len(self.values), len(self.values), False)
         L.values[0][0] = sqrt(self[0][0])
 
@@ -2220,12 +2400,14 @@ class Matrix:
             Notes:
                 This method is specifically useful for L + D + U decomposition.
         """
-        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]:
+            raise DimensionError(2)
 
         v_list = []
-        for k in range(len(self.values)):
-            temp = [0] * len(self.values)
-            for l in range(len(self.values)):
+        N = len(self.values)
+        for k in range(N):
+            temp = [0 for i in range(N)]
+            for l in range(N):
                 if l == k:
                     temp[l] = self[k][l]
             v_list.append(Vector(*temp))
@@ -2246,12 +2428,14 @@ class Matrix:
             Notes:
                 This method is specifically useful for L + D + U decomposition.
         """
-        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]:
+            raise DimensionError(2)
 
         v_list = []
-        for k in range(len(self.values)):
-            temp = [0] * len(self.values)
-            for l in range(len(self.values)):
+        N = len(self.values)
+        for k in range(N):
+            temp = [0 for i in range(N)]
+            for l in range(N):
                 if l < k:
                     temp[l] = self[k][l]
             v_list.append(Vector(*temp))
@@ -2271,18 +2455,21 @@ class Matrix:
             Notes:
                 This method is specifically useful for L + D + U decomposition.
         """
-        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]:
+            raise DimensionError(2)
 
         v_list = []
-        for k in range(len(self.values)):
-            temp = [0] * len(self.values)
-            for l in range(len(self.values)):
+        N = len(self.values)
+        for k in range(N):
+            temp = [0 for i in range(N)]
+            for l in range(N):
                 if l > k:
                     temp[l] = self[k][l]
             v_list.append(Vector(*temp))
 
         return Matrix(*v_list)
 
+    @staticmethod
     def givens(dim, i, j, angle, resolution: int = 15):
         """
             Generates a Givens rotation matrix of the specified dimensions and parameters.
@@ -2304,12 +2491,15 @@ class Matrix:
             Notes:
                 A Givens rotation matrix is used to introduce zeros into a matrix by rotating selected rows.
         """
-        if i >= dim or j >= dim: raise RangeError()
-        if resolution < 1: raise RangeError()
+        if i >= dim or j >= dim:
+            raise RangeError()
 
-        v_list = [[0 for l in range(dim)] for k in range(dim)]
-        for k in range(dim):
-            v_list[k][k] = 1
+        if resolution < 1:
+            raise RangeError()
+
+        v_list = [[0 if l != k else 1 for l in range(dim)] for k in range(dim)]
+        #for k in range(dim):
+        #    v_list[k][k] = 1
 
         c = cos(angle, resolution=resolution)
         s = sin(angle, resolution=resolution)
@@ -2338,8 +2528,10 @@ class Matrix:
                 The only difference of this method from dot product, is conjugation.
                 For Real valued matrices, there is no difference at all.
         """
-        if not (isinstance(a, Matrix) and isinstance(b, Matrix)): raise ArgTypeError("Must be a matrix.")
-        if a.dimension != b.dimension: raise DimensionError(0)
+        if not (isinstance(a, Matrix) and isinstance(b, Matrix)):
+            raise ArgTypeError("Must be a matrix.")
+        if a.dimension != b.dimension:
+            raise DimensionError(0)
 
         temp = a.copy().conjugate()
 
@@ -2360,7 +2552,8 @@ class Matrix:
             Raises:
                 DimensionError: If the matrix is not square.
         """
-        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]:
+            raise DimensionError(2)
         sum = 0
         for k in range(len(self.values)):
             sum += self.values[k][k]
@@ -2376,11 +2569,10 @@ class Matrix:
             Raises:
                 DimensionError: If the matrix is not square.
         """
-        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
-        diag = []
-        for k in range(len(self.values)):
-            diag.append(self.values[k][k])
-        return diag
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]:
+            raise DimensionError(2)
+
+        return [self.values[k][k] for k in range(len(self.values))]
 
     def diagonal_mul(self):
         """
@@ -2392,7 +2584,9 @@ class Matrix:
             Raises:
                 DimensionError: If the matrix is not square.
         """
-        if self.dimension.split("x")[0] != self.dimension.split("x")[1]: raise DimensionError(2)
+        if self.dimension.split("x")[0] != self.dimension.split("x")[1]:
+            raise DimensionError(2)
+
         sum = 1
         for k in range(len(self.values)):
             sum *= self.values[k][k]
@@ -2417,27 +2611,37 @@ class Matrix:
                 RangeError: If resolution is less than 1.
         """
         if initial is not None:
-            if not isinstance(initial, Vector): raise ArgTypeError("Must be a vector.")
-        if b.dimension != len(self.values): raise DimensionError(0)
-        if resolution < 1: raise RangeError()
+            if not isinstance(initial, Vector):
+                raise ArgTypeError("Must be a vector.")
+
+        N = len(self.values)
+        if b.dimension != N:
+            raise DimensionError(0)
+
+        if resolution < 1:
+            raise RangeError()
+
         if initial is None:
-            initial = Vector.zero(len(self.values), decimal)
+            initial = Vector.zero(N, decimal)
             for i in range(initial.dimension):
                 initial.values[i] = b[i] / self[i][i]
+
         for_l = []
         for_u = []
-        for k in range(len(self.values)):
-            for_l.append(Vector.zero(len(self.values), decimal))
-            for_u.append(Vector.zero(len(self.values), decimal))
+        for k in range(N):
+            for_l.append(Vector.zero(N, decimal))
+            for_u.append(Vector.zero(N, decimal))
             for l in range(len(self.values[0])):
                 if l <= k:
                     for_l[-1].values[l] = self[k][l]
                 else:
                     for_u[-1].values[l] = self[k][l]
+
         L_inverse = Matrix(*for_l).inverse(resolution=resolution, decimal=decimal)
         U = Matrix(*for_u)
         for k in range(resolution):
             initial = L_inverse * (b - U * initial)
+
         return initial
 
     def least_squares(self, b, method: str = "iterative", resolution: int = 10, lowlimit=0.0000000001, highlimit=100000, decimal: bool = False):
@@ -2488,9 +2692,10 @@ class Matrix:
 
         D = self.get_diagonal()
         v_list = []
-        for k in range(len(D.values)):
-            temp = [0] * len(D.values)
-            for l in range(len(D.values)):
+        N = len(D.values)
+        for k in range(N):
+            temp = [0 for i in range(N)]
+            for l in range(N):
                 if l == k:
                     temp[l] = 1 / D[k][l]
             v_list.append(Vector(*temp))
@@ -2618,6 +2823,29 @@ class Matrix:
             for l in k:
                 sum += l
         return sum / (len(self.values) * len(self.values[0]))
+
+    def convolve(self, kernel, strafe: Union[list, tuple] = (1, 1)):
+        if not isinstance(kernel, Matrix):
+            raise ArgTypeError("Must be a matrix.")
+        if len(strafe) != 2:
+            raise DimensionError(0)
+
+        y_change = len(kernel.values)
+        x_change = len(kernel.values[0])
+        y_count = len(self.values) - y_change + strafe[0]
+        x_count = len(self.values[0]) - x_change + strafe[1]
+
+        vlist = []
+        for k in range(y_count):
+            temp = []
+            for l in range(x_count):
+                sub = self.submatrix(k, k + y_change, l, l + x_change)
+                temp.append(Matrix.frobenius_product(sub, kernel))
+            vlist.append(Vector(*temp))
+
+        return Matrix(*vlist)
+
+
 
 def maximum(dataset):
     """
@@ -2904,13 +3132,15 @@ def median(data):
         arg = list(data)
     elif isinstance(data, Vector):
         arg = data.values.copy()
-    else: raise ArgTypeError()
+    else:
+        raise ArgTypeError()
+
     arg.sort()
     n = len(arg)
-    if n // 2 == n / 2:
-        return arg[n // 2]
-    else:
-        return (arg[n // 2] + arg[(n // 2) + 1]) / 2
+    point = n // 2
+    if point == n / 2:
+        return arg[point]
+    return (arg[point] + arg[point + 1]) / 2
 
 def expectation(values, probabilities, moment: int = 1):
     """
@@ -2986,7 +3216,8 @@ def sd(values, probabilities):
 
         sum = 0
         for k in range(len(values)):
-            sum += (values[k]**2) * probabilities[k] - values[k] * probabilities[k]
+            #sum += (values[k]**2) * probabilities[k] - values[k] * probabilities[k]
+            sum += values[k] * probabilities[k] * (values[k] - 1)
         return sqrt(sum)
     raise ArgTypeError("Arguments must be one dimensional iterables")
 
@@ -3024,16 +3255,18 @@ def linear_fit(x, y, rate=0.01, iterations: int = 15) -> tuple:
     if len(x) != len(y): raise DimensionError(0)
 
     N = len(x)
-    b0 = 1
-    b1 = 1
+    b0, b1 = 0, 0
+    sum1, sum2 = 0, 0
+    factor = -2 * rate / N
+
     for k in range(iterations):
-        sum1 = 0
-        sum2 = 0
         for i in range(N):
             sum1 += (y[i] - b0 - b1 * x[i])
             sum2 += (y[i] - b0 - b1 * x[i]) * x[i]
-        b0 = b0 - rate * (-2 * sum1 / N)
-        b1 = b1 - rate * (-2 * sum2 / N)
+        b0 = b0 - sum1 * factor
+        b1 = b1 - sum2 * factor
+        sum1 = 0
+        sum2 = 0
     return b0, b1
 
 def general_fit(x, y, rate=0.0000002, iterations: int = 15, degree: int = 1) -> Vector:
@@ -3076,6 +3309,7 @@ def general_fit(x, y, rate=0.0000002, iterations: int = 15, degree: int = 1) -> 
     if not isinstance(y, Vector):
         y = Vector(*[k for k in y])
     N = len(x)
+    factor = -2 * rate / N
     b = Vector(*[1 for k in range(degree + 1)])
 
     # Work
@@ -3084,8 +3318,7 @@ def general_fit(x, y, rate=0.0000002, iterations: int = 15, degree: int = 1) -> 
         for i in range(N):
             v = Vector(*[x[i]**p for p in range(degree + 1)])
             c += (y[i] - b.dot(v)) * v
-        c *= (-2 / N)
-        b = b - rate * c
+        b = b - c * factor
 
     return b
 

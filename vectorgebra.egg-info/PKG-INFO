@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: vectorgebra
-Version: 3.0.3
+Version: 3.1.0
 Summary: A numerical methods tool for python, in python.
 Author: Ahmet Erdem
 Classifier: Programming Language :: Python :: 3
@@ -40,47 +40,32 @@ more and more bigger projects as scale. And this was a good test to it.
 Creating and training an ML model requires both floating point precision
 and good handling of high dimensional tensors.
 
-### Update notes on 3.0.0
+### Update notes on 3.1.0
 
-Most of the changes in this version are internal changes that are mostly
-invisible to the general user. The file structure of the library has been
-completely changed. The new file structure is much like the C++ counterpart.
-Each important subpart of the code is carried to another file. This doesn't
-really mean classes are carried to separate files. Due to the import chain
-loop problems that are explained [here](https://github.com/ahmeterdem1/Vector_cpp), code separation is not consistent.
-A few functions have duplicate definitions. This does not affect the
-functionality of the library.
+This update mainly consists of optimization improvements. Almost
+all parts of the library received some kind of optimization or
+improvement on this update. It is sometimes such and extent that,
+e.g. Matrix inversion with Gauss-Jordan elimination is now %20
+faster.
 
-"complex" name is changed to "Complex", in consistency with other object
-names in the library.
+Now most of the Matrix/Vector operations are done by list comprehensions
+internally. This of course decreased the readability of the code, 
+but how bad could it be? This is Python in the end. I believe 
+performance improvements are worth it anyway.
 
-Type checking is now done with the help of the "typing" library. The
-code is more readable now.
+Convolution operation is included in the Matrix class. It is in very
+basic format. This is because, i want to keep this libraries methods
+more primitive. This library is a tool to build other ones. A more
+detailed convolution would be coded in MLgebra for example. This
+library just has the kernel of the algorithms.
 
-A Tensor class is implemented. Functionality is very much the same as
-Matrix class. Initialization rules are alike. You can generate any
-dimensional tensors, it is not limited to 3. The reason for implementation
-is the upcoming "Visiongebra" library. Tensor class will be the data format
-for loading images. Currently, the implementation has few methods. But
-all the essential ones are there. Even the tensor multiplication is there.
+Vectors can be functions now. This new feature made probably
+all other operations a bit slower and heavier, but considering 
+the performance improvements of this update, it could be even.
+This feature might be unstable.
 
-Docstrings are added to almost all functions and methods.
-
-Decimal choice of the library is set to "False" as default.
-
-Matrix.zero and Matrix.one now accepts 2 arguments defining the dimension.
-
-### 3.0.1
-
-Bug fixes on .flatten() method.
-
-### 3.0.2
-
-Bug fixes on matrix multiplication. Internal file name change.
-
-### 3.0.3
-
-Bug fixes on .zero() method and all related methods.
+Graph and Tensor classes are still in their "experimental" phase. In
+the upcoming updates, I will probably be looking into them more.
 
 ## Vectorgebra.Vector
 
@@ -90,6 +75,14 @@ Addition, multiplication subtraction, division and operations alike are
 implemented as overloads. Comparison operators compare the length of the
 vectors. Only exception is _==_ which returns True if and only if all the
 terms of the vectors are equal.
+
+### Vector Functions
+
+You can pass functions as elements to Vector objects. If you chose to create
+vector functions with this method, all elements of the vector must be a
+function and must accept the same amount of arguments that have no default
+values. Currently basic arithmetic operations are defined for vector functions.
+We can say this feature is yet experimental.
 
 Methods are listed below.
 
