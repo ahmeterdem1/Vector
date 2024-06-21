@@ -28,32 +28,22 @@ more and more bigger projects as scale. And this was a good test to it.
 Creating and training an ML model requires both floating point precision
 and good handling of high dimensional tensors.
 
-### Update notes on 3.1.0
+### Update notes on 3.2.0
 
-This update mainly consists of optimization improvements. Almost
-all parts of the library received some kind of optimization or
-improvement on this update. It is sometimes such and extent that,
-e.g. Matrix inversion with Gauss-Jordan elimination is now %20
-faster.
+LU decomposition is now added to Matrix class.
 
-Now most of the Matrix/Vector operations are done by list comprehensions
-internally. This of course decreased the readability of the code, 
-but how bad could it be? This is Python in the end. I believe 
-performance improvements are worth it anyway.
+"lu" method is added to .inverse() method of the
+Matrix class. It is by far the fastest method. It is
+measured to be around 2 times faster than the Gauss-Jordan
+method on 20x20 matrices.
 
-Convolution operation is included in the Matrix class. It is in very
-basic format. This is because, i want to keep this libraries methods
-more primitive. This library is a tool to build other ones. A more
-detailed convolution would be coded in MLgebra for example. This
-library just has the kernel of the algorithms.
+.echelon() method is fixed for non-square matrices. In the
+old versions, non-square matrices resulted in indexing
+errors whilst row reduction. This is now fixed and the method
+works properly for both square and non-square matrices.
 
-Vectors can be functions now. This new feature made probably
-all other operations a bit slower and heavier, but considering 
-the performance improvements of this update, it could be even.
-This feature might be unstable.
+Shorter algorithms are reduced to one-liners to speed them up.
 
-Graph and Tensor classes are still in their "experimental" phase. In
-the upcoming updates, I will probably be looking into them more.
 
 ## Vectorgebra.Vector
 
@@ -286,11 +276,13 @@ Returns the inverse matrix of self. Returns None if not invertible.
 method can ben "analytic", "gauss", "neumann" or "iterative". Default is iterative
 which uses Newton's method for matrix inversion. Resolution is the number
 of iterations. lowlimit and highlimit are only for gauss method. They control
-the "resolution" of multiplication and divisions. See the source code for a
-better inside look.
+the "resolution" of multiplication and divisions. LU method only uses the decimal
+choice. See the source code for a better inside look.
 
 Neumann will only work for the right conditioned matrices (see [here](https://en.wikipedia.org/wiki/Matrix_norm)). Neumann only uses
 resolution parameter.
+
+LU decomposition is the fastest method amongst all.
 
 ### Vectorgebra.Matrix.identity(dim, decimal=False)
 
@@ -358,17 +350,24 @@ list instead of the complex ones.
 The underlying algorithm is QR decomposition and iteration. Resolution
 is the number of iterations. Default is 10.
 
+### _Vectorgebra.Matrix_.lu(decimal: bool = False)
+
+Returns a tuple of L and U matrices, in order, which are the respective
+LU decompositions of the self. This method does not check for PA = LU
+cases, blindly applies the decomposition. Returned L and U matrices may
+multiply to not A, but possibly a PA matrix.
+
 ### _Vectorgebra.Matrix_.qr()
 
 Applies QR decomposition to self and returns the tuple (Q, R). The algorithm
 just uses .spanify() from Vector class. If the columns of self do not consist
 of independent vectors, returns matrices of zeroes for both Q and R. This is to
-prevent type errors that may have otherwise risen from written code.
+prevent errors that may have otherwise risen from written code.
 
 ### _Vectorgebra.Matrix_.cholesky()
 
-Applies Cholesky decomposition to self, and returns the L matrix. Applies algorithm
-is textbook Cholesky–Banachiewicz algorithm.
+Applies Cholesky decomposition to self, and returns the L matrix. Applied algorithm
+is textbook [Cholesky–Banachiewicz](https://en.wikipedia.org/wiki/Cholesky_decomposition) algorithm.
 
 ### _Vectorgebra.Matrix_.get_diagonal()
 

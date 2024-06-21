@@ -2,6 +2,12 @@ from graph import *
 
 
 if __name__ == "__main__":
+    pass
+    """ m = Matrix(Vector(1, 2, 3), Vector(4, 5, 6))
+    print(m.echelon())
+    print(m.cumsum())"""
+
+
 
     """v = Vector(lambda x: x, lambda x: x**2)
     w = Vector(lambda x: x, lambda x: x**2)
