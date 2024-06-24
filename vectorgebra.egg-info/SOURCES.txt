@@ -9,6 +9,7 @@ vectorgebra/infinity.py
 vectorgebra/linalg.py
 vectorgebra/tensor.py
 vectorgebra/undefined.py
+vectorgebra/variable.py
 vectorgebra/vectorgebra.py
 vectorgebra.egg-info/PKG-INFO
 vectorgebra.egg-info/SOURCES.txt

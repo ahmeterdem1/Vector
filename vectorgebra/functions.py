@@ -1,4 +1,4 @@
-from .infinity import *
+from .variable import *
 import threading
 import logging
 
@@ -28,12 +28,12 @@ def Range(low: Union[int, float, Decimal, Infinity, Undefined],
         Generator function that yields a range of numerical values from 'low' to 'high' (inclusive) with a specified step.
 
         Args:
-            low (Union[int, float, Decimal, Infinity, Undefined]): The starting value of the range.
-            high (Union[int, float, Decimal, Infinity, Undefined]): The ending value of the range.
-            step (Union[int, float, Decimal, Infinity, Undefined], optional): The step size between consecutive values. Default is 1.
+            low: The starting value of the range.
+            high: The ending value of the range.
+            step: The step size between consecutive values. Default is 1.
 
         Yields:
-            Union[int, float, Decimal, Infinity, Undefined]: The next value in the range sequence.
+            The next value in the range sequence.
 
         Raises:
             ArgTypeError: If 'low' or 'high' is not a numerical value.
@@ -52,31 +52,31 @@ def Range(low: Union[int, float, Decimal, Infinity, Undefined],
         yield low
         low += step
 
-def abs(arg: Union[int, float, Decimal, Infinity, Undefined]):
+def abs(arg: Union[int, float, Decimal, Infinity, Undefined, Variable]):
     """
         Returns the absolute value of a numerical argument.
 
         Args:
-            arg (Union[int, float, Decimal, Infinity, Undefined]): The numerical value whose absolute value is to be computed.
+            arg: The numerical value whose absolute value is to be computed.
 
         Returns:
-            Union[int, float, Decimal, Infinity, Undefined]: The absolute value of the argument.
+            The absolute value of the argument.
 
         Raises:
             ArgTypeError: If the argument is not a numerical value.
     """
-    if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined]):
+    if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Variable]):
         raise ArgTypeError("Must be a numerical value.")
 
     return arg if (arg >= 0) else -arg
 
-def __cumdiv(x: Union[int, float, Decimal, Infinity, Undefined], power: int):
+def __cumdiv(x: Union[int, float, Decimal, Infinity, Undefined, Variable], power: int):
     """
         Computes the cumulative division of a numerical value 'x' by a specified power, cumulative
         division being a related term at Taylor Series.
 
         Args:
-            x (Union[int, float, Decimal, Infinity, Undefined]): The numerical value to be divided cumulatively.
+            x: The numerical value to be divided cumulatively.
             power (int): The power by which 'x' is to be divided cumulatively.
 
         Returns:
@@ -88,7 +88,7 @@ def __cumdiv(x: Union[int, float, Decimal, Infinity, Undefined], power: int):
         Notes:
             This function optimizes for accuracy, not speed.
     """
-    if not isinstance(x, Union[int, float, Decimal, Infinity, Undefined]):
+    if not isinstance(x, Union[int, float, Decimal, Infinity, Undefined, Variable]):
         raise ArgTypeError("Must be a numerical value.")
 
     result: float = 1
@@ -96,12 +96,12 @@ def __cumdiv(x: Union[int, float, Decimal, Infinity, Undefined], power: int):
         result *= x / k
     return result
 
-def e(exponent: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15):
+def e(exponent: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 15):
     """
         Computes the approximation of the mathematical constant 'e' raised to the power of the given exponent.
 
         Args:
-            exponent (Union[int, float, Decimal, Infinity, Undefined]): The numerical exponent for 'e'.
+            exponent: The numerical exponent for 'e'.
             resolution (int, optional): The resolution for the approximation. Defaults to 15.
 
         Returns:
@@ -112,7 +112,7 @@ def e(exponent: Union[int, float, Decimal, Infinity, Undefined], resolution: int
             RangeError: If 'resolution' is not a positive integer.
     """
     if not (isinstance(resolution, int) and resolution >= 1): raise RangeError("Resolution must be a positive integer")
-    if not isinstance(exponent, Union[int, float, Decimal, Infinity, Undefined]):
+    if not isinstance(exponent, Union[int, float, Decimal, Infinity, Undefined, Variable]):
         raise ArgTypeError("Must be a numerical value.")
 
     sum = 1
@@ -120,12 +120,12 @@ def e(exponent: Union[int, float, Decimal, Infinity, Undefined], resolution: int
         sum += __cumdiv(exponent, k)
     return sum
 
-def sin(angle: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15):
+def sin(angle: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 15):
     """
         Computes the sine of the given angle using Taylor Series approximation.
 
         Args:
-            angle (Union[int, float, Decimal, Infinity, Undefined]): The angle in degrees.
+            angle: The angle in degrees.
             resolution (int, optional): The resolution for the approximation. Defaults to 15.
 
         Returns:
@@ -136,7 +136,7 @@ def sin(angle: Union[int, float, Decimal, Infinity, Undefined], resolution: int 
             RangeError: If 'resolution' is not a positive integer.
     """
     if not (isinstance(resolution, int) and resolution >= 1): raise RangeError("Resolution must be a positive integer")
-    if not isinstance(angle, Union[int, float, Decimal, Infinity, Undefined]):
+    if not isinstance(angle, Union[int, float, Decimal, Infinity, Undefined, Variable]):
         raise ArgTypeError("Must be a numerical value.")
 
     # Below calculation can be optimized away. It is done so in Vectorgebra/C++.
@@ -149,12 +149,12 @@ def sin(angle: Union[int, float, Decimal, Infinity, Undefined], resolution: int 
 
     return result
 
-def cos(angle: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 16):
+def cos(angle: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 16):
     """
         Computes the cosine of the given angle using Taylor Series approximation.
 
         Args:
-            angle (Union[int, float, Decimal, Infinity, Undefined]): The angle in degrees.
+            angle: The angle in degrees.
             resolution (int, optional): The resolution for the approximation. Defaults to 16.
 
         Returns:
@@ -165,7 +165,7 @@ def cos(angle: Union[int, float, Decimal, Infinity, Undefined], resolution: int 
             RangeError: If 'resolution' is not a positive integer.
         """
     if not (isinstance(resolution, int) and resolution >= 1): raise RangeError("Resolution must be a positive integer")
-    if not isinstance(angle, Union[int, float, Decimal, Infinity, Undefined]):
+    if not isinstance(angle, Union[int, float, Decimal, Infinity, Undefined, Variable]):
         raise ArgTypeError("Must be a numerical value.")
 
     radian = (2 * PI * (angle % 360 / 360)) % (2 * PI)
@@ -178,16 +178,16 @@ def cos(angle: Union[int, float, Decimal, Infinity, Undefined], resolution: int 
         result = result + __cumdiv(radian, k) * (-1)**(k / 2)
     return result
 
-def tan(angle: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 16):
+def tan(angle: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 16):
     """
         Computes the tangent of the given angle.
 
         Args:
-            angle (Union[int, float, Decimal, Infinity, Undefined]): The angle in degrees.
+            angle: The angle in degrees.
             resolution (int, optional): The resolution for the approximation. Defaults to 16.
 
         Returns:
-            Union[float, Infinity]: The tangent value of the given angle.
+            The tangent value of the given angle.
 
         Raises:
             ArgTypeError: If 'angle' is not a numerical value.
@@ -204,16 +204,16 @@ def tan(angle: Union[int, float, Decimal, Infinity, Undefined], resolution: int 
             return Infinity()
         return Infinity(False)
 
-def cot(angle: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 16):
+def cot(angle: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 16):
     """
         Computes the cotangent of the given angle.
 
         Args:
-            angle (Union[int, float, Decimal, Infinity, Undefined]): The angle in degrees.
+            angle: The angle in degrees.
             resolution (int, optional): The resolution for the approximation. Defaults to 16.
 
         Returns:
-            Union[float, Infinity]: The tangent value of the given angle.
+            The tangent value of the given angle.
 
         Raises:
             ArgTypeError: If 'angle' is not a numerical value.
@@ -224,12 +224,12 @@ def cot(angle: Union[int, float, Decimal, Infinity, Undefined], resolution: int 
     except ZeroDivisionError:  # Probably will never happen
         return None
 
-def sinh(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15):
+def sinh(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 15):
     """
         Computes the hyperbolic sine of the given number.
 
         Args:
-            x (Union[int, float, Decimal, Infinity, Undefined]): The number.
+            x: The number.
             resolution (int, optional): The resolution for the approximation. Defaults to 15.
 
         Returns:
@@ -241,12 +241,12 @@ def sinh(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 1
         """
     return (e(x, resolution) - e(-x, resolution)) / 2
 
-def cosh(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15):
+def cosh(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 15):
     """
         Computes the hyperbolic cosine of the given number.
 
         Args:
-            x (Union[int, float, Decimal, Infinity, Undefined]): The number.
+            x: The number.
             resolution (int, optional): The resolution for the approximation. Defaults to 15.
 
         Returns:
@@ -258,12 +258,12 @@ def cosh(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 1
         """
     return (e(x, resolution) + e(-x, resolution)) / 2
 
-def tanh(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15):
+def tanh(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 15):
     """
         Computes the hyperbolic tangent of the given number.
 
         Args:
-            x (int, float, Decimal, Infinity, Undefined): The number.
+            x: The number.
             resolution (int, optional): The resolution for the approximation. Defaults to 15.
 
         Returns:
@@ -279,12 +279,12 @@ def tanh(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 1
     except ZeroDivisionError:
         return None
 
-def coth(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15):
+def coth(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 15):
     """
         Computes the hyperbolic cotangent of the given number.
 
         Args:
-            x (Union[int, float, Decimal, Infinity, Undefined]): The number.
+            x: The number.
             resolution (int, optional): The resolution for the approximation. Defaults to 15.
 
         Returns:
@@ -301,12 +301,12 @@ def coth(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 1
             return Infinity()
         return Infinity(False)
 
-def arcsin(x: Union[int, float, Decimal, Undefined], resolution: int = 20):
+def arcsin(x: Union[int, float, Decimal, Undefined, Variable], resolution: int = 20):
     """
         Computes the arc sine of the given number in degrees.
 
         Args:
-            x (Union[int, float, Decimal, Undefined]): The number.
+            x: The number.
             resolution (int, optional): The resolution for the approximation. Defaults to 20.
 
         Returns:
@@ -316,7 +316,7 @@ def arcsin(x: Union[int, float, Decimal, Undefined], resolution: int = 20):
             ArgTypeError: If 'x' is not a numerical value.
             RangeError: If 'x' is not in the range [-1, 1], or if 'resolution' is not a positive integer.
     """
-    if not isinstance(x, Union[int, float, Decimal, Infinity, Undefined]):
+    if not isinstance(x, Union[int, float, Decimal, Infinity, Undefined, Variable]):
         raise ArgTypeError("Must be a numerical value.")
     if not (-1 <= x <= 1):
         raise RangeError()
@@ -329,12 +329,12 @@ def arcsin(x: Union[int, float, Decimal, Undefined], resolution: int = 20):
         sol += c * x**(2 * k + 1) / (2 * k + 1)
     return sol * 360 / (2 * PI)
 
-def arccos(x: Union[int, float, Decimal, Undefined], resolution: int = 20):
+def arccos(x: Union[int, float, Decimal, Undefined, Variable], resolution: int = 20):
     """
         Computes the arc cosine of the given number in degrees.
 
         Args:
-            x (Union[int, float, Decimal, Undefined]): The number.
+            x: The number.
             resolution (int, optional): The resolution for the approximation. Defaults to 20.
 
         Returns:
@@ -351,12 +351,12 @@ def arccos(x: Union[int, float, Decimal, Undefined], resolution: int = 20):
 
     return 90 - arcsin(x, resolution)
 
-def log2(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15):
+def log2(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 15):
     """
         Computes the base-2 logarithm of the given number.
 
         Args:
-            x (Union[int, float, Decimal, Infinity, Undefined]): The number.
+            x: The number.
             resolution (int, optional): The resolution for the approximation. Defaults to 15.
 
         Returns:
@@ -366,7 +366,7 @@ def log2(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 1
             ArgTypeError: If 'x' is not a numerical value.
             RangeError: If 'x' is less than or equal to 0, or if 'resolution' is not a positive integer.
     """
-    if not isinstance(x, Union[int, float, Decimal, Infinity, Undefined]):
+    if not isinstance(x, Union[int, float, Decimal, Infinity, Undefined, Variable]):
         raise ArgTypeError("Must be a numerical value.")
     if x <= 0:
         raise RangeError()
@@ -392,12 +392,12 @@ def log2(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 1
 
     return factor * count
 
-def ln(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15):
+def ln(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 15):
     """
         Computes the base-e logarithm of the given number.
 
         Args:
-            x (Union[int, float, Decimal, Infinity, Undefined]): The number.
+            x: The number.
             resolution (int, optional): The resolution for the approximation. Defaults to 15.
 
         Returns:
@@ -409,12 +409,12 @@ def ln(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15)
         """
     return log2(x, resolution) / log2E
 
-def log10(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15):
+def log10(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 15):
     """
         Computes the base-10 logarithm of the given number.
 
         Args:
-            x (Union[int, float, Decimal, Infinity, Undefined]): The number.
+            x: The number.
             resolution (int, optional): The resolution for the approximation. Defaults to 15.
 
         Returns:
@@ -426,14 +426,14 @@ def log10(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 
         """
     return log2(x, resolution) / log2_10
 
-def log(x: Union[int, float, Decimal, Infinity, Undefined],
+def log(x: Union[int, float, Decimal, Infinity, Undefined, Variable],
         base: Union[int, float, Decimal] = 2, resolution: int = 15):
     """
         Computes the logarithm of a number 'x' with respect to the specified base.
 
         Args:
-            x (Union[int, float, Decimal, Infinity, Undefined]): The number.
-            base (Union[int, float, Decimal]): The base of the logarithm. Defaults to 2.
+            x: The number.
+            base: The base of the logarithm. Defaults to 2.
             resolution (int, optional): The resolution for the approximation. Defaults to 15.
 
         Returns:
@@ -443,7 +443,7 @@ def log(x: Union[int, float, Decimal, Infinity, Undefined],
             ArgTypeError: If 'base' is not a numerical value.
             RangeError: If 'base' is less than or equal to 0 or equal to 1.
     """
-    if not (isinstance(base, Union[int, float, Decimal])):
+    if not (isinstance(base, Union[int, float, Decimal, Variable])):
         raise ArgTypeError("Must be a numerical value.")
     if base <= 0 or base == 1:
         raise RangeError()
@@ -451,22 +451,22 @@ def log(x: Union[int, float, Decimal, Infinity, Undefined],
     return log2(x, resolution) / log2(base, resolution)
 
 def __find(f: Callable,
-           low: Union[int, float, Decimal],
-           high: Union[int, float, Decimal],
-           search_step: Union[int, float, Decimal],
-           res: Union[int, float, Decimal] = 0.0001):
+           low: Union[int, float, Decimal, Variable],
+           high: Union[int, float, Decimal, Variable],
+           search_step: Union[int, float, Decimal, Variable],
+           res: Union[int, float, Decimal, Variable] = 0.0001):
     """
         Find a zero of a function within a specified range using recursive search.
 
         Args:
         - f (Callable): The function for which a zero are to be found.
-        - low (Union[int, float, Decimal]): The lower bound of the search range.
-        - high (Union[int, float, Decimal]): The upper bound of the search range.
-        - search_step (Union[int, float, Decimal]): The step size for searching.
-        - res (Union[int, float, Decimal], optional): The resolution for finding zeros. Defaults to Decimal(0.0001).
+        - low: The lower bound of the search range.
+        - high: The upper bound of the search range.
+        - search_step: The step size for searching.
+        - res: The resolution for finding zeros. Defaults to Decimal(0.0001).
 
         Returns:
-        - Union[int, float, Decimal]: The approximate zero found within the specified range, or None if not found.
+        - The approximate zero found within the specified range, or None if not found.
 
         Raises:
         - ArgTypeError: If the arguments are not numerical values.
@@ -474,10 +474,10 @@ def __find(f: Callable,
         Notes:
             This function performs a recursive search within the given range to find a zero of the provided function.
     """
-    if not ((isinstance(low, Union[int, float, Decimal]))
-            and (isinstance(high, Union[int, float, Decimal]))
-            and (isinstance(search_step, Union[int, float, Decimal]))
-            and (isinstance(res, Union[int, float, Decimal]))):
+    if not ((isinstance(low, Union[int, float, Decimal, Variable]))
+            and (isinstance(high, Union[int, float, Decimal, Variable]))
+            and (isinstance(search_step, Union[int, float, Decimal, Variable]))
+            and (isinstance(res, Union[int, float, Decimal, Variable]))):
         raise ArgTypeError("Must be a numerical value.")
     if not isinstance(f, Callable):
         raise ArgTypeError(f"f must be a callable.")
@@ -499,22 +499,22 @@ def __find(f: Callable,
                 return get
 
 def solve(f: Callable,
-          low: Union[int, float, Decimal] = -50,
-          high: Union[int, float, Decimal] = 50,
-          search_step: Union[int, float, Decimal] = 0.1,
-          res: Union[int, float, Decimal] = 0.0001) -> List[Union[int, float, Decimal]]:
+          low: Union[int, float, Decimal, Variable] = -50,
+          high: Union[int, float, Decimal, Variable] = 50,
+          search_step: Union[int, float, Decimal, Variable] = 0.1,
+          res: Union[int, float, Decimal, Variable] = 0.0001) -> List[Union[int, float, Decimal, Variable]]:
     """
         Find approximate zeros of a given function within a specified range.
 
         Args:
         - f (Callable): The function for which zeros are to be found.
-        - low (Union[int, float, Decimal], optional): The lower bound of the range. Defaults to -50.
-        - high (Union[int, float, Decimal], optional): The upper bound of the range. Defaults to 50.
-        - search_step (Union[int, float, Decimal], optional): The step size for searching. Defaults to 0.1.
-        - res (Union[int, float, Decimal], optional): The resolution for finding zeros. Defaults to Decimal(0.0001).
+        - low: The lower bound of the range. Defaults to -50.
+        - high: The upper bound of the range. Defaults to 50.
+        - search_step: The step size for searching. Defaults to 0.1.
+        - res: The resolution for finding zeros. Defaults to Decimal(0.0001).
 
         Returns:
-        - List[Union[int, float, Decimal]]: A list of approximate zeros found within the specified range.
+        - A list of approximate zeros found within the specified range.
 
         Raises:
         - ArgTypeError: If the arguments are not numerical values or if the function `f` is not callable.
@@ -571,14 +571,14 @@ def solve(f: Callable,
 
     return zeroes
 
-def derivative(f: Callable, x: Union[int, float, Decimal], h: Union[int, float, Decimal] = 0.0000000001):
+def derivative(f: Callable, x: Union[int, float, Decimal, Variable], h: Union[int, float, Decimal, Variable] = 0.0000000001):
     """
         Computes the derivative of a function 'f' at a point 'x' using the finite difference method.
 
         Args:
             f (Callable): The function for which the derivative is to be computed.
-            x (Union[int, float, Decimal]): The point at which the derivative is evaluated.
-            h (Union[int, float, Decimal], optional): The step size for the finite difference method.
+            x: The point at which the derivative is evaluated.
+            h: The step size for the finite difference method.
                 Defaults to 0.0000000001.
 
         Returns:
@@ -587,8 +587,8 @@ def derivative(f: Callable, x: Union[int, float, Decimal], h: Union[int, float, 
         Raises:
             ArgTypeError: If 'x' or 'h' is not a numerical value, or if 'f' is not callable.
     """
-    if not ((isinstance(x, Union[int, float, Decimal]))
-            and (isinstance(h, Union[int, float, Decimal]))):
+    if not ((isinstance(x, Union[int, float, Decimal, Variable]))
+            and (isinstance(h, Union[int, float, Decimal, Variable]))):
         raise ArgTypeError("Must be a numerical value.")
     if not isinstance(f, Callable):
         raise ArgTypeError("f must be a callable.")
@@ -596,17 +596,17 @@ def derivative(f: Callable, x: Union[int, float, Decimal], h: Union[int, float, 
     return (f(x + h) - f(x)) / h
 
 def integrate(f: Callable,
-              a: Union[int, float, Decimal],
-              b: Union[int, float, Decimal],
-              delta: Union[int, float, Decimal] = 0.01):
+              a: Union[int, float, Decimal, Variable],
+              b: Union[int, float, Decimal, Variable],
+              delta: Union[int, float, Decimal, Variable] = 0.01):
     """
         Numerically integrates a function 'f' over the interval [a, b] using the rectangle method.
 
         Args:
             f (Callable): The function to be integrated.
-            a (Union[int, float, Decimal]): The lower limit of integration.
-            b (Union[int, float, Decimal]): The upper limit of integration.
-            delta (Union[int, float, Decimal], optional): The width of each rectangle used in the integration.
+            a: The lower limit of integration.
+            b: The upper limit of integration.
+            delta: The width of each rectangle used in the integration.
                 Defaults to 0.01.
 
         Returns:
@@ -615,9 +615,9 @@ def integrate(f: Callable,
         Raises:
             ArgTypeError: If 'a', 'b', or 'delta' is not a numerical value, or if 'f' is not callable.
     """
-    if not ((isinstance(a, Union[int, float, Decimal]))
-            and (isinstance(b, Union[int, float, Decimal]))
-            and (isinstance(delta, Union[int, float, Decimal]))):
+    if not ((isinstance(a, Union[int, float, Decimal, Variable]))
+            and (isinstance(b, Union[int, float, Decimal, Variable]))
+            and (isinstance(delta, Union[int, float, Decimal, Variable]))):
         raise ArgTypeError("Must be a numerical value.")
 
     if not isinstance(f, Callable): raise ArgTypeError("f must be a callable.")
@@ -638,13 +638,13 @@ def integrate(f: Callable,
         a += delta
     return sum * delta
 
-def findsol(f: Callable, x: Union[int, float, Decimal] = 0, resolution: int = 15):
+def findsol(f: Callable, x: Union[int, float, Decimal, Variable] = 0, resolution: int = 15):
     """
         Find a numerical solution to the equation f(x) = 0 using Newton's method.
 
         Args:
         - f (Callable): The function for which the root is sought.
-        - x (Union[int, float, Decimal], optional): The initial guess for the root. Default is 0.
+        - x: The initial guess for the root. Default is 0.
         - resolution (int, optional): The number of iterations to refine the solution. Default is 15.
 
         Returns:
@@ -668,13 +668,13 @@ def findsol(f: Callable, x: Union[int, float, Decimal] = 0, resolution: int = 15
             x = Infinity(f(x) < 0)
     return x
 
-def sigmoid(x: Union[int, float, Decimal, Infinity, Undefined], a: Union[int, float, Decimal, Infinity, Undefined] = 1):
+def sigmoid(x: Union[int, float, Decimal, Infinity, Undefined, Variable], a: Union[int, float, Decimal, Infinity, Undefined, Variable] = 1):
     """
         Compute the sigmoid function for the given input value(s).
 
         Args:
-        - x (Union[int, float, Decimal, Infinity, Undefined]): The input value for which the sigmoid function is computed.
-        - a (Union[int, float, Decimal, Infinity, Undefined], optional): The scaling factor. Defaults to 1.
+        - x: The input value for which the sigmoid function is computed.
+        - a: The scaling factor. Defaults to 1.
 
         Returns:
         - float: The value of the sigmoid function evaluated at x.
@@ -682,31 +682,31 @@ def sigmoid(x: Union[int, float, Decimal, Infinity, Undefined], a: Union[int, fl
         Raises:
         - ArgTypeError: If the input arguments are not numerical values.
     """
-    if not((isinstance(a, Union[int, float, Decimal, Infinity, Undefined]))
-           and (isinstance(x, Union[int, float, Decimal, Infinity, Undefined]))):
+    if not((isinstance(a, Union[int, float, Decimal, Infinity, Undefined, Variable]))
+           and (isinstance(x, Union[int, float, Decimal, Infinity, Undefined, Variable]))):
         raise ArgTypeError("Must be a numerical value.")
     return 1 / (1 + e(-a*x))
 
-def ReLU(x: Union[int, float, Decimal, Infinity, Undefined],
-         leak: Union[int, float, Decimal, Infinity, Undefined] = 0,
-         cutoff: Union[int, float, Decimal, Infinity, Undefined] = 0):
+def ReLU(x: Union[int, float, Decimal, Infinity, Undefined, Variable],
+         leak: Union[int, float, Decimal, Infinity, Undefined, Variable] = 0,
+         cutoff: Union[int, float, Decimal, Infinity, Undefined, Variable] = 0):
     """
         Implements the Rectified Linear Unit (ReLU) activation function.
 
         Args:
-            x (Union[int, float, Decimal, Infinity, Undefined]): The input value to apply the ReLU function to.
-            leak (Union[int, float, Decimal, Infinity, Undefined], optional): The slope for negative inputs (default is 0).
-            cutoff (Union[int, float, Decimal, Infinity, Undefined], optional): The threshold value where ReLU starts to have an effect (default is 0).
+            x: The input value to apply the ReLU function to.
+            leak: The slope for negative inputs (default is 0).
+            cutoff: The threshold value where ReLU starts to have an effect (default is 0).
 
         Returns:
-            Union[int, float, Decimal, Infinity, Undefined]: The result of applying the ReLU function to the input value.
+            The result of applying the ReLU function to the input value.
 
         Raises:
             ArgTypeError: If any of the input arguments is not a numerical value.
     """
-    if not ((isinstance(x, Union[int, float, Decimal, Infinity, Undefined]))
-            and (isinstance(leak, Union[int, float, Decimal, Infinity, Undefined]))
-            and (isinstance(cutoff, Union[int, float, Decimal, Infinity, Undefined]))):
+    if not ((isinstance(x, Union[int, float, Decimal, Infinity, Undefined, Variable]))
+            and (isinstance(leak, Union[int, float, Decimal, Infinity, Undefined, Variable]))
+            and (isinstance(cutoff, Union[int, float, Decimal, Infinity, Undefined, Variable]))):
         raise ArgTypeError("Must be a numerical value.")
 
     if x >= cutoff:
@@ -716,45 +716,45 @@ def ReLU(x: Union[int, float, Decimal, Infinity, Undefined],
     else:
         return cutoff
 
-def deriv_relu(x: Union[int, float, Decimal, Infinity, Undefined],
-               leak: Union[int, float, Decimal, Infinity, Undefined] = 0,
-               cutoff: Union[int, float, Decimal, Infinity, Undefined] = 0):
+def deriv_relu(x: Union[int, float, Decimal, Infinity, Undefined, Variable],
+               leak: Union[int, float, Decimal, Infinity, Undefined, Variable] = 0,
+               cutoff: Union[int, float, Decimal, Infinity, Undefined, Variable] = 0):
     """
         Computes the derivative of the Rectified Linear Unit (ReLU) activation function.
 
         Args:
-            x (Union[int, float, Decimal, Infinity, Undefined]): The input value to compute the derivative for.
-            leak (Union[int, float, Decimal, Infinity, Undefined], optional): The slope for negative inputs (default is 0).
-            cutoff (Union[int, float, Decimal, Infinity, Undefined], optional): The threshold value where ReLU starts to have an effect (default is 0).
+            x: The input value to compute the derivative for.
+            leak: The slope for negative inputs (default is 0).
+            cutoff: The threshold value where ReLU starts to have an effect (default is 0).
 
         Returns:
-            Union[int, float, Decimal, Infinity, Undefined]: The derivative of the ReLU function with respect to the input value.
+            The derivative of the ReLU function with respect to the input value.
 
         Raises:
             ArgTypeError: If any of the input arguments is not a numerical value.
     """
-    if not ((isinstance(x, Union[int, float, Decimal, Infinity, Undefined]))
-            and (isinstance(leak, Union[int, float, Decimal, Infinity, Undefined]))
-            and (isinstance(cutoff, Union[int, float, Decimal, Infinity, Undefined]))):
+    if not ((isinstance(x, Union[int, float, Decimal, Infinity, Undefined, Variable]))
+            and (isinstance(leak, Union[int, float, Decimal, Infinity, Undefined, Variable]))
+            and (isinstance(cutoff, Union[int, float, Decimal, Infinity, Undefined, Variable]))):
         raise ArgTypeError("Must be a numerical value.")
     return 1 if x >= cutoff else 0 if x >= 0 else leak
 
 def Sum(f: Callable,
-        a: Union[int, float, Decimal, Infinity, Undefined],
-        b: Union[int, float, Decimal, Infinity, Undefined],
-        step: Union[int, float, Decimal, Infinity, Undefined] = 0.01,
+        a: Union[int, float, Decimal, Infinity, Undefined, Variable],
+        b: Union[int, float, Decimal, Infinity, Undefined, Variable],
+        step: Union[int, float, Decimal, Infinity, Undefined, Variable] = 0.01,
         control: bool = False,
-        limit: Union[int, float, Decimal, Infinity, Undefined] = 0.000001):
+        limit: Union[int, float, Decimal, Infinity, Undefined, Variable] = 0.000001):
     """
         Computes the sum of a function over a given interval.
 
         Args:
             f (Callable): The function to be summed.
-            a (Union[int, float, Decimal, Infinity, Undefined]): The lower bound of the interval.
-            b (Union[int, float, Decimal, Infinity, Undefined]): The upper bound of the interval.
-            step (Union[int, float, Decimal, Infinity, Undefined], optional): The step size for sampling points within the interval (default is 0.01).
+            a: The lower bound of the interval.
+            b: The upper bound of the interval.
+            step: The step size for sampling points within the interval (default is 0.01).
             control (bool, optional): A flag indicating whether to use control over derivative values to stop the summing process (default is False).
-            limit (Union[int, float, Decimal, Infinity, Undefined], optional): The limit value to control the derivative when 'control' is True (default is 0.000001).
+            limit: The limit value to control the derivative when 'control' is True (default is 0.000001).
 
         Returns:
             Union[int, float, Decimal, Infinity, Undefined]: The sum of the function over the interval [a, b).
@@ -765,10 +765,10 @@ def Sum(f: Callable,
     """
 
     # Yes, with infinities this can blow up. It is the users problem to put infinities in.
-    if not ((isinstance(a, Union[int, float, Decimal, Infinity, Undefined]))
-            and (isinstance(b, Union[int, float, Decimal, Infinity, Undefined]))
-            and (isinstance(step, Union[int, float, Decimal, Infinity, Undefined]))
-            and (isinstance(limit, Union[int, float, Decimal, Infinity, Undefined]))):
+    if not ((isinstance(a, Union[int, float, Decimal, Infinity, Undefined, Variable]))
+            and (isinstance(b, Union[int, float, Decimal, Infinity, Undefined, Variable]))
+            and (isinstance(step, Union[int, float, Decimal, Infinity, Undefined, Variable]))
+            and (isinstance(limit, Union[int, float, Decimal, Infinity, Undefined, Variable]))):
         raise ArgTypeError("Must be a numerical value.")
     if not b >= a:
         raise RangeError()
@@ -890,7 +890,7 @@ def multinomial(n: int = 0, *args):
         n -= 1
     return result
 
-def binomial(n: int, k: int, p: Union[int, float, Decimal]):
+def binomial(n: int, k: int, p: Union[int, float, Decimal, Variable]):
     """
         Computes the probability of obtaining 'k' successes in 'n' independent Bernoulli trials,
         each with a success probability of 'p'.
@@ -898,7 +898,7 @@ def binomial(n: int, k: int, p: Union[int, float, Decimal]):
         Args:
             n (int): The total number of trials.
             k (int): The number of successes.
-            p (Union[int, float, Decimal]): The probability of success in each trial. Must be in the range [0, 1].
+            p: The probability of success in each trial. Must be in the range [0, 1].
 
         Returns:
             float: The probability of obtaining 'k' successes in 'n' trials with success probability 'p'.
@@ -909,20 +909,20 @@ def binomial(n: int, k: int, p: Union[int, float, Decimal]):
     """
     if not (isinstance(n, int) and isinstance(k, int)):
         raise ArgTypeError("Must be an integer.")
-    if not (isinstance(p, Union[int, float, Decimal])):
+    if not (isinstance(p, Union[int, float, Decimal, Variable])):
         raise ArgTypeError("Must be a numerical value.")
     if p < 0 or p > 1:
         raise RangeError("Probability cannot be negative or bigger than 1")
     return combination(n, k) * p**k * (1-p)**k
 
-def geometrical(n: int, p: Union[int, float, Decimal]):
+def geometrical(n: int, p: Union[int, float, Decimal, Variable]):
     """
         Computes the probability of the nth trial being the first success in a sequence of independent
         Bernoulli trials, each with a success probability of 'p'.
 
         Args:
             n (int): The trial number for which the probability is calculated. Must be a non-negative integer.
-            p (Union[int, float, Decimal]): The probability of success in each trial. Must be in the range [0, 1].
+            p: The probability of success in each trial. Must be in the range [0, 1].
 
         Returns:
             Union[float, Undefined]: The probability of the nth trial being the first success, or Undefined if 'n' is 0.
@@ -933,7 +933,7 @@ def geometrical(n: int, p: Union[int, float, Decimal]):
     """
     if not isinstance(n, int):
         raise ArgTypeError("Must be an integer.")
-    if not (isinstance(p, Union[int, float, Decimal])):
+    if not (isinstance(p, Union[int, float, Decimal, Variable])):
         raise ArgTypeError("Must be a numerical value.")
     if p < 0 or p > 1:
         raise RangeError("Probability cannot be negative or bigger than 1")
@@ -943,14 +943,14 @@ def geometrical(n: int, p: Union[int, float, Decimal]):
         return Undefined()
     return p * (1-p)**(n-1)
 
-def poisson(k: int, l: Union[int, float, Decimal]):
+def poisson(k: int, l: Union[int, float, Decimal, Variable]):
     """
         Computes the probability of observing 'k' events in a fixed interval of time or space,
         given that the average rate of occurrence of the event is 'l' events per unit interval.
 
         Args:
             k (int): The number of events to be observed. Must be a non-negative numerical value.
-            l (Union[int, float, Decimal]): The average rate of occurrence of the event per unit interval.
+            l: The average rate of occurrence of the event per unit interval.
                 Must be a non-negative numerical value.
 
         Returns:
@@ -966,19 +966,19 @@ def poisson(k: int, l: Union[int, float, Decimal]):
             observing 'k' events in the interval is given by the formula: '(l^k * e^(-l)) / k!',
             where 'e' is the base of the natural logarithm and 'k!' is the factorial of 'k'.
     """
-    if not ((isinstance(k, Union[int, float, Decimal]))
-            and (isinstance(l, Union[int, float, Decimal]))):
+    if not ((isinstance(k, int))
+            and (isinstance(l, Union[int, float, Decimal, Variable]))):
         raise ArgTypeError("Must be a numerical value.")
     if l < 0 or k < 0:
         raise RangeError()
     return l**k * e(-l) / factorial(k)
 
-def normal(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15):
+def normal(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 15):
     """
         Computes the value of the standard normal probability density function (PDF) at a given point 'x'.
 
         Args:
-            x (Union[int, float, Decimal, Infinity, Undefined]): The point at which to evaluate the standard normal PDF.
+            x: The point at which to evaluate the standard normal PDF.
                 Must be a numerical value.
             resolution (int, optional): The resolution of calculations for intermediate steps. Defaults to 15.
                 Must be a positive integer.
@@ -989,25 +989,25 @@ def normal(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int =
         Raises:
             ArgTypeError: If 'x' is not a numerical value, or if 'resolution' is not an integer.
     """
-    if not (isinstance(x, Union[int, float, Decimal, Infinity, Undefined])):
+    if not (isinstance(x, Union[int, float, Decimal, Infinity, Undefined, Variable])):
         raise ArgTypeError("Must be a numerical value.")
     if not isinstance(resolution, int):
         raise ArgTypeError("Must be an integer.")
     return e(-(x**2) / 2, resolution=resolution) / sqrt2pi
 
-def gaussian(x: Union[int, float, Decimal, Infinity, Undefined],
-             mean: Union[int, float, Decimal, Infinity, Undefined],
-             sigma: Union[int, float, Decimal, Infinity, Undefined],
+def gaussian(x: Union[int, float, Decimal, Infinity, Undefined, Variable],
+             mean: Union[int, float, Decimal, Infinity, Undefined, Variable],
+             sigma: Union[int, float, Decimal, Infinity, Undefined, Variable],
              resolution: int = 15):
     """
         Computes the value of the Gaussian (normal) distribution function at a given point 'x'.
 
         Args:
-            x (Union[int, float, Decimal, Infinity, Undefined]): The point at which to evaluate the Gaussian distribution.
+            x: The point at which to evaluate the Gaussian distribution.
                 Must be a numerical value.
-            mean (Union[int, float, Decimal, Infinity, Undefined]): The mean of the Gaussian distribution.
+            mean: The mean of the Gaussian distribution.
                 Must be a numerical value.
-            sigma (Union[int, float, Decimal, Infinity, Undefined]): The standard deviation of the Gaussian distribution.
+            sigma: The standard deviation of the Gaussian distribution.
                 Must be a numerical value.
             resolution (int, optional): The resolution of calculations for intermediate steps. Defaults to 15.
                 Must be a positive integer.
@@ -1018,9 +1018,9 @@ def gaussian(x: Union[int, float, Decimal, Infinity, Undefined],
         Raises:
             ArgTypeError: If 'x', 'mean', or 'sigma' are not numerical values, or if 'resolution' is not an integer.
     """
-    if not ((isinstance(x, Union[int, float, Decimal, Infinity, Undefined]))
-            and (isinstance(mean, Union[int, float, Decimal, Infinity, Undefined]))
-            and (isinstance(sigma, Union[int, float, Decimal, Infinity, Undefined]))):
+    if not ((isinstance(x, Union[int, float, Decimal, Infinity, Undefined, Variable]))
+            and (isinstance(mean, Union[int, float, Decimal, Infinity, Undefined, Variable]))
+            and (isinstance(sigma, Union[int, float, Decimal, Infinity, Undefined, Variable]))):
         raise ArgTypeError("Must be a numerical value.")
     if not isinstance(resolution, int):
         raise ArgTypeError("Must be an integer.")
@@ -1028,15 +1028,15 @@ def gaussian(x: Union[int, float, Decimal, Infinity, Undefined],
     power = - (x - mean)**2 / (2 * sigma**2)
     return coef * e(power, resolution=resolution)
 
-def laplace(x: Union[int, float, Decimal, Infinity, Undefined],
-            sigma: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15):
+def laplace(x: Union[int, float, Decimal, Infinity, Undefined, Variable],
+            sigma: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 15):
     """
         Computes the value of the Laplace distribution function at a given point 'x'.
 
         Args:
-            x (Union[int, float, Decimal, Infinity, Undefined]): The point at which to evaluate the Laplace distribution.
+            x: The point at which to evaluate the Laplace distribution.
                 Must be a numerical value.
-            sigma (Union[int, float, Decimal, Infinity, Undefined]): The scale parameter (standard deviation) of the Laplace distribution.
+            sigma: The scale parameter (standard deviation) of the Laplace distribution.
                 Must be a numerical value.
             resolution (int, optional): The resolution of calculations for intermediate steps. Defaults to 15.
                 Must be a positive integer.
@@ -1047,8 +1047,8 @@ def laplace(x: Union[int, float, Decimal, Infinity, Undefined],
         Raises:
             ArgTypeError: If 'x' or 'sigma' are not numerical values, or if 'resolution' is not an integer.
     """
-    if not ((isinstance(x, Union[int, float, Decimal, Infinity, Undefined]))
-            and (isinstance(sigma, Union[int, float, Decimal, Infinity, Undefined]))):
+    if not ((isinstance(x, Union[int, float, Decimal, Infinity, Undefined, Variable]))
+            and (isinstance(sigma, Union[int, float, Decimal, Infinity, Undefined, Variable]))):
         raise ArgTypeError("Must be a numerical value.")
     if not isinstance(resolution, int):
         raise ArgTypeError("Must be an integer.")

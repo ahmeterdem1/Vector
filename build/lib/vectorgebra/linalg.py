@@ -20,7 +20,7 @@ class Vector:
                     ArgTypeError: If any argument is not numeric, boolean, Vector, Matrix or callable.
         """
         for k in args:
-            if not isinstance(k, Union[int, float, Decimal, Infinity, Undefined, Complex, Callable, Vector, Matrix]):
+            if not isinstance(k, Union[int, float, Decimal, Infinity, Undefined, Complex, Callable, Vector, Matrix, Variable]):
                 raise ArgTypeError("Arguments must be numeric or boolean.")
         self.dimension = len(args)
         self.values = [_ for _ in args]
@@ -80,7 +80,7 @@ class Vector:
         return len(self.values)
 
     def __add__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and not isinstance(self.values[0], Callable):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]) and not isinstance(self.values[0], Callable):
             return Vector(*[self.values[k] + arg for k in range(self.dimension)])
 
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and isinstance(self.values[0], Callable):
@@ -106,7 +106,7 @@ class Vector:
         return Vector(*[self.values[k] + arg.values[k] for k in range(self.dimension)])
 
     def __radd__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and not isinstance(self.values[0], Callable):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]) and not isinstance(self.values[0], Callable):
             return Vector(*[self.values[k] + arg for k in range(self.dimension)])
 
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and isinstance(self.values[0], Callable):
@@ -121,7 +121,7 @@ class Vector:
         raise ArgTypeError("Must be a numerical value or a callable.")
 
     def __sub__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and not isinstance(self.values[0], Callable):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]) and not isinstance(self.values[0], Callable):
             return Vector(*[self.values[k] - arg for k in range(0, self.dimension)])
 
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and isinstance(self.values[0], Callable):
@@ -147,7 +147,7 @@ class Vector:
         return Vector(*[self.values[k] - arg.values[k] for k in range(self.dimension)])
 
     def __rsub__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and not isinstance(self.values[0], Callable):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]) and not isinstance(self.values[0], Callable):
             return Vector(*[arg - self.values[k] for k in range(0, self.dimension)])
 
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and isinstance(self.values[0], Callable):
@@ -169,7 +169,7 @@ class Vector:
                 arg (Vector): The vector with which the dot product is computed.
 
             Returns:
-                Union[int, float, Decimal, Infinity, Undefined, Complex]: The dot product of the two vectors.
+                The dot product of the two vectors.
 
             Raises:
                 ArgTypeError: If the argument `arg` is not a vector.
@@ -186,7 +186,7 @@ class Vector:
         return sum
 
     def __mul__(self, arg):
-        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Callable]):
+        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Callable, Variable]):
             raise ArgTypeError("Must be a numerical value.")
 
         if isinstance(self.values[0], Callable) and not isinstance(arg, Callable):
@@ -198,7 +198,7 @@ class Vector:
         return Vector(*[self.values[k] * arg for k in range(self.dimension)])
 
     def __rmul__(self, arg):
-        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Callable]):
+        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Callable, Variable]):
             raise ArgTypeError("Must be a numerical value.")
 
         if isinstance(self.values[0], Callable) and not isinstance(arg, Callable):
@@ -210,7 +210,7 @@ class Vector:
         return Vector(*[self.values[k] * arg for k in range(self.dimension)])
 
     def __truediv__(self, arg):
-        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             raise ArgTypeError("Must be a numerical value.")
 
         if isinstance(self.values[0], Callable) and not isinstance(arg, Callable):
@@ -222,7 +222,7 @@ class Vector:
         return Vector(*[self.values[k] / arg for k in range(self.dimension)])
 
     def __floordiv__(self, arg):
-        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             raise ArgTypeError("Must be a numerical value.")
 
         if isinstance(self.values[0], Callable) and not isinstance(arg, Callable):
@@ -234,7 +234,7 @@ class Vector:
         return Vector(*[self.values[k] // arg for k in range(self.dimension)])
 
     def __iadd__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and not isinstance(self.values[0], Callable):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]) and not isinstance(self.values[0], Callable):
             return Vector(*[self.values[k] + arg for k in range(self.dimension)])
 
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and isinstance(self.values[0], Callable):
@@ -260,7 +260,7 @@ class Vector:
         return Vector(*[self.values[k] + arg.values[k] for k in range(self.dimension)])
 
     def __isub__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and not isinstance(self.values[0], Callable):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]) and not isinstance(self.values[0], Callable):
             return Vector(*[self.values[k] - arg for k in range(self.dimension)])
 
         if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]) and isinstance(self.values[0], Callable):
@@ -286,7 +286,7 @@ class Vector:
         return Vector(*[self.values[k] - arg.values[k] for k in range(self.dimension)])
 
     def __gt__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             sum = 0
             for k in self.values:
                 sum += k**2
@@ -301,7 +301,7 @@ class Vector:
         return sum > 0
 
     def __ge__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             sum = 0
             for k in self.values:
                 sum += k**2
@@ -316,7 +316,7 @@ class Vector:
         return sum >= 0
 
     def __lt__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             sum = 0
             for k in self.values:
                 sum += k**2
@@ -331,7 +331,7 @@ class Vector:
         return sum < 0
 
     def __le__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             sum = 0
             for k in self.values:
                 sum += k**2
@@ -346,7 +346,7 @@ class Vector:
         return sum <= 0
 
     def __eq__(self, arg):
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             for k in self.values:
                 if k != arg:
                     return False
@@ -417,13 +417,12 @@ class Vector:
             Appends the elements of the given argument to the end of the vector.
 
             Args:
-                arg (Union[int, float, Decimal, Infinity, Undefined, Complex, Vector, list, tuple]):
-                    The element or iterable containing elements to append to the vector.
+                arg: The element or iterable containing elements to append to the vector.
 
             Raises:
                 ArgTypeError: If the argument is not a numeric value, boolean, vector, list, or tuple.
         """
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Callable]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Callable, Variable]):
             self.values.append(arg)
             self.dimension += 1
             return
@@ -692,8 +691,8 @@ class Vector:
 
             Args:
                 dim (int): The dimensionality of the random vector.
-                mu (Union[int, float, Decimal]): The mean (average) value of the distribution.
-                sigma (Union[int, float, Decimal]): The standard deviation of the distribution.
+                mu: The mean (average) value of the distribution.
+                sigma: The standard deviation of the distribution.
                 decimal (bool, optional): If True, generated values will be of Decimal type. Defaults to False.
 
             Returns:
@@ -726,7 +725,7 @@ class Vector:
                 *args (Vector): One or more vectors representing the rows or columns of the square matrix.
 
             Returns:
-                Union[int, float, Decimal]: The determinant of the square matrix.
+                The determinant of the square matrix.
 
             Raises:
                 ArgTypeError: If any argument is not a vector or if the dimensions of the vectors are inconsistent.
@@ -930,7 +929,7 @@ class Vector:
             Args:
                 i (int): Index of the first component defining the plane of rotation.
                 j (int): Index of the second component defining the plane of rotation.
-                angle (Union[int, float]): The angle of rotation in degrees.
+                angle: The angle of rotation in degrees.
                 resolution (int, optional): The number of points in the rotation. Defaults to 15.
 
             Returns:
@@ -984,10 +983,9 @@ class Vector:
             Applies the Rectified Linear Unit (ReLU) activation function element-wise to the vector.
 
             Args:
-                leak (Union[int, float, Decimal, Infinity, Undefined], optional): The slope of the negative part
-                    of the activation function for values less than zero. Defaults to 0.
-                cutoff (Union[int, float, Decimal, Infinity, Undefined], optional): Values less than this cutoff
-                    will be set to zero. Defaults to 0.
+                leak: The slope of the negative part of the activation function for values less than
+                    zero. Defaults to 0.
+                cutoff: Values less than this cutoff will be set to zero. Defaults to 0.
 
             Returns:
                 Vector: A new vector obtained by applying the ReLU activation function to each element of the
@@ -1016,11 +1014,10 @@ class Vector:
             Applies the sigmoid activation function element-wise to the vector.
 
             Args:
-                a (Union[int, float, Decimal, Infinity, Undefined], optional): Scaling factor for the input.
-                    Defaults to 1.
-                cutoff (Union[int, float, Decimal, Infinity, Undefined], optional): Values greater than this cutoff
-                    will be saturated to 1, and values less than the negative of this cutoff will be saturated to 0.
-                    If `None`, no saturation is applied. Defaults to None.
+                a: Scaling factor for the input. Defaults to 1.
+                cutoff: Values greater than this cutoff will be saturated to 1, and values less than the
+                    negative of this cutoff will be saturated to 0. If `None`, no saturation is applied.
+                    Defaults to None.
 
             Returns:
                 Vector: A new vector obtained by applying the sigmoid activation function to each element of the
@@ -1083,6 +1080,15 @@ class Vector:
                 Vector: A new vector with elements converted to Decimal objects.
         """
         return Vector(*[Decimal(k) for k in self.values])
+
+    def toVariable(self):
+        """
+            Converts the elements of the vector to Variable objects.
+
+            Returns:
+                Vector: A new vector with elements converted to Variable objects.
+        """
+        return Vector(*[Variable(k) for k in self.values])
 
     def map(self, f):
         """
@@ -1330,7 +1336,7 @@ class Matrix:
 
     def __add__(self, arg):
         #v = []
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             #for k in self.values:
                 #v.append(Vector(*[l + arg for l in k]))
             return Matrix(*[Vector(*[l + arg for l in k]) for k in self.values])
@@ -1347,7 +1353,7 @@ class Matrix:
 
     def __radd__(self, arg):
         #v = []
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             #for k in self.values:
                 #v.append(Vector(*[l + arg for l in k]))
             return Matrix(*[Vector(*[l + arg for l in k]) for k in self.values])
@@ -1355,7 +1361,7 @@ class Matrix:
 
     def __iadd__(self, arg):
         #v = []
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             #for k in self.values:
                 #v.append(Vector(*[l + arg for l in k]))
             return Matrix(*[Vector(*[l + arg for l in k]) for k in self.values])
@@ -1372,7 +1378,7 @@ class Matrix:
 
     def __sub__(self, arg):
         #v = []
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             #for k in self.values:
                 #v.append(Vector(*[l - arg for l in k]))
             return Matrix(*[Vector(*[l - arg for l in k]) for k in self.values])
@@ -1389,7 +1395,7 @@ class Matrix:
 
     def __rsub__(self, arg):
         #v = []
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             #for k in self.values:
                 #v.append(Vector(*[arg - l for l in k]))
             return Matrix(*[Vector(*[arg - l for l in k]) for k in self.values])
@@ -1397,7 +1403,7 @@ class Matrix:
 
     def __isub__(self, arg):
         #v = []
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             #for k in self.values:
             #    v.append(Vector(*[l - arg for l in k]))
             return Matrix(*[Vector(*[l - arg for l in k]) for k in self.values])
@@ -1414,7 +1420,7 @@ class Matrix:
 
     def __mul__(self, arg):
         v = []
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             for k in self.values:
                 v.append(Vector(*[l * arg for l in k]))
             return Matrix(*v)
@@ -1444,7 +1450,7 @@ class Matrix:
 
     def __rmul__(self, arg):
         #v = []
-        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             #for k in self.values:
             #    v.append(Vector(*[l * arg for l in k]))
             return Matrix(*[Vector(*[l * arg for l in k]) for k in self.values])
@@ -1455,7 +1461,7 @@ class Matrix:
 
     def __truediv__(self, arg):
         #v = []
-        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             raise ArgTypeError("Must be a numerical value.")
         #for k in self.values:
         #    v.append(Vector(*[l / arg for l in k]))
@@ -1463,7 +1469,7 @@ class Matrix:
 
     def __floordiv__(self, arg):
         #v = []
-        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex]):
+        if not isinstance(arg, Union[int, float, Decimal, Infinity, Undefined, Complex, Variable]):
             raise ArgTypeError("Must be a numerical value.")
         #for k in self.values:
         #    v.append(Vector(*[l // arg for l in k]))
@@ -1684,12 +1690,7 @@ class Matrix:
             Returns:
                 Matrix: The transposed matrix.
         """
-        #v = []
-        #for k in range(len(self.values[0])):
-            #m = [self.values[l][k] for l in range(len(self.values))]
-            #for l in range(len(self.values)):
-            #    m.append(self.values[l][k])
-            #v.append(Vector(*[self.values[l][k] for l in range(len(self.values))]))
+
         return Matrix(*[Vector(*[self.values[l][k] for l in range(len(self.values))]) for k in range(len(self.values[0]))])
 
     def conjugate(self):
@@ -1814,7 +1815,7 @@ class Matrix:
             return 1 / self.values[0][0]
 
         if method == "analytic":
-            det = Matrix.determinant(self)
+            det = self.determinant()
             if not det:
                 return
             end = []
@@ -1971,7 +1972,7 @@ class Matrix:
             M = self - i
 
             for k in range(resolution):
-                i += (-1)**(k+1) * pow(M, k + 1, decimal)  # This is mandatory
+                i += (-1)**(k+1) * pow(M, k + 1, decimal)  # This is mandatory, because decimal
 
             return i
 
@@ -2965,6 +2966,15 @@ class Matrix:
         """
         return Matrix(*[Vector(*[Decimal(item) for item in row]) for row in self.values])
 
+    def toVariable(self):
+        """
+            Converts the matrix to a "Variable" matrix.
+
+            Returns:
+                Matrix: The "Variable" matrix.
+        """
+        return Matrix(*[Vector(*[Variable(item) for item in row]) for row in self.values])
+
     def map(self, f):
         """
             Applies a function element-wise to the matrix.
@@ -3081,7 +3091,7 @@ def maximum(dataset: Union[tuple, list, Vector, Matrix]):
         Finds the maximum value in the given dataset.
 
         Args:
-            dataset (Union[tuple, list, Vector, Matrix]): The dataset to search for the maximum value.
+            dataset: The dataset to search for the maximum value.
 
         Returns:
             Any: The maximum value found in the dataset.
@@ -3113,7 +3123,7 @@ def minimum(dataset: Union[tuple, list, Vector, Matrix]):
         Finds the minimum value in the given dataset.
 
         Args:
-            dataset (Union[tuple, list, Vector, Matrix]): The dataset to search for the minimum value.
+            dataset: The dataset to search for the minimum value.
 
         Returns:
             Any: The minimum value found in the dataset.
@@ -3221,10 +3231,10 @@ def cumsum(arg: Union[list, tuple, Vector, Matrix]):
         Computes the cumulative sum of numerical elements in the input iterable.
 
         Args:
-            arg (Union[list, tuple, Vector, Matrix]): The iterable containing numerical elements for which the cumulative sum is to be computed.
+            arg: The iterable containing numerical elements for which the cumulative sum is to be computed.
 
         Returns:
-            Union[int, float, Decimal]: The cumulative sum of numerical elements in the iterable.
+            The cumulative sum of numerical elements in the iterable.
 
         Raises:
             ArgTypeError: If the argument is not of a valid type or if elements of 'arg' are not numerical.
@@ -3268,7 +3278,7 @@ def mode(arg: Union[tuple, list, Vector, Matrix]):
         Finds the mode in the given dataset.
 
         Args:
-            arg (Union[tuple, list, Vector, Matrix]): The dataset to find the mode.
+            arg: The dataset to find the mode.
 
         Returns:
             Any: The mode value found in the dataset.
@@ -3316,7 +3326,7 @@ def mean(arg: Union[tuple, list, dict, Vector, Matrix]):
         Calculates the mean (average) of the given dataset.
 
         Args:
-            arg (Union[list, tuple, Vector, Matrix, dict]): The dataset for which to calculate the mean.
+            arg: The dataset for which to calculate the mean.
 
         Returns:
             float: The mean value of the dataset.
@@ -3349,7 +3359,7 @@ def median(data: Union[list, tuple, Vector]):
         Calculates the median of the given dataset.
 
         Args:
-            data (Union[list, tuple, Vector]): The dataset for which to calculate the median.
+            data: The dataset for which to calculate the median.
 
         Returns:
             float: The median value of the dataset.
@@ -3378,8 +3388,8 @@ def expectation(values: Union[list, tuple, Vector], probabilities: Union[list, t
         Calculates the expectation of a random variable.
 
         Args:
-            values (Union[list, tuple, Vector]): The values of the random variable.
-            probabilities (Union[list, tuple, Vector]): The corresponding probabilities for each value.
+            values: The values of the random variable.
+            probabilities: The corresponding probabilities for each value.
             moment (int, optional): The order of the moment. Defaults to 1.
 
         Returns:
@@ -3408,8 +3418,8 @@ def variance(values: Union[list, tuple, Vector], probabilities: Union[list, tupl
         Calculates the variance of a random variable.
 
         Args:
-            values (Union[list, tuple, Vector]): The values of the random variable.
-            probabilities (Union[list, tuple, Vector]): The corresponding probabilities for each value.
+            values: The values of the random variable.
+            probabilities: The corresponding probabilities for each value.
 
         Returns:
             float: The variance of the random variable.
@@ -3434,8 +3444,8 @@ def sd(values: Union[list, tuple, Vector], probabilities: Union[list, tuple, Vec
         Calculates the standard deviation of a random variable.
 
         Args:
-            values (Union[list, tuple, Vector]): The values of the random variable.
-            probabilities (Union[list, tuple, Vector]): The corresponding probabilities for each value.
+            values: The values of the random variable.
+            probabilities: The corresponding probabilities for each value.
 
         Returns:
             float: The standard deviation of the random variable.
@@ -3459,12 +3469,12 @@ def linear_fit(x: Union[list, tuple, Vector],
                rate: Union[int, float, Decimal] = 0.01,
                iterations: int = 15) -> tuple:
     """
-        Performs linear regression to fit a line to the given data points.
+        Performs linear regression to fit a line to the given data points. Uses Mean Squared Error.
 
         Args:
-            x (Union[list, tuple, Vector]): The independent variable data points.
-            y (Union[list, tuple, Vector]): The dependent variable data points corresponding to x.
-            rate (Union[int, float, Decimal], optional): The learning rate for gradient descent. Defaults to 0.01.
+            x: The independent variable data points.
+            y: The dependent variable data points corresponding to x.
+            rate: The learning rate for gradient descent. Defaults to 0.01.
             iterations (int, optional): The number of iterations for gradient descent. Defaults to 15.
 
         Returns:
@@ -3512,11 +3522,12 @@ def general_fit(x: Union[list, tuple, Vector],
                 degree: int = 1) -> Vector:
     """
         Performs polynomial regression to fit a polynomial of specified degree to the given data points.
+        Uses Mean Squared Error.
 
         Args:
-            x (Union[list, tuple, Vector]): The independent variable data points.
-            y (Union[list, tuple, Vector]): The dependent variable data points corresponding to x.
-            rate (Union[int, float, Decimal], optional): The learning rate for gradient descent. Defaults to 0.0000002.
+            x: The independent variable data points.
+            y: The dependent variable data points corresponding to x.
+            rate: The learning rate for gradient descent. Defaults to 0.0000002.
             iterations (int, optional): The number of iterations for gradient descent. Defaults to 15.
             degree (int, optional): The degree of the polynomial model. Defaults to 1.
 
@@ -3571,11 +3582,11 @@ def kmeans(dataset: Union[list, tuple, Vector],
         Performs k-means clustering on the given dataset.
 
         Args:
-            dataset (Union[list, tuple, Vector]): The dataset to be clustered.
+            dataset: The dataset to be clustered.
             k (int, optional): The number of clusters. Defaults to 2.
             iterations (int, optional): The number of iterations for the k-means algorithm. Defaults to 15.
-            a (Union[int, float, Decimal], optional): The lower bound for generating initial cluster centers. Defaults to 0.
-            b (Union[int, float, Decimal], optional): The upper bound for generating initial cluster centers. Defaults to 10.
+            a: The lower bound for generating initial cluster centers. Defaults to 0.
+            b: The upper bound for generating initial cluster centers. Defaults to 10.
 
         Returns:
             tuple: A tuple containing the cluster centers and the data assigned to each cluster.
@@ -3655,7 +3666,7 @@ def unique(data: Union[list, tuple, Vector, Matrix]):
         Counts the occurrences of unique elements in the given data.
 
         Args:
-            data (Union[list, tuple, Vector, Matrix]): The data to find unique elements and their counts.
+            data: The data to find unique elements and their counts.
 
         Returns:
             dict: A dictionary containing unique elements as keys and their counts as values.
@@ -3692,7 +3703,7 @@ def isAllUnique(data: Union[list, tuple, Vector, Matrix]):
         Checks if all elements in the given data are unique.
 
         Args:
-            data (Union[list, tuple, Vector, Matrix]): The data to check for uniqueness.
+            data: The data to check for uniqueness.
 
         Returns:
             bool: True if all elements are unique, False otherwise.
@@ -3739,7 +3750,7 @@ def permutate(sample: Union[list, tuple, Vector, Matrix]):
         Generates all possible permutations of the elements in the given sample.
 
         Args:
-            sample (Union[list, tuple, Vector, Matrix]): The sample elements to permute.
+            sample: The sample elements to permute.
 
         Returns:
             list: A list containing all possible permutations of the sample elements.
