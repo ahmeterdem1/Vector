@@ -1,4 +1,5 @@
 from .infinity import *
+from secrets import randbits
 
 """
 
@@ -95,6 +96,9 @@ class Variable:
         self.operation = None  # Operation to apply to self.backward
         self.id = id(self)  # To prevent repetitive function calls during backpropagation
 
+        self.pass_id = 0
+        self.grad = 0
+
     def __str__(self):
         return self.value.__str__()
 
@@ -106,6 +110,20 @@ class Variable:
 
     def __setitem__(self, key, value):
         return self.value.__setitem__(key, value)
+
+    def disconnect(self):
+        """
+            Disconnects the node from its predecessors. After this
+            operation, self will become a leaf on the graph, with
+            no preceding nodes. Always recalculate the graph after
+            calling this method on its any member, if you are going
+            to calculate gradient.
+
+            This function does not fully disconnect the node from the
+            graph.
+        """
+        self.backward = None
+        self.operation = None
 
     def search(self, ID):
         """
@@ -125,22 +143,26 @@ class Variable:
 
         """
         if self.id == ID:
-            if self.backward is not None:
-                result1 = self.backward[0].search(ID)
-                result2 = self.backward[1].search(ID)
-                if result1 is not None:
-                    return result1
-                if result2 is not None:
-                    return result2
             return self
         else:
-            if self.backward is not None:
-                result1 = self.backward[0].search(ID)
-                result2 = self.backward[1].search(ID)
-                if result1 is not None:
-                    return result1
-                if result2 is not None:
-                    return result2
+            frontier = [self]
+            next_froniter: list
+            back: Union[tuple, None]
+
+            while frontier:
+                next_frontier = []
+                for node in frontier:
+                    back = node.backward
+                    if back is None:
+                        continue
+
+                    if back[0].id == ID:
+                        return back[0]
+                    if back[1].id == ID:
+                        return back[1]
+                    next_frontier.append(back[0])
+                    next_frontier.append(back[1])
+                frontier = next_frontier
 
     def propagate(self, ID):
         """
@@ -279,6 +301,28 @@ class Variable:
         else:
             raise ArithmeticError()
 
+    def __calculate(self):
+        """
+            Redo the calculation contained in the self-node.
+
+            Returns:
+                Returns the result of the contained calculation. If there
+                is no calculation wrapped, returns the contained value.
+        """
+        if self.operation == "ADD":
+            self.value = self.backward[0].value + self.backward[1].value
+            return self.value
+        if self.operation == "MUL":
+            self.value = self.backward[0].value - self.backward[1].value
+            return self.value
+        if self.operation == "DIV":
+            self.value = self.backward[0].value / self.backward[1].value
+            return self.value
+        if self.operation == "POW":
+            self.value = self.backward[0].value ** self.backward[1].value
+            return self.value
+        return self.value
+
     def calculate(self):
         """
             (Re)calculate the computational graph, backpropagating
@@ -291,20 +335,35 @@ class Variable:
                 if Variable objects are manipulated manually.
 
         """
-        if self.backward is None:
-            val = self.value
-        elif self.operation == "ADD":
-            val = self.backward[0].calculate() + self.backward[1].calculate()
-        elif self.operation == "MUL":
-            val = self.backward[0].calculate() * self.backward[1].calculate()
-        elif self.operation == "POW":
-            val = self.backward[0].calculate() ** self.backward[1].calculate()
-        elif self.operation == "DIV":
-            val = self.backward[0].calculate() / self.backward[1].calculate()
-        else:
-            raise ArithmeticError()
-        self.value = val
-        return val
+        frontier = [self]
+        next_frontier: list
+        back: Union[tuple, None]
+        leaves = []
+        next_leaves: list
+
+        while frontier:
+            next_frontier = []
+            for node in frontier:
+                back = node.backward
+                if back is None:
+                    leaves.append(node)
+                    continue
+
+                next_frontier.append(back[0])
+                next_frontier.append(back[1])
+            frontier = next_frontier
+
+        while leaves:
+            next_leaves = []
+            for leaf in leaves:
+                leaf.__calculate()
+                # If forward of leaf is self, it is not included into the next leaves
+                if leaf.forward is not None or (leaf.forward.id != self.id):
+                    next_leaves.append(leaf.forward)
+
+            leaves = next_leaves
+
+        return self.__calculate()  # Both updates self.value and returns it
 
     def __add__(self, arg):
         if not isinstance(arg, Variable):
@@ -513,7 +572,7 @@ def grad(node: Variable, args: Union[List[Variable], None] = None):
             when given multiple arguments.
 
         Raises:
-            ArgTypeError: When args argument is left blank.
+            ArgTypeError: When args argument is left as None.
     """
     if args is None:
         raise ArgTypeError("Cannot take derivative respect to None.")
@@ -525,6 +584,7 @@ def grad(node: Variable, args: Union[List[Variable], None] = None):
 
     id_node_dict = {arg.id: 0 for arg in args}
     ids = id_node_dict.keys()
+
 
     # Build the pseudo-computational graph for the values of the derivatives
     while node_frontier:
@@ -547,6 +607,74 @@ def grad(node: Variable, args: Union[List[Variable], None] = None):
 
         node_frontier = replace_node_frontier
 
+
+
     return list(id_node_dict.values())
+
+def autograd(node: Variable, args: Union[List[Variable], None] = None):
+
+    """
+        This function operates mostly the same as "grad()". See the
+        documentation on "grad()" for more information.
+
+        However, the internal algorithm of this function is more than 2 times
+        faster than "grad()". The disadvantage being, this function
+        cannot be parallelized with threads or processes because of
+        how its algorithm works. Each thread would require its own
+        separate fully functional computational graph.
+
+        This function also accepts "None" as an argument to take the derivative
+        against. When left "None", the full gradient values for all of the
+        nodes on the computational graph are calculated and saved in their
+        ".grad" property. Then user can choose to retrieve this information
+        from the nodes manually, or in parallel, or in some other way. More
+        flexibility is provided in the implementation of this function by
+        this way.
+
+        At each backwards pass, a unique "pass id" is generated. Pass id, is
+        a randomly generated 64-bit integer. Check the "pass_id" property of
+        the node that you gave to this function to retrieve it. If pass id's
+        don't match, gradients are incorrect/old for a given node, and should
+        be discarded or recalculated. This can only happen when a node is fully
+        disconnected from the rest of the graph.
+
+
+    """
+
+    if args is None:
+        args = []
+
+    node_frontier = [node]
+    node.grad = 1
+    node.pass_id = randbits(64)
+    PASS = node.pass_id
+    replace_node_frontier: list
+
+    while node_frontier:
+        replace_node_frontier = []
+        for temp in node_frontier:
+
+            values, back = temp.derive()
+            if isinstance(back[0], int):
+                continue
+
+            if back[0].pass_id != PASS:
+                back[0].pass_id = PASS
+                back[0].grad = values[0] * temp.grad
+            else:
+                back[0].grad += values[0] * temp.grad
+
+            if back[1].pass_id != PASS:
+                back[1].pass_id = PASS
+                back[1].grad = values[1] * temp.grad
+            else:
+                back[1].grad += values[1] * temp.grad
+
+            replace_node_frontier.append(back[0])
+            replace_node_frontier.append(back[1])
+
+        node_frontier = replace_node_frontier
+
+    return [arg.grad if arg.pass_id == PASS else 0 for arg in args]
 
 

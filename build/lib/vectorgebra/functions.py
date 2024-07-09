@@ -21,6 +21,50 @@ sqrt2pi = 2.50662827463
 
 __results = {}
 
+def sqrt(arg, resolution: int = 10):
+    """
+        Computes the square root of a numerical argument with a specified resolution.
+
+        Args:
+            arg: The numerical value or type for which the square root is to be computed.
+            resolution (int, optional): The number of iterations for the approximation. Defaults to 10.
+
+        Returns:
+            int, float, Decimal, Complex, Infinity, Undefined: The square root of the argument.
+
+        Raises:
+            ArgTypeError: If the argument is not of a valid type.
+            RangeError: If the resolution is not a positive integer.
+    """
+    if isinstance(arg, Union[int, float, Decimal, Variable]):
+        if resolution < 1: raise RangeError("Resolution must be a positive integer")
+        c = True if arg >= 0 else False
+        arg = abs(arg)
+        digits = 0
+        temp = arg
+        first_digit = 0
+        while temp != 0:
+            first_digit = temp
+            temp //= 10
+            digits += 1
+
+        estimate = (first_digit // 2 + 1) * pow(10, digits // 2)
+
+        for k in range(resolution):
+            estimate = (estimate + arg / estimate) / 2
+
+        # Yes we can return the negatives too.
+        if c: return estimate
+        return Complex(0, estimate)
+    if isinstance(arg, Complex):
+        return arg.sqrt()
+    if isinstance(arg, Infinity):
+        if arg.sign: return Infinity()
+        return sqrt(Complex(0, 1)) * Infinity()
+    if isinstance(arg, Undefined):
+        return Undefined()
+    raise ArgTypeError()
+
 def Range(low: Union[int, float, Decimal, Infinity, Undefined],
           high: Union[int, float, Decimal, Infinity, Undefined],
           step: Union[int, float, Decimal, Infinity, Undefined] = 1):
@@ -380,15 +424,18 @@ def log2(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resolutio
         x = 1 / x
 
     while x > 2:
-        x /= 2
+        x = x / 2
         count += 1
+
+    # Removed self assigning operators from this function, so that we can use logarithm
+    # on Variable objects.
 
     # x can be a decimal
     for i in range(1, resolution + 1):
-        x *= x
+        x = x * x
         if x >= 2:
             count += 1 / (2**i)
-            x /= 2
+            x = x / 2
 
     return factor * count
 
@@ -427,7 +474,7 @@ def log10(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resoluti
     return log2(x, resolution) / log2_10
 
 def log(x: Union[int, float, Decimal, Infinity, Undefined, Variable],
-        base: Union[int, float, Decimal] = 2, resolution: int = 15):
+        base: Union[int, float, Decimal, Variable] = 2, resolution: int = 15):
     """
         Computes the logarithm of a number 'x' with respect to the specified base.
 

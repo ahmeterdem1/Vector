@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="vectorgebra",
-    version="3.3.0",
+    version="3.4.0",
     author="Ahmet Erdem",
     description="A numerical methods tool for python, in python.",
     long_description=long_description,

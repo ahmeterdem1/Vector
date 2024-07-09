@@ -7,24 +7,24 @@ if __name__ == "__main__":
     print(m.echelon())
     print(m.cumsum())"""
 
-    """
+
     # Compare tensorflow and our implementation on autograd!
     
-    import tensorflow as tf
+    """import tensorflow as tf
     from time import time
 
 
-    x = Vector(*[Variable(k) for k in range(10000)])
-    y = Vector.randVfloat(10000, 0, 2)
+    x = Vector(*[Variable(k) for k in range(1000)])
+    y = Vector.randVfloat(1000, 0, 2)
     z = x.dot(y)
     begin = time()
-    gradient = grad(z, x.values)
+    gradient = autograd(z, x.values)
     end = time()
     print(gradient[:10])
     print("Time in seconds: ", end - begin)
 
 
-    x = tf.Variable([k for k in range(10000)], dtype=tf.float32)
+    x = tf.Variable([k for k in range(1000)], dtype=tf.float32)
     y = tf.Variable(y.values, dtype=tf.float32)
     with tf.GradientTape() as tape:
         z = tf.reduce_sum(tf.multiply(x, y))

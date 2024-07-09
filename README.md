@@ -28,38 +28,13 @@ more and more bigger projects as scale. And this was a good test to it.
 Creating and training an ML model requires both floating point precision
 and good handling of high dimensional tensors.
 
-### Update notes on 3.3.0
+### Update notes on 3.4.0
 
-This very update, may be the biggest and most important update
-of Vectorgebra, ever. This update introduces *autograd* functionality
-for Vectorgebra, and future MLgebra. 
+A new, single thread oriented Autograd implementation is added. "autograd()"
+is more than 2 times faster than "grad()". 
 
-The new Variable class, is a basic numerical variable type that also
-builds a computational graph when put through mathematical operations.
-This graph, then can be utilized to calculate the gradient of the whole
-operation using the new "grad()" function. 
+Several helper methods are introduced to Variable class.
 
-"grad()" function, is a highly performant autograd implementation purely
-in Python, as the motto of this whole library. When measured with dot
-product operation, Its speed is comparable (equal or at max ~10 times slower)
-to Tensorflow up to graphs of deepness of 10000. At 1 million parameters, 
-it is measured to be only ~300 times slower than Tensorflow, which is very 
-surprising for pure Python. 
-
-More performance updates will come for autograd. This is probably not the
-maximum speed that we can squeeze out from CPython. 
-
-MLgebra will probably completely switch to this function for its backpropagation
-calculations in the very near future.
-
-A new simple class, BinaryNode, is added to the library as well. This class
-is used to build separate and more performant computational graphs for
-gradient calculation. It is more lightweight compared to Variable, and is
-designed for only internal usage. This may be removed in later versions,
-do not rely on it.
-
-".toVariable()" methods are added to both Vector and Matrix class to 
-simplify the usage of Variable objects in linear algebra related tasks.
 
 ## Vectorgebra.Variable
 
@@ -71,7 +46,43 @@ Every mathematical operation (except self assignments), logical operation and
 comparison operation are numerically passed to the wrapped "variable". If necessary,
 the operation is recorded on the computational graph.
 
-### Vectorgebra.grad(node, args)
+### _Vectorgebra.Variable_.search(ID)
+
+Search the node with the object id, ID on the computational graph, where "self" is 
+treated as the root. Returns None if not found.
+
+### _Vectorgebra.Variable_.disconnect()
+
+Disconnects the node-self from the preceding parts of the graph. Sets backwards to None.
+Forward connection of the node remains. This is not a complete disconnection. 
+
+Always rerun the calculation of the graph, if you are going to calculate gradient after
+calling this function.
+
+### _Vectorgebra.Variable_.set(value)
+
+Reset the value contained in the Variable object, if and only if the object is a leaf
+on the computational graph, aka backwards is None.
+
+### _Vectorgebra.Variable_.calculate()
+
+Recalculate the value for the self-node, by doing a complete recalculation of the partial
+(or complete, given the node) computational graph from the ground up. Calculations are done
+internally for each node. No connection reassignments are done in the graph. Only the "value"
+property is modified, if the calculation changes.
+
+### _Vectorgebra.Variable_.derive()
+
+A helper function used to backpropagate the gradient calculation. Always returns a tuple of 2
+tuples, each are also length 2.
+
+First tuple is the partial derivative results of the given node, respect to the first backwards
+node and second backwards node in order. Second tuple is just the tuple of backwards nodes of the
+given node, in order.
+
+If backwards is None, returns ((1, 1), (0, 0)).
+
+## Vectorgebra.grad(node, args)
 
 This function, is an implementation of autograd functionality on Variable class. The first
 argument, "node", is assumed to be the top-most node of the graph/tree subject to
@@ -79,6 +90,12 @@ the gradient calculation. The second argument must be a list of Variable objects
 The derivative respect to each Variable object given in this list is calculated,
 and a collective gradient vector/list is returned. Returned list holds floats,
 not Variables.
+
+This function builds a separate semi-computational graph, only including the grad values.
+It basically applies a complete mirroring of the original graph. Without any extra tweak,
+this function can be called from separate threads in complete safety. The mirroring keeps
+each threads calculations independent of each other. However, this will consume more memory
+as the thread count increases.
 
 An example usage is given below:
 
@@ -95,6 +112,36 @@ print(grad(z, x.values))
 
 ```
 
+## Vectorgebra.autograd(node, args)
+
+The mechanism of this function is almost the same as Vectorgebra.grad() above. The usage is
+the same. Above example code is also valid for this function. And as an extra, "args" can be
+None for this function.
+
+This function uses the already existing computational graph to calculate the gradients and is
+more than 2 times faster than "grad()". But it can only be run single threadedly. No form of
+parallelization is safe with this function.
+
+The mechanism utilizes 2 new properties of the Variable class. "grad" property of a Variable
+object is meant to store the last calculated gradient value for the given Variable, in the
+whole runtime. "pass_id" property is a randomly generated 64-bit integer, that is meant to
+differentiate between "autograd()" calls. Each call to this function, renews firstly the
+pass_id of the "node" argument, and all the nodes connected to node from below, as backwards.
+
+"grad" property of all Variable objects are updated by this function. At each pass, a "grad"
+is calculated for each given Variable in the graph, and is saved into the property. When 
+returning the gradient, this function just retrieves this property from all the objects given
+in "args" list.
+
+If "args" list is empty, then an empty list is returned. But all of the "grad" values in the
+given computational graph, "node" as the root, is updated. This updated information can later
+be retrieved by the user manually in any way possible. The "pass_id" of the given gradient
+calculation can be retrieved from the "pass_id" property of "node" argument.
+
+Parallelization must be avoided with this function, because it will generate a read-write
+conflict between threads. Multiple threads may try to write to "grad" property of the same
+object at the same time, or in the wrong order, if managed incorrectly. An improved implementation
+with a mutex to be thread safe may be developed in the future though.
 
 ## Vectorgebra.Vector
 
