@@ -1,7 +1,7 @@
 import sys
 from os.path import abspath
 
-sys.path.insert(0, abspath('../../vectorgebra'))
+sys.path.insert(0, abspath('../../'))
 project = "vectorgebra"
 author = "Ahmet Erdem"
 release = "4.0.0b1"
@@ -16,9 +16,3 @@ autodoc_member_order = 'bysource'
 
 source_suffix = ".rst"
 master_doc = 'index'
-
-html_theme_options = {
-    'collapse_navigation': True,
-    'display_version': True,
-    'logo_only': False,
-}

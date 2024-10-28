@@ -1,11 +1,10 @@
 Vectorgebra Docs
 ==============================================
 
+Contents:
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Modules
 
-.. automodule:: vectorgebra
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   modules
