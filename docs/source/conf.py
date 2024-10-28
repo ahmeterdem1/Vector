@@ -9,6 +9,8 @@ extensions = [
     'sphinx.ext.napoleon',
 ]
 
+autodoc_member_order = 'bysource'
+
 source_suffix = ".md"
 master_doc = 'index'
 
