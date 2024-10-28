@@ -1,4 +1,7 @@
+import sys
+from os.path import abspath
 
+sys.path.insert(0, abspath('../../vectorgebra'))
 project = "vectorgebra"
 author = "Ahmet Erdem"
 release = "4.0.0b1"
