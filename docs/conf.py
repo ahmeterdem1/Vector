@@ -11,7 +11,6 @@ extensions = [
 
 source_suffix = ".md"
 master_doc = 'index'
-html_theme = 'sphinx_rtd_theme'
 
 html_theme_options = {
     'collapse_navigation': True,
