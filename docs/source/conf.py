@@ -11,7 +11,7 @@ extensions = [
 
 autodoc_member_order = 'bysource'
 
-source_suffix = ".md"
+source_suffix = ".rst"
 master_doc = 'index'
 
 html_theme_options = {
