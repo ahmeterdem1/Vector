@@ -181,7 +181,7 @@ class Variable:
                     next_frontier.append(back[1])
                 frontier = next_frontier
 
-    def propagate(self, ID):
+    def __propagate(self, ID):
         """
             Forward propagate the operations to calculate
             the gradient. If the variable to take the derivative
@@ -250,7 +250,7 @@ class Variable:
 
         return self.forward.propagate(self.id)
 
-    def backpropagate(self, ID):
+    def __backpropagate(self, ID):
         """
             Backpropagate the computational graph to compute the
             gradient.
@@ -288,6 +288,24 @@ class Variable:
             return self.backward[0].backpropagate(ID) / self.backward[1].value - self.backward[1].backpropagate(ID) * self.backward[0].value / (self.backward[1].value ** 2)
 
     def derive(self):
+
+        """
+            Calculates the derivative of the current node.
+
+            Returns:
+                A 2-tuple of 2-tuples. Based on the assumption that
+                each node is a binary node, therefore has 2 children.
+
+                - First element of the first tuple, is the derivative
+                of the current node, respect to its first child.
+
+                - Second element of the first tuple, is the derivative
+                of the current node, respect to its second child.
+
+                - The second tuple, in order, contains the children of
+                the current node.
+
+        """
 
         if self.operation == ADD:
             return (1, 1), self.backward

@@ -1,4 +1,5 @@
-from .tensor import *
+from .array import *
+from typing import Union
 
 class Graph:
     """

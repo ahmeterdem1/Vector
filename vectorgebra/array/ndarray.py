@@ -11,7 +11,7 @@ class Vector:
 
         Attributes:
             values (list): List containing the elements of the vector.
-            shape[0] (int): shape[0]ality of the vector.
+            shape (tuple): Dimensionality of the vector.
     """
     def __init__(self, *args):
         """
@@ -19,9 +19,12 @@ class Vector:
 
                 Args:
                     *args: Variable number of arguments representing the elements of the vector.
+                        It can be variable number of elements, or just a list, containing the
+                        vector elements. Proper processing will be inferred given the arguments.
 
                 Raises:
-                    ArgTypeError: If any argument is not numeric, boolean, Vector, Matrix or callable.
+                    ArgTypeError: If any argument is not numeric, boolean, Vector, Matrix, list, tuple
+                    or callable.
         """
         for k in args:
             if not isinstance(k, Union[int, float, Decimal, Infinity, Undefined,
@@ -186,7 +189,7 @@ class Vector:
 
             Raises:
                 ArgTypeError: If the argument `arg` is not a vector.
-                DimensionError: If the shape[0]s of the two vectors are not the same.
+                DimensionError: If the dimensions of the two vectors are not the same.
         """
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a vector.")
@@ -454,7 +457,7 @@ class Vector:
             Returns a copy of the vector.
 
             Returns:
-                Vector: A copy of the vector with the same elements and shape[0]ality.
+                Vector: A copy of the vector with the same elements and dimensionality.
         """
         return Vector(*self.values.copy())
 
@@ -510,7 +513,7 @@ class Vector:
 
             Raises:
                 ArgTypeError: If `arg` is not a vector.
-                DimensionError: If the shape[0]s of `self` and `arg` are not equal.
+                DimensionError: If the dimensions of `self` and `arg` are not equal.
         """
         if not isinstance(arg, Vector):
             raise ArgTypeError("Must be a vector.")
@@ -563,7 +566,7 @@ class Vector:
 
             Raises:
                 ArgTypeError: If any argument is not a vector.
-                AmountError: If the number of vectors provided does not match their shape[0]s.
+                AmountError: If the number of vectors provided does not match their dimensions.
         """
         v_list = []
         for k in args:
@@ -597,7 +600,7 @@ class Vector:
 
             Raises:
                 ArgTypeError: If any argument is not a vector.
-                AmountError: If the number of vectors provided does not match their shape[0]s.
+                AmountError: If the number of vectors provided does not match their dimensions.
         """
         v_list = Vector.spanify(*args)
         N = len(v_list)
@@ -610,23 +613,23 @@ class Vector:
     @staticmethod
     def randVint(dim: int, a: int, b: int, decimal: bool = False):
         """
-            Generates a random integer vector with specified shape[0]s and range.
+            Generates a random integer vector with specified dimensions and range.
 
-            The `randVint` method creates a random integer vector with the specified shape[0]s and
+            The `randVint` method creates a random integer vector with the specified dimensions and
             values within the given range [a, b].
 
             Args:
-                dim (int): The shape[0]ality of the random vector.
+                dim (int): The dimensionality of the random vector.
                 a (int): The lower bound of the range for random integer generation.
                 b (int): The upper bound of the range for random integer generation.
                 decimal (bool, optional): If True, generated values will be of Decimal type. Defaults to False.
 
             Returns:
-                Vector: A random integer vector with the specified shape[0]s and values within the range [a, b].
+                Vector: A random integer vector with the specified dimensions and values within the range [a, b].
 
             Raises:
                 ArgTypeError: If any input argument is not an integer.
-                RangeError: If the shape[0] is not a positive integer.
+                RangeError: If the dimension is not a positive integer.
         """
         if not (isinstance(dim, int) and isinstance(a, int) and isinstance(b, int)):
             raise ArgTypeError("Must be an integer.")
@@ -639,23 +642,23 @@ class Vector:
     @staticmethod
     def randVfloat(dim, a: float, b: float, decimal: bool = False):
         """
-            Generates a random float vector with specified shape[0]s and range.
+            Generates a random float vector with specified dimensions and range.
 
-            The `randVfloat` method creates a random float vector with the specified shape[0]s and
+            The `randVfloat` method creates a random float vector with the specified dimensions and
             values within the given range [a, b].
 
             Args:
-                dim (int): The shape[0]ality of the random vector.
+                dim (int): The dimensionality of the random vector.
                 a (float): The lower bound of the range for random float generation.
                 b (float): The upper bound of the range for random float generation.
                 decimal (bool, optional): If True, generated values will be of Decimal type. Defaults to False.
 
             Returns:
-                Vector: A random float vector with the specified shape[0]s and values within the range [a, b].
+                Vector: A random float vector with the specified dimensions and values within the range [a, b].
 
             Raises:
                 ArgTypeError: If any input argument is not a numerical value.
-                RangeError: If the shape[0] is not a positive integer.
+                RangeError: If the dimension is not a positive integer.
         """
         if not (isinstance(dim, int) and
                 (isinstance(a, Union[int, float, Decimal])) and
@@ -670,20 +673,20 @@ class Vector:
     @staticmethod
     def randVbool(dim, decimal: bool = False):
         """
-            Generates a random boolean vector with specified shape[0]s.
+            Generates a random boolean vector with specified dimensions.
 
-            The `randVbool` method creates a random boolean vector with the specified shape[0]s.
+            The `randVbool` method creates a random boolean vector with the specified dimensions.
 
             Args:
-                dim (int): The shape[0]ality of the random vector.
+                dim (int): The dimensionality of the random vector.
                 decimal (bool, optional): If True, generated values will be of Decimal type. Defaults to False.
 
             Returns:
-                Vector: A random boolean vector with the specified shape[0]s.
+                Vector: A random boolean vector with the specified dimensions.
 
             Raises:
-                ArgTypeError: If the shape[0] is not an integer.
-                RangeError: If the shape[0] is not a positive integer.
+                ArgTypeError: If the dimension is not an integer.
+                RangeError: If the dimension is not a positive integer.
         """
         if not isinstance(dim, int):
             raise ArgTypeError("Must be an integer.")
@@ -697,23 +700,23 @@ class Vector:
     @staticmethod
     def randVgauss(dim, mu=0, sigma=0, decimal: bool = False):
         """
-            Generates a random vector of Gaussian (normal) distribution with specified shape[0]s.
+            Generates a random vector of Gaussian (normal) distribution with specified dimensions.
 
-            The `randVgauss` method creates a random vector of Gaussian (normal) distribution with the specified shape[0]s,
+            The `randVgauss` method creates a random vector of Gaussian (normal) distribution with the specified dimensions,
             mean, and standard deviation.
 
             Args:
-                dim (int): The shape[0]ality of the random vector.
+                dim (int): The dimensionality of the random vector.
                 mu: The mean (average) value of the distribution.
                 sigma: The standard deviation of the distribution.
                 decimal (bool, optional): If True, generated values will be of Decimal type. Defaults to False.
 
             Returns:
-                Vector: A random vector of Gaussian (normal) distribution with the specified shape[0]s.
+                Vector: A random vector of Gaussian (normal) distribution with the specified dimensions.
 
             Raises:
-                ArgTypeError: If the shape[0], mean, or standard deviation is not a numerical value.
-                RangeError: If the shape[0] is not a positive integer.
+                ArgTypeError: If the dimension, mean, or standard deviation is not a numerical value.
+                RangeError: If the dimension is not a positive integer.
         """
         if not isinstance(dim, int): raise ArgTypeError("Must be an integer.")
         if not ((isinstance(mu, Union[int, float, Decimal])) and
@@ -732,7 +735,7 @@ class Vector:
             Calculates the determinant of a square matrix represented by the given vectors.
 
             The `determinant` method calculates the determinant of a square matrix represented by the provided vectors.
-            The method supports matrices of shape[0]s 2x2 and higher.
+            The method supports matrices of dimensions 2x2 and higher.
 
             Args:
                 *args (Vector): One or more vectors representing the rows or columns of the square matrix.
@@ -741,9 +744,9 @@ class Vector:
                 The determinant of the square matrix.
 
             Raises:
-                ArgTypeError: If any argument is not a vector or if the shape[0]s of the vectors are inconsistent.
-                DimensionError: If the shape[0]s of the vectors do not form a square matrix.
-                AmountError: If the number of vectors does not match the shape[0] of the square matrix.
+                ArgTypeError: If any argument is not a vector or if the dimensions of the vectors are inconsistent.
+                DimensionError: If the dimensions of the vectors do not form a square matrix.
+                AmountError: If the number of vectors does not match the dimension of the square matrix.
         """
         N = args[0].shape[0]
         for k in args:
@@ -774,8 +777,8 @@ class Vector:
         """
             Calculates the cross product of vectors.
 
-            The cross product is a binary operation on two vectors in three-shape[0]al space. It results in a vector that
-            is perpendicular to both input vectors. For vectors in higher shape[0]s, the cross product is generalized as the
+            The cross product is a binary operation on two vectors in three-dimensional space. It results in a vector that
+            is perpendicular to both input vectors. For vectors in higher dimensions, the cross product is generalized as the
             determinant of a matrix formed by the input vectors and the standard basis vectors.
 
             Args:
@@ -785,8 +788,8 @@ class Vector:
                 Vector: The vector representing the cross product of the input vectors.
 
             Raises:
-                ArgTypeError: If any argument is not a vector or if the shape[0]s of the vectors are inconsistent.
-                DimensionError: If the shape[0]s of the vectors do not match the requirements for calculating the cross product.
+                ArgTypeError: If any argument is not a vector or if the dimensions of the vectors are inconsistent.
+                DimensionError: If the dimensions of the vectors do not match the requirements for calculating the cross product.
         """
         N = args[0].shape[0]
         for k in args:
@@ -828,7 +831,7 @@ class Vector:
 
             Raises:
                 ArgTypeError: If either v or w is not a vector.
-                DimensionError: If the shape[0]s of v and w are not compatible for computing the outer product.
+                DimensionError: If the dimensions of v and w are not compatible for computing the outer product.
         """
         if not (isinstance(v, Vector) and isinstance(w, Vector)):
             raise ArgTypeError("Must be a vector.")
@@ -857,19 +860,19 @@ class Vector:
     @staticmethod
     def zero(dim: int, decimal: bool = False):
         """
-            Generates a zero vector of a specified shape[0].
+            Generates a zero vector of a specified dimension.
 
             Args:
-                dim (int): The shape[0]ality of the zero vector to be created.
+                dim (int): The dimensionality of the zero vector to be created.
                 decimal (bool, optional): A boolean flag indicating whether the elements of the vector should be Decimal numbers. Defaults to False.
 
             Returns:
-                Vector: A zero vector of the specified shape[0].
+                Vector: A zero vector of the specified dimension.
 
             Raises:
-                RangeError: If the shape[0] specified is negative.
+                RangeError: If the dimension specified is negative.
         """
-        # We use the RangeError because shape[0] can be 0.
+        # We use the RangeError because dimension can be 0.
         if dim < 0:
             raise RangeError()
         if decimal:
@@ -883,14 +886,14 @@ class Vector:
             Generates a vector with all elements set to one.
 
             Args:
-                dim (int): The shape[0]ality of the vector to be created.
+                dim (int): The dimensionality of the vector to be created.
                 decimal (bool, optional): A boolean flag indicating whether the elements of the vector should be Decimal numbers. Defaults to False.
 
             Returns:
                 Vector: A vector with all elements set to one.
 
             Raises:
-                RangeError: If the shape[0] specified is negative.
+                RangeError: If the dimension specified is negative.
         """
         if dim < 0:
             raise RangeError()
@@ -901,17 +904,17 @@ class Vector:
 
     def reshape(self, m: int, n: int):
         """
-            Reshapes the vector into a matrix with the specified shape[0]s.
+            Reshapes the vector into a matrix with the specified dimensions.
 
             Args:
                 m (int): The number of rows in the resulting matrix.
                 n (int): The number of columns in the resulting matrix.
 
             Returns:
-                Matrix: A matrix with shape[0]s m x n reshaped from the vector.
+                Matrix: A matrix with dimensions m x n reshaped from the vector.
 
             Raises:
-                RangeError: If the product of m and n does not equal the shape[0] of the vector.
+                RangeError: If the product of m and n does not equal the dimension of the vector.
         """
         if not m * n == self.shape[0]:
             raise RangeError()
@@ -1197,7 +1200,7 @@ class Vector:
 
     def dump(self):
         """
-            Sets all data to 0 without changing the shape[0].
+            Sets all data to 0 without changing the dimension.
 
             Notes:
                 Omits the possibility that elements could be Decimal objects.

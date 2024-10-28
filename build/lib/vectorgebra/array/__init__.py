@@ -1,6 +1,6 @@
 from ..math import *
 from ..utils import *
-from .matrix import Vector, Matrix, minimum, maximum
+from .ndarray import Vector, Matrix, minimum, maximum
 from typing import Union
 from decimal import Decimal
 import random

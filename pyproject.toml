@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "vectorgebra"
+version = "4.0.0b1"
+description = "A numerical methods tool for python, in python."
+authors = ["Ahmet Erdem <ahmetblk1035@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9"
+
+[tool.poetry.dev-dependencies]
+pdoc = ">=0.10.0"
+myst-parser = ">=0.18.0"
+sphinx-google-docstring = ">=0.8.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
