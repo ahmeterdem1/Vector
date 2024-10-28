@@ -7,7 +7,6 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
-    'sphinx_google_docstring',
 ]
 
 source_suffix = ".md"
