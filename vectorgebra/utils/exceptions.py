@@ -1,3 +1,4 @@
+
 class DimensionError(Exception):
     """Exception raised for errors related to matrix dimensions.
 

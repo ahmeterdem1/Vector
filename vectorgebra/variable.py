@@ -1,14 +1,26 @@
-from .infinity import *
+from .math.infinity import sin, cos, sqrt, Infinity
+from .utils import *
 from secrets import randbits
+from typing import Union, List
+from decimal import Decimal
 
-"""
+ADD = 0
+MUL = 1
+DIV = 2
+POW = 3
 
-    Below 2 functions and the constant are redefined, because of
-    the import chain problems.
-
-"""
+# below are unary operations in the context of the computational graph
+SQRT = 4
+EXP = 5
+SIN = 6
+COS = 7
+ARCSIN = 8
+LOG2 = 9
+LN = 10
+SIG = 11
 
 log2E = 1.4426950408889392
+ln2 = 0.6931471805599569
 
 def log2(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15):
     """
@@ -25,13 +37,13 @@ def log2(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 1
             ArgTypeError: If 'x' is not a numerical value.
             RangeError: If 'x' is less than or equal to 0, or if 'resolution' is not a positive integer.
     """
-    if not isinstance(x, Union[int, float, Decimal, Infinity, Undefined]):
+    if not isinstance(x, Union[int, float, Decimal, Infinity, Undefined, Variable]):
         raise ArgTypeError("Must be a numerical value.")
     if x <= 0:
         raise RangeError()
     if resolution < 1:
         raise RangeError()
-    # finally...
+
     count = 0
     factor = 1
     if x < 1:
@@ -39,15 +51,14 @@ def log2(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 1
         x = 1 / x
 
     while x > 2:
-        x /= 2
+        x = x / 2
         count += 1
 
-    # x can be a decimal
     for i in range(1, resolution + 1):
-        x *= x
+        x = x * x
         if x >= 2:
             count += 1 / (2**i)
-            x /= 2
+            x = x / 2
 
     return factor * count
 
@@ -66,6 +77,13 @@ def ln(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15)
             ArgTypeError: If 'x' is not a numerical value.
             RangeError: If 'x' is less than or equal to 0, or if 'resolution' is not a positive integer.
         """
+
+    if isinstance(x, Variable):
+        res = Variable(log2(x.value, resolution) / log2E)
+        res.operation = LN
+        res.backward = (x, Variable(1),)
+        return res
+
     return log2(x, resolution) / log2E
 
 class BinaryNode:
@@ -79,7 +97,6 @@ class BinaryNode:
 
     def alone(self):
         return (self.left is None or not self.left.flag) and (self.right is None or not self.right.flag)
-
 
 class Variable:
 
@@ -188,44 +205,44 @@ class Variable:
 
         """
         if self.forward is None:
-            if self.operation == "ADD":
+            if self.operation == ADD:
                 return 1
 
-            if self.operation == "MUL":
+            if self.operation == MUL:
                 if self.backward[0].id == ID:
                     return self.backward[1].value
                 else:
                     return self.backward[0].value
 
-            if self.operation == "POW":
+            if self.operation == POW:
                 if self.backward[0].id == ID:
                     return self.backward[1].value * (
                                 self.backward[0].value ** (self.backward[1].value - 1))
                 else:
                     return self.value * ln(self.backward[0].value) * self.propagate(self.id)
 
-            if self.operation == "DIV":
+            if self.operation == DIV:
                 if self.backward[0].id == ID:
                     return 1 / self.backward[1].value
                 else:
                     return -self.backward[0].value / (self.backward[1].value ** 2)
 
-        if self.operation == "ADD":
+        if self.operation == ADD:
             return self.forward.propagate(self.id)
 
-        if self.operation == "MUL":
+        if self.operation == MUL:
             if self.backward[0].id == ID:
                 return self.backward[1].value * self.forward.propagate(self.id)
             else:
                 return self.backward[0].value * self.forward.propagate(self.id)
 
-        if self.operation == "POW":
+        if self.operation == POW:
             if self.backward[0].id == ID:
                 return self.backward[1].value * (self.backward[0].value ** (self.backward[1].value - 1)) * self.forward.propagate(self.id)
             else:
                 return self.value * ln(self.backward[0].value) * self.propagate(self.id)
 
-        if self.operation == "DIV":
+        if self.operation == DIV:
             if self.backward[0].id == ID:
                 return self.forward.propagate(self.id) / self.backward[1].value
             else:
@@ -256,32 +273,56 @@ class Variable:
         if self.backward is None:
             return 0
 
-        if self.operation == "ADD":
+        if self.operation == ADD:
             return self.backward[0].backpropagate(ID) + self.backward[1].backpropagate(ID)
 
-        if self.operation == "MUL":
+        if self.operation == MUL:
             return self.backward[0].backpropagate(ID) * self.backward[1].value + \
                 self.backward[0].value * self.backward[1].backpropagate(ID)
 
-        if self.operation == "POW":
+        if self.operation == POW:
             return self.backward[0].backpropagate(ID) * self.backward[1].value * (self.backward[0].value ** (self.backward[1].value - 1)) + \
                 ln(self.backward[0].value) * (self.backward[0].value ** self.backward[1].value) * self.backward[1].backpropagate(ID)
 
-        if self.operation == "DIV":
+        if self.operation == DIV:
             return self.backward[0].backpropagate(ID) / self.backward[1].value - self.backward[1].backpropagate(ID) * self.backward[0].value / (self.backward[1].value ** 2)
 
     def derive(self):
 
-        if self.operation == "ADD":
+        if self.operation == ADD:
             return (1, 1), self.backward
-        if self.operation == "MUL":
+        if self.operation == MUL:
             return (self.backward[1].value, self.backward[0].value), self.backward
-        if self.operation == "POW":
+        if self.operation == POW:
             return ((self.backward[1].value * (self.backward[0].value ** (self.backward[1].value - 1)),
                     ln(self.backward[0].value) * (self.backward[0].value ** self.backward[1].value)),
                     self.backward)
-        if self.operation == "DIV":
+        if self.operation == DIV:
             return (1/self.backward[1].value, -self.backward[0].value / (self.backward[1].value ** 2)), self.backward
+
+        if self.operation == SQRT:
+            return (1/(2*self.value), 0), self.backward
+
+        if self.operation == EXP:
+            return (self.value, 0), self.backward
+
+        if self.operation == SIN:
+            return (cos(self.backward[0].value), 0), self.backward
+
+        if self.operation == COS:
+            return (-sin(self.backward[0].value), 0), self.backward
+
+        if self.operation == ARCSIN:
+            return (1/sqrt(1 - (self.backward[0].value ** 2)), 0), self.backward
+
+        if self.operation == LOG2:
+            return (1/(self.backward[0].value * ln2), 0), self.backward
+
+        if self.operation == LN:
+            return (1/self.backward[0].value, 0), self.backward
+
+        if self.operation == SIG:
+            return (self.backward[0].value * (1 - self.backward[0].value), 0), self.backward
 
         return (1, 1), (0, 0)
 
@@ -309,16 +350,16 @@ class Variable:
                 Returns the result of the contained calculation. If there
                 is no calculation wrapped, returns the contained value.
         """
-        if self.operation == "ADD":
+        if self.operation == ADD:
             self.value = self.backward[0].value + self.backward[1].value
             return self.value
-        if self.operation == "MUL":
+        if self.operation == MUL:
             self.value = self.backward[0].value - self.backward[1].value
             return self.value
-        if self.operation == "DIV":
+        if self.operation == DIV:
             self.value = self.backward[0].value / self.backward[1].value
             return self.value
-        if self.operation == "POW":
+        if self.operation == POW:
             self.value = self.backward[0].value ** self.backward[1].value
             return self.value
         return self.value
@@ -374,7 +415,7 @@ class Variable:
         arg.forward = result
 
         result.backward = (self, arg)
-        result.operation = "ADD"
+        result.operation = ADD
         return result
 
     def __radd__(self, arg):
@@ -386,7 +427,7 @@ class Variable:
         arg.forward = result
 
         result.backward = (self, arg)
-        result.operation = "ADD"
+        result.operation = ADD
         return result
 
     def __sub__(self, arg):
@@ -398,7 +439,7 @@ class Variable:
         arg.forward = result
 
         result.backward = (self, -arg)
-        result.operation = "ADD"
+        result.operation = ADD
         return result
 
     def __rsub__(self, arg):
@@ -410,7 +451,7 @@ class Variable:
         arg.forward = result
 
         result.backward = (arg, -self)
-        result.operation = "ADD"
+        result.operation = ADD
         return result
 
     def __mul__(self, arg):
@@ -422,7 +463,7 @@ class Variable:
         arg.forward = result
 
         result.backward = (self, arg)
-        result.operation = "MUL"
+        result.operation = MUL
         return result
 
     def __rmul__(self, arg):
@@ -434,7 +475,7 @@ class Variable:
         arg.forward = result
 
         result.backward = (arg, self)
-        result.operation = "MUL"
+        result.operation = MUL
         return result
 
     def __truediv__(self, arg):
@@ -446,7 +487,7 @@ class Variable:
         arg.forward = result
 
         result.backward = (self, arg)
-        result.operation = "DIV"
+        result.operation = DIV
         return result
 
     def __rtruediv__(self, arg):
@@ -458,7 +499,7 @@ class Variable:
         arg.forward = result
 
         result.backward = (arg, self)
-        result.operation = "DIV"
+        result.operation = DIV
         return result
 
     def __neg__(self):
@@ -476,7 +517,7 @@ class Variable:
         arg.forward = result
 
         result.backward = (self, arg)
-        result.operation = "POW"
+        result.operation = POW
         return result
 
     def __rpow__(self, arg):
@@ -488,7 +529,7 @@ class Variable:
         arg.forward = result
 
         result.backward = (arg, self)
-        result.operation = "POW"
+        result.operation = POW
         return result
 
     def __ge__(self, arg):
@@ -598,6 +639,7 @@ def grad(node: Variable, args: Union[List[Variable], None] = None):
             values, children = temp_node.variable.derive()
 
             if not isinstance(children[0], int):
+
                 temp_node.left = BinaryNode(values[0] * temp_node.data, children[0])
                 temp_node.left.parent = temp_node
                 temp_node.right = BinaryNode(values[1] * temp_node.data, children[1])

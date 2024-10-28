@@ -1,6 +1,10 @@
-from .variable import *
+from ..variable import Variable, SQRT, EXP, SIN, COS, ARCSIN, LOG2, LN, SIG
+from .infinity import Infinity, Complex
+from ..utils import *
 import threading
 import logging
+from typing import Union, List, Callable
+from decimal import Decimal
 
 logger = logging.getLogger("root log")
 handler = logging.StreamHandler()
@@ -36,8 +40,9 @@ def sqrt(arg, resolution: int = 10):
             ArgTypeError: If the argument is not of a valid type.
             RangeError: If the resolution is not a positive integer.
     """
-    if isinstance(arg, Union[int, float, Decimal, Variable]):
-        if resolution < 1: raise RangeError("Resolution must be a positive integer")
+    if isinstance(arg, Union[int, float, Decimal]):
+        if resolution < 1:
+            raise RangeError("Resolution must be a positive integer")
         c = True if arg >= 0 else False
         arg = abs(arg)
         digits = 0
@@ -56,6 +61,33 @@ def sqrt(arg, resolution: int = 10):
         # Yes we can return the negatives too.
         if c: return estimate
         return Complex(0, estimate)
+    if isinstance(arg, Variable):
+        if resolution < 1:
+            raise RangeError("Resolution must be a positive integer")
+        c = True if arg.value >= 0 else False
+        arg = abs(arg.value)
+        digits = 0
+        temp = arg.value
+        first_digit = 0
+        while temp != 0:
+            first_digit = temp
+            temp //= 10
+            digits += 1
+
+        estimate = (first_digit // 2 + 1) * pow(10, digits // 2)
+
+        for k in range(resolution):
+            estimate = (estimate + arg.value / estimate) / 2
+
+        # Yes we can return the negatives too.
+        if c:
+            estimate = Variable(estimate)
+        else:
+            estimate = Variable(Complex(0, estimate))
+
+        estimate.operation = SQRT
+        estimate.backward = (arg, Variable(1))
+        return estimate
     if isinstance(arg, Complex):
         return arg.sqrt()
     if isinstance(arg, Infinity):
@@ -159,6 +191,15 @@ def e(exponent: Union[int, float, Decimal, Infinity, Undefined, Variable], resol
     if not isinstance(exponent, Union[int, float, Decimal, Infinity, Undefined, Variable]):
         raise ArgTypeError("Must be a numerical value.")
 
+    if isinstance(exponent, Variable):
+        sum = 1
+        for k in range(resolution, 0, -1):
+            sum += __cumdiv(exponent.value, k)
+        sum = Variable(sum)
+        sum.operation = EXP
+        sum.backward = (exponent, Variable(1),)
+        return sum
+
     sum = 1
     for k in range(resolution, 0, -1):
         sum += __cumdiv(exponent, k)
@@ -182,6 +223,19 @@ def sin(angle: Union[int, float, Decimal, Infinity, Undefined, Variable], resolu
     if not (isinstance(resolution, int) and resolution >= 1): raise RangeError("Resolution must be a positive integer")
     if not isinstance(angle, Union[int, float, Decimal, Infinity, Undefined, Variable]):
         raise ArgTypeError("Must be a numerical value.")
+
+    if isinstance(angle, Variable):
+        radian = (2 * PI * (angle.value % 360 / 360)) % (2 * PI)
+        result = 0
+        if not resolution % 2:
+            resolution += 1
+        for k in range(resolution, 0, -2):
+            result = result + __cumdiv(radian, k) * (-1) ** ((k - 1) / 2)
+
+        result = Variable(result)
+        result.operation = SIN
+        result.backward = (angle, Variable(1))
+        return result
 
     # Below calculation can be optimized away. It is done so in Vectorgebra/C++.
     radian = (2 * PI * (angle % 360 / 360)) % (2 * PI)
@@ -211,6 +265,21 @@ def cos(angle: Union[int, float, Decimal, Infinity, Undefined, Variable], resolu
     if not (isinstance(resolution, int) and resolution >= 1): raise RangeError("Resolution must be a positive integer")
     if not isinstance(angle, Union[int, float, Decimal, Infinity, Undefined, Variable]):
         raise ArgTypeError("Must be a numerical value.")
+
+    if isinstance(angle, Variable):
+        radian = (2 * PI * (angle.value % 360 / 360)) % (2 * PI)
+        result = 1
+
+        if resolution % 2:
+            resolution += 1
+
+        for k in range(resolution, 0, -2):
+            result = result + __cumdiv(radian, k) * (-1) ** (k / 2)
+
+        result = Variable(result)
+        result.operation = COS
+        result.backward = (angle, Variable(1),)
+        return result
 
     radian = (2 * PI * (angle % 360 / 360)) % (2 * PI)
     result = 1
@@ -366,6 +435,18 @@ def arcsin(x: Union[int, float, Decimal, Undefined, Variable], resolution: int =
         raise RangeError()
     if resolution < 1:
         raise RangeError("Resolution must be a positive integer")
+
+    if isinstance(x, Variable):
+        c = 1
+        sol = x.value
+        for k in range(1, resolution):
+            c *= (2 * k - 1) / (2 * k)
+            sol += c * x.value ** (2 * k + 1) / (2 * k + 1)
+        sol = Variable(sol * 360 / (2 * PI))
+        sol.operation = ARCSIN
+        sol.backward = (x, Variable(1),)
+        return sol
+
     c = 1
     sol = x
     for k in range(1, resolution):
@@ -416,7 +497,30 @@ def log2(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resolutio
         raise RangeError()
     if resolution < 1:
         raise RangeError()
-    # finally...
+
+    if isinstance(x, Variable):
+        count = 0
+        factor = 1
+        res = x.value
+        if res < 1:
+            factor = -1
+            res = 1 / res
+
+        while res > 2:
+            res = res / 2
+            count += 1
+
+        for i in range(1, resolution + 1):
+            res = res ** 2
+            if res >= 2:
+                count += 1 / (2 ** i)
+                res /= 2
+
+        res = Variable(factor * count)
+        res.operation = LOG2
+        res.backward = (x, Variable(1),)
+        return res
+
     count = 0
     factor = 1
     if x < 1:
@@ -427,10 +531,6 @@ def log2(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resolutio
         x = x / 2
         count += 1
 
-    # Removed self assigning operators from this function, so that we can use logarithm
-    # on Variable objects.
-
-    # x can be a decimal
     for i in range(1, resolution + 1):
         x = x * x
         if x >= 2:
@@ -454,6 +554,13 @@ def ln(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution:
             ArgTypeError: If 'x' is not a numerical value.
             RangeError: If 'x' is less than or equal to 0, or if 'resolution' is not a positive integer.
         """
+
+    if isinstance(x, Variable):
+        res = Variable(log2(x.value, resolution) / log2E)
+        res.operation = LN
+        res.backward = (x, Variable(1),)
+        return res
+
     return log2(x, resolution) / log2E
 
 def log10(x: Union[int, float, Decimal, Infinity, Undefined, Variable], resolution: int = 15):
@@ -732,6 +839,13 @@ def sigmoid(x: Union[int, float, Decimal, Infinity, Undefined, Variable], a: Uni
     if not((isinstance(a, Union[int, float, Decimal, Infinity, Undefined, Variable]))
            and (isinstance(x, Union[int, float, Decimal, Infinity, Undefined, Variable]))):
         raise ArgTypeError("Must be a numerical value.")
+
+    if isinstance(x, Variable):
+        res = Variable(1 / (1 + e(-a*x.value)))
+        res.operation = SIG
+        res.backward = (x, Variable(1),)
+        return res
+
     return 1 / (1 + e(-a*x))
 
 def ReLU(x: Union[int, float, Decimal, Infinity, Undefined, Variable],
@@ -761,7 +875,7 @@ def ReLU(x: Union[int, float, Decimal, Infinity, Undefined, Variable],
     elif x < 0:
         return leak * x
     else:
-        return cutoff
+        return Variable(cutoff) if isinstance(x, Variable) else cutoff
 
 def deriv_relu(x: Union[int, float, Decimal, Infinity, Undefined, Variable],
                leak: Union[int, float, Decimal, Infinity, Undefined, Variable] = 0,
