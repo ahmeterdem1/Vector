@@ -5,7 +5,7 @@
 
 from ..math import *
 from ..utils import *
-from .ndarray import Vector, Matrix, minimum, maximum
+from .vmarray import Vector, Matrix, minimum, maximum
 from typing import Union
 from decimal import Decimal
 import random

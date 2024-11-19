@@ -12,6 +12,14 @@ vectorgebra.array.ndarray module
    :undoc-members:
    :show-inheritance:
 
+vectorgebra.array.vmarray module
+--------------------------------
+
+.. automodule:: vectorgebra.array.vmarray
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
