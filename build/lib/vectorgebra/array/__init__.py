@@ -1,6 +1,11 @@
+"""
+    General module of all array types, containing Vector and Matrix, and some related
+    functions and methods.
+"""
+
 from ..math import *
 from ..utils import *
-from .ndarray import Vector, Matrix, minimum, maximum
+from .vmarray import Vector, Matrix, minimum, maximum
 from typing import Union
 from decimal import Decimal
 import random

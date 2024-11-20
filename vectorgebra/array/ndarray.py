@@ -229,11 +229,16 @@ class Array:
         """
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-
-            for i in range(self.size):
-                c_other.values[i] += self.values[i]
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] += c_self.values[i]
 
             return c_other
 
@@ -264,10 +269,16 @@ class Array:
         """
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-            for i in range(self.size):
-                c_other.values[i] = c_other.values[i] & self.values[i]
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] = c_other.values[i] & c_self.values[i]
 
             c_other.dtype = bool
 
@@ -323,10 +334,16 @@ class Array:
         """
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-            for i in range(self.size):
-                c_other.values[i] = c_other.values[i] == self.values[i]
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] = c_other.values[i] == c_self.values[i]
 
             c_other.dtype = bool
 
@@ -373,10 +390,17 @@ class Array:
         """
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-            for i in range(self.size):
-                c_other.values[i] = c_other.values[i] >= self.values[i]
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+
+            for i in range(c_self.size):
+                c_other.values[i] = c_other.values[i] >= c_self.values[i]
 
             c_other.dtype = bool
 
@@ -472,9 +496,15 @@ class Array:
 
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-            for i in range(self.size):
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+            for i in range(c_self.size):
                 c_other.values[i] = c_other.values[i] > self.values[i]
 
             c_other.dtype = bool
@@ -525,10 +555,16 @@ class Array:
         """
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-            for i in range(self.size):
-                c_other.values[i] = c_other.values[i] <= self.values[i]
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] = c_other.values[i] <= c_self.values[i]
 
             c_other.dtype = bool
 
@@ -564,10 +600,16 @@ class Array:
         """
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-            for i in range(self.size):
-                c_other.values[i] = c_other.values[i] < self.values[i]
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] = c_other.values[i] < c_self.values[i]
 
             c_other.dtype = bool
 
@@ -606,10 +648,16 @@ class Array:
         """
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-            for i in range(self.size):
-                c_other.values[i] = c_other.values[i] * self.values[i]
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] = c_other.values[i] * c_self.values[i]
 
             return c_other
         else:
@@ -640,10 +688,16 @@ class Array:
         """
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-            for i in range(self.size):
-                c_other.values[i] = c_other.values[i] != self.values[i]
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] = c_other.values[i] != c_self.values[i]
 
             c_other.dtype = bool
 
@@ -694,10 +748,16 @@ class Array:
         """
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-            for i in range(self.size):
-                c_other.values[i] = c_other.values[i] | self.values[i]
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] = c_other.values[i] | c_self.values[i]
 
             c_other.dtype = bool
 
@@ -735,11 +795,16 @@ class Array:
     def __radd__(self, other):
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-
-            for i in range(self.size):
-                c_other.values[i] += self.values[i]
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] += c_self.values[i]
 
             return c_other
 
@@ -758,11 +823,16 @@ class Array:
     def __rsub__(self, other):
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-
-            for i in range(self.size):
-                c_other.values[i] = c_other.values[i] - self.values[i]
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] = c_other.values[i] - c_self.values[i]
 
             return c_other
 
@@ -797,11 +867,16 @@ class Array:
         """
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-
-            for i in range(self.size):
-                c_other.values[i] = self.values[i] - c_other.values[i]
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] = c_self.values[i] - c_other.values[i]
 
             return c_other
 
@@ -835,10 +910,16 @@ class Array:
         """
         if isinstance(other, Array):
             c_other = other.copy()
+            c_self = self
             if other.shape != self.shape:
-                c_other.resize(Array.broadcast(self, c_other))
-            for i in range(self.size):
-                c_other.values[i] = c_other.values[i] ^ self.values[i]
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.resize(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.resize(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] = c_other.values[i] ^ c_self.values[i]
 
             c_other.dtype = bool
 
@@ -941,6 +1022,7 @@ class Array:
         """
         self.values = self.__broadcast(shape)
         self.shape = copy(tuple(shape))
+        self.size = len(self.values)
 
     def copy(self):
         res = Array()

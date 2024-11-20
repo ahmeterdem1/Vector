@@ -1,5 +1,6 @@
 LICENSE.txt
 README.md
+pyproject.toml
 setup.py
 vectorgebra/__init__.py
 vectorgebra/graph.py
@@ -11,6 +12,7 @@ vectorgebra.egg-info/dependency_links.txt
 vectorgebra.egg-info/top_level.txt
 vectorgebra/array/__init__.py
 vectorgebra/array/ndarray.py
+vectorgebra/array/vmarray.py
 vectorgebra/linalg/__init__.py
 vectorgebra/math/__init__.py
 vectorgebra/math/functions.py
