@@ -1,6 +1,14 @@
 vectorgebra.array package
 =========================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   vectorgebra.array.api
+
 Submodules
 ----------
 

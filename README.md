@@ -32,12 +32,12 @@ and good handling of high dimensional tensors.
 
 ### New Vectorgebra, 4.0
 
-Yet another major release of Vectorgebra. This release will be mostly
-project restructuring for easier development. And, style changes.
+Yet another major release of Vectorgebra. This release will be Array API
+compatibility update.
 
-The array API of Vectorgebra is now more alike *Array API*. _dimension_
-attribute has been changed for _shape_. Vectors and Matrices now can be
-created from bare lists, instead of agonizing varargs.
+This version, will be _mostly_ if not fully compatible with Array API.
+Device related operations will not be implemented but rest of the API
+will be implemented, and is being implemented.
 
 There was a "linalg" module, which was invisible to the end user. Now,
 a separate linalg is being created. This module will host most of the

@@ -13,6 +13,13 @@ vectorgebra.egg-info/top_level.txt
 vectorgebra/array/__init__.py
 vectorgebra/array/ndarray.py
 vectorgebra/array/vmarray.py
+vectorgebra/array/api/__init__.py
+vectorgebra/array/api/constants.py
+vectorgebra/array/api/creation.py
+vectorgebra/array/api/dtype.py
+vectorgebra/array/api/dtypefunc.py
+vectorgebra/array/api/ewise.py
+vectorgebra/array/api/indexing.py
 vectorgebra/linalg/__init__.py
 vectorgebra/math/__init__.py
 vectorgebra/math/functions.py

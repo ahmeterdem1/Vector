@@ -13,6 +13,7 @@ from decimal import Decimal
 from ..variable import Variable
 
 BASIC_ITERABLE = Union[list, tuple]
+__NAMESPACE = None
 
 class Array:
 
@@ -35,7 +36,8 @@ class Array:
     size: int
     values: list
 
-    def __init__(self, data=None):
+    def __init__(self, data=None, dtype: Union[Type, None] = None,
+                 device=None):
         """
             Create an N dimensional array.
 
@@ -44,6 +46,8 @@ class Array:
             - If none above, an array with the deepcopy of the given data, with no dimensionality is created.
 
         """
+
+        self.device = device if device is not None else None
 
         if data is None:
             self.dtype = object
@@ -58,18 +62,25 @@ class Array:
             self.size = 0
             self.values = deepcopy(data)
         else:
-            self.values = Array.flatten(data)  # A linear array
+            if dtype is None:
+                self.values = Array.flatten(data)  # A linear array
+            else:
+                self.values = [dtype(k) for k in Array.flatten(data)]
 
             shape = []
             temp = data
+
             while isinstance(temp, BASIC_ITERABLE) and len(temp):
                 shape.append(len(temp))
                 temp = temp[0]
+
             if isinstance(temp, Union[list, tuple]):
                 # Since the subarrays must be aligned, being here
                 # means that the array must be empty
                 shape.append(0)
                 self.dtype = object
+            elif dtype is not None:
+                self.dtype = dtype
             else:
                 self.dtype = type(temp)
 
@@ -180,7 +191,8 @@ class Array:
         res.shape = tuple([k for k in self.shape[::-1]])
         res.size = self.size
         res.values = Array.__transpose(deepcopy(self.values))
-        return res
+        #return res
+        raise NotImplementedError()
 
     @staticmethod
     def __transpose(arraylike: Union[list, tuple]):
@@ -233,10 +245,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
             for i in range(c_self.size):
                 c_other.values[i] += c_self.values[i]
 
@@ -273,10 +285,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
             for i in range(c_self.size):
                 c_other.values[i] = c_other.values[i] & c_self.values[i]
 
@@ -293,8 +305,11 @@ class Array:
             res.values = [k & other for k in self.values]
             return res
 
-    def __array_namespace__(self):
-        pass
+    def __array_namespace__(self, api_version: str = None):
+        if api_version is None or api_version == "2023.12":
+            global __NAMESPACE
+            return __NAMESPACE
+        raise NotImplementedError()
 
     def __bool__(self):
         """
@@ -308,9 +323,17 @@ class Array:
             return bool(self.values)
 
     def __complex__(self):
-        pass
+        """
+            Converts self to complex, if self has no dimensionality.
 
-    def __dlpack__(self):
+            This method is based on Python Array API v2023.12
+
+            https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__complex__.html
+        """
+        if self.shape == (0,):
+            return complex(self.values)
+
+    def __dlpack__(self, *args, **kwargs):
         raise NotImplementedError()
 
     def __dlpack_device__(self):
@@ -338,10 +361,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
             for i in range(c_self.size):
                 c_other.values[i] = c_other.values[i] == c_self.values[i]
 
@@ -370,7 +393,45 @@ class Array:
             return float(self.values)
 
     def __floordiv__(self, other):
-        pass
+        """
+            Floor divide 2 arrays, or floor divide by a numerical object.
+            Broadcasting is applied when necessary if given an array.
+
+            Returns:
+                Element-wise floor division of self and other (array or numerical)
+                as an array
+
+            Raises:
+                DimensionError: If broadcasting is not viable.
+
+            This method is based on Python Array API v2023.12
+
+            https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__floordiv__.html
+
+        """
+        if isinstance(other, Array):
+            c_other = other.copy()
+            c_self = self
+            if other.shape != self.shape:
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.broadcast_to(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.broadcast_to(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] = c_self.values[i] // c_other.values[i]
+
+            return c_other
+
+        else:
+            res = Array()
+            res.device = self.device
+            res.ndim = self.ndim
+            res.size = self.size
+            res.shape = copy(self.shape)
+            res.values = [k // other for k in self.values]
+            return res
 
     def __ge__(self, other):
         """
@@ -394,10 +455,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
 
             for i in range(c_self.size):
                 c_other.values[i] = c_other.values[i] >= c_self.values[i]
@@ -500,10 +561,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
             for i in range(c_self.size):
                 c_other.values[i] = c_other.values[i] > self.values[i]
 
@@ -521,7 +582,10 @@ class Array:
             return res
 
     def __index__(self):
-        pass
+        if self.dtype != int:
+            raise TypeError("Must be int type")
+        if self.shape == (0,):
+            return int(self.values)
 
     def __int__(self):
         """
@@ -559,10 +623,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
             for i in range(c_self.size):
                 c_other.values[i] = c_other.values[i] <= c_self.values[i]
 
@@ -604,10 +668,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
             for i in range(c_self.size):
                 c_other.values[i] = c_other.values[i] < c_self.values[i]
 
@@ -652,10 +716,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
             for i in range(c_self.size):
                 c_other.values[i] = c_other.values[i] * c_self.values[i]
 
@@ -692,10 +756,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
             for i in range(c_self.size):
                 c_other.values[i] = c_other.values[i] != c_self.values[i]
 
@@ -752,10 +816,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
             for i in range(c_self.size):
                 c_other.values[i] = c_other.values[i] | c_self.values[i]
 
@@ -799,10 +863,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
             for i in range(c_self.size):
                 c_other.values[i] += c_self.values[i]
 
@@ -827,10 +891,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
             for i in range(c_self.size):
                 c_other.values[i] = c_other.values[i] - c_self.values[i]
 
@@ -871,10 +935,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
             for i in range(c_self.size):
                 c_other.values[i] = c_self.values[i] - c_other.values[i]
 
@@ -890,7 +954,45 @@ class Array:
             return res
 
     def __truediv__(self, other):
-        pass
+        """
+            Divide 2 arrays, or divide by a numerical object.
+            Broadcasting is applied when necessary if given an array.
+
+            Returns:
+                Element-wise division of self and other (array or numerical)
+                as an array
+
+            Raises:
+                DimensionError: If broadcasting is not viable.
+
+            This method is based on Python Array API v2023.12
+
+            https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__truediv__.html
+
+        """
+        if isinstance(other, Array):
+            c_other = other.copy()
+            c_self = self
+            if other.shape != self.shape:
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.broadcast_to(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.broadcast_to(common_shape)
+            for i in range(c_self.size):
+                c_other.values[i] = c_self.values[i] / c_other.values[i]
+
+            return c_other
+
+        else:
+            res = Array()
+            res.device = self.device
+            res.ndim = self.ndim
+            res.size = self.size
+            res.shape = copy(self.shape)
+            res.values = [k / other for k in self.values]
+            return res
 
     def __xor__(self, other):
         """
@@ -914,10 +1016,10 @@ class Array:
             if other.shape != self.shape:
                 common_shape = Array.broadcast(self, c_other)
                 if c_other.shape != common_shape:
-                    c_other.resize(common_shape)
+                    c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
                     c_self = c_self.copy()
-                    c_self.resize(common_shape)
+                    c_self.broadcast_to(common_shape)
             for i in range(c_self.size):
                 c_other.values[i] = c_other.values[i] ^ c_self.values[i]
 
@@ -1012,7 +1114,7 @@ class Array:
             self.shape = tuple(temp)
             return self.__broadcast(shape)
 
-    def resize(self, shape: BASIC_ITERABLE):
+    def broadcast_to(self, shape: BASIC_ITERABLE):
         """
             Applies broadcasting to self to conform to given shape.
             Modifies attributes of self, including the data.
@@ -1025,6 +1127,9 @@ class Array:
         self.size = len(self.values)
 
     def copy(self):
+        """
+            Copy self into a new array, return the new array.
+        """
         res = Array()
         res.dtype = self.dtype
         res.device = self.device
@@ -1034,18 +1139,27 @@ class Array:
         res.values = self.values.copy()
         return res
 
-"""
-if __name__ == "__main__":
-    array = Array([[[1, 2], [4, 5], [11, 21]],
-                   [[11, 21], [41, 51], [11, 21]],
-                   [[11, 21], [41, 51], [11, 21]],
-                   [[11, 21], [41, 51], [11, 21]]])
+    def astype(self, dtype: Union[Type, None] = None):
+        """
+            Cast self to given type. Return the casted array.
+            
+            Args:
+                dtype (Type): Dtype to cast to. Must be a Python
+                    or Vectorgebra type (includes aliased ctypes).
+                    If left as none, simply copies self and returns
+                    the new array.
+            
+            Returns:
+                Array: The casted array object
+        """
+        if dtype is None:
+            return self.copy()
+        else:
+            c_self = self.copy()
+            c_self.dtype = dtype
+            c_self.values = [dtype(k) for k in c_self.values]
+            return c_self
 
-    array2 = Array([[1, 2], [3, 4], [5, 6]])
-    #print(array.shape, array2.shape)
-    #print(Array.broadcast(array, array2))
-    array2.resize(Array.broadcast(array, array2))
-    print(array2.values, array2.shape)"""
 
 
 

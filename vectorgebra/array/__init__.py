@@ -6,10 +6,14 @@
 from ..math import *
 from ..utils import *
 from .vmarray import Vector, Matrix, minimum, maximum
+from .ndarray import Array, __NAMESPACE
+from . import api  # These will be accessed under "api", similarly to linalg
 from typing import Union
 from decimal import Decimal
 import random
 import threading
+
+__NAMESPACE = api
 
 def __mul(row: list, m, id: int, target: dict, amount: int):
     """
@@ -57,12 +61,13 @@ def matmul(m1, m2, max: int = 10):
         It utilizes threading for parallel computation when the number of rows in m1 exceeds a threshold.
         The max parameter determines the maximum number of threads to use concurrently.
         """
-    if not (isinstance(m1, Matrix) and isinstance(m2, Matrix)): raise ArgTypeError()
-    a, b = [int(k) for k in m1.dimension.split("x")]
+    if not (isinstance(m1, Matrix) and isinstance(m2, Matrix)):
+        raise ArgTypeError()
+    a, b = m1.shape
     data = {}
     m1values = m1.values
 
-    c, d = [int(k) for k in m2.dimension.split("x")]
+    c, d = m2.shape
     if b != c:
         raise DimensionError(0)
     m2values = m2.values
@@ -290,7 +295,8 @@ def variance(values: Union[list, tuple, Vector], probabilities: Union[list, tupl
             ArgTypeError: If arguments are not one-dimensional iterables.
     """
     if isinstance(values, Union[list, tuple, Vector]) and isinstance(probabilities, Union[list, tuple, Vector]):
-        if len(values) != len(probabilities): raise DimensionError(0)
+        if len(values) != len(probabilities):
+            raise DimensionError(0)
 
         sum = 0
         sum2 = 0
@@ -316,7 +322,8 @@ def sd(values: Union[list, tuple, Vector], probabilities: Union[list, tuple, Vec
             ArgTypeError: If arguments are not one-dimensional iterables.
     """
     if isinstance(values, Union[list, tuple, Vector]) and isinstance(probabilities, Union[list, tuple, Vector]):
-        if len(values) != len(probabilities): raise DimensionError(0)
+        if len(values) != len(probabilities):
+            raise DimensionError(0)
 
         sum = 0
         for k in range(len(values)):
@@ -357,9 +364,12 @@ def linear_fit(x: Union[list, tuple, Vector],
         raise ArgTypeError("Arguments must be one dimensional iterables")
     if not (isinstance(rate, Union[int, float, Decimal])):
         raise ArgTypeError("Must be a numerical value.")
-    if not isinstance(iterations, int): raise ArgTypeError("Must be an integer.")
-    if iterations < 1: raise RangeError()
-    if len(x) != len(y): raise DimensionError(0)
+    if not isinstance(iterations, int):
+        raise ArgTypeError("Must be an integer.")
+    if iterations < 1:
+        raise RangeError()
+    if len(x) != len(y):
+        raise DimensionError(0)
 
     N = len(x)
     b0, b1 = 0, 0
@@ -408,12 +418,16 @@ def general_fit(x: Union[list, tuple, Vector],
             - The number of iterations determines the convergence of the algorithm.
     """
     if (not (isinstance(x, Union[list, tuple, Vector]))
-            and (isinstance(y, Union[list, tuple, Vector]))): raise ArgTypeError("Arguments must be one dimensional iterables")
+            and (isinstance(y, Union[list, tuple, Vector]))):
+        raise ArgTypeError("Arguments must be one dimensional iterables")
     if not (isinstance(rate, Union[int, float, Decimal])):
         raise ArgTypeError("Must be a numerical value.")
-    if not isinstance(iterations, int): raise ArgTypeError("Must be an integer.")
-    if iterations < 1 or degree < 1: raise RangeError()
-    if len(x) != len(y): raise DimensionError(0)
+    if not isinstance(iterations, int):
+        raise ArgTypeError("Must be an integer.")
+    if iterations < 1 or degree < 1:
+        raise RangeError()
+    if len(x) != len(y):
+        raise DimensionError(0)
 
     # Preprocess
     if not isinstance(x, Vector):
@@ -466,12 +480,17 @@ def kmeans(dataset: Union[list, tuple, Vector],
             - The output is a tuple where the first element is a list of cluster centers (Vectors) and the second element
               is a list of lists containing the data assigned to each cluster.
     """
-    if not (isinstance(dataset, Union[list, tuple, Vector])): raise ArgTypeError()
-    if len(dataset) == 0: raise DimensionError(1)
-    if k < 1: raise RangeError()
-    if iterations < 1: raise RangeError()
+    if not (isinstance(dataset, Union[list, tuple, Vector])):
+        raise ArgTypeError()
+    if len(dataset) == 0:
+        raise DimensionError(1)
+    if k < 1:
+        raise RangeError()
+    if iterations < 1:
+        raise RangeError()
     if not ((isinstance(a, Union[int, float, Decimal]))
-            and (isinstance(b, Union[int, float, Decimal]))): raise ArgTypeError("Must be a numerical value.")
+            and (isinstance(b, Union[int, float, Decimal]))):
+        raise ArgTypeError("Must be a numerical value.")
 
     # This is a strange logical operation.
     # I don't want to spend time here optimizing this.
