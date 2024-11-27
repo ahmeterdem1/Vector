@@ -4,7 +4,7 @@ from os.path import abspath
 sys.path.insert(0, abspath('../../'))
 project = "vectorgebra"
 author = "Ahmet Erdem"
-release = "4.0.0b1"
+release = "4.0.0b4"
 
 extensions = [
     'sphinx.ext.autodoc',

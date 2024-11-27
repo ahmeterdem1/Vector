@@ -2,13 +2,12 @@
     Functions referenced by https://data-apis.org/array-api/latest/API_specification/creation_functions.html
 """
 
+from .dtype import BASIC_ITERABLE
 from ..ndarray import Array
 from .. import Range, DimensionError
 from typing import Union, Type
 from decimal import Decimal
 from copy import deepcopy, copy
-
-BASIC_ITERABLE = Union[list, tuple]
 
 def arange(start: Union[int, float, Decimal],
            stop: Union[int, float, Decimal] = None,

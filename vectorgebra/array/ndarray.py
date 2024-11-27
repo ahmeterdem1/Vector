@@ -5,8 +5,9 @@
     https://data-apis.org/array-api/latest/index.html
 """
 
+# Some of below imports are not used here, but used in api module
 from ..utils import *
-from ..math import abs, Infinity, Complex
+from ..math import abs, Complex
 from typing import Type, Union, Callable
 from copy import deepcopy, copy
 from decimal import Decimal
@@ -599,7 +600,14 @@ class Array:
             return int(self.values)
 
     def __invert__(self):
-        pass
+        res = Array()
+        res.dtype = self.dtype
+        res.device = self.device
+        res.ndim = self.ndim
+        res.shape = copy(self.shape)
+        res.size = self.size
+        res.values = [~k for k in self.values]
+        return res
 
     def __le__(self, other):
         """
@@ -644,7 +652,30 @@ class Array:
             return res
 
     def __lshift__(self, other):
-        pass
+        res = Array()
+        res.dtype = self.dtype
+        res.device = self.device
+        if isinstance(other, Array):
+            c_other = other.copy()
+            c_self = self
+            if other.shape != self.shape:
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.broadcast_to(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.broadcast_to(common_shape)
+
+            res.ndim = c_self.ndim
+            res.shape = copy(c_self.shape)
+            res.size = c_self.size
+            res.values = [c_other.values[i] << c_self.values[i] for i in range(c_self.size)]
+        else:
+            res.ndim = self.ndim
+            res.shape = copy(self.shape)
+            res.size = self.size
+            res.values = [k << other for k in self.values]
+        return res
 
     def __lt__(self, other):
         """
@@ -882,7 +913,30 @@ class Array:
             return res
 
     def __rshift__(self, other):
-        pass
+        res = Array()
+        res.dtype = self.dtype
+        res.device = self.device
+        if isinstance(other, Array):
+            c_other = other.copy()
+            c_self = self
+            if other.shape != self.shape:
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.broadcast_to(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.broadcast_to(common_shape)
+
+            res.ndim = c_self.ndim
+            res.shape = copy(c_self.shape)
+            res.size = c_self.size
+            res.values = [c_other.values[i] >> c_self.values[i] for i in range(c_self.size)]
+        else:
+            res.ndim = self.ndim
+            res.shape = copy(self.shape)
+            res.size = self.size
+            res.values = [k >> other for k in self.values]
+        return res
 
     def __rsub__(self, other):
         if isinstance(other, Array):
@@ -1160,6 +1214,28 @@ class Array:
             c_self.values = [dtype(k) for k in c_self.values]
             return c_self
 
+    def all(self) -> bool:
+        """
+            Evaluate the truth value of all elements in self, combined.
 
+            Returns:
+                bool: True if all values in self are true, otherwise False
+        """
+        control = True
+        for k in self.values:
+            control &= k
+        return control
+
+    def any(self) -> bool:
+        """
+            Evaluate the truth value of any element in self, combined.
+
+            Returns:
+                bool: True if any value in self is true, otherwise False
+        """
+        control = False
+        for k in self.values:
+            control |= k
+        return control
 
 

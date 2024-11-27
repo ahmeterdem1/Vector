@@ -12,3 +12,10 @@ from ctypes import (
     c_double as float64,
     # No complex defined
 )
+
+from typing import Union
+
+INT_TYPE = Union[int, int8, uint8, int16, uint16, int32, uint32, int64, uint64]
+FLOAT_TYPE = Union[float, float32, float64]
+BOOL_TYPE = Union[bool, _bool]
+BASIC_ITERABLE = Union[list, tuple]

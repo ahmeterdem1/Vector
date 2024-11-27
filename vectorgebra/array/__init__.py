@@ -5,6 +5,7 @@
 
 from ..math import *
 from ..utils import *
+from ..variable import *
 from .vmarray import Vector, Matrix, minimum, maximum
 from .ndarray import Array, __NAMESPACE
 from . import api  # These will be accessed under "api", similarly to linalg

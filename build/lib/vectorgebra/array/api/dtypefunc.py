@@ -14,5 +14,5 @@ def iinfo():
 def isdtype():
     pass
 
-def result_type():
+def result_type(*args):
     pass

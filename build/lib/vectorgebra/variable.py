@@ -1,7 +1,7 @@
 from .math.infinity import sin, cos, sqrt, Infinity
 from .utils import *
 from secrets import randbits
-from typing import Union, List
+from typing import Union, List, Callable
 from decimal import Decimal
 
 ADD = 0
@@ -18,9 +18,23 @@ ARCSIN = 8
 LOG2 = 9
 LN = 10
 SIG = 11
+ARCSINH = 12
+ARCTAN = 13
+ARCCOS = 14
+TAN = 15
+COSH = 16
+ARCCOSH = 17
+ARCTANH = 18
+SINH = 19
+TANH = 20
+LOG10 = 21
+LN1P = 22
+LOGADDEXP = 23
 
 log2E = 1.4426950408889392
 ln2 = 0.6931471805599569
+ln10 = 2.30258509299
+E = 2.718281828459045
 
 def log2(x: Union[int, float, Decimal, Infinity, Undefined], resolution: int = 15):
     """
@@ -307,14 +321,19 @@ class Variable:
 
         """
 
+        # TODO: Optimize below if-else logic
+
         if self.operation == ADD:
             return (1, 1), self.backward
+
         if self.operation == MUL:
             return (self.backward[1].value, self.backward[0].value), self.backward
+
         if self.operation == POW:
             return ((self.backward[1].value * (self.backward[0].value ** (self.backward[1].value - 1)),
                     ln(self.backward[0].value) * (self.backward[0].value ** self.backward[1].value)),
                     self.backward)
+
         if self.operation == DIV:
             return (1/self.backward[1].value, -self.backward[0].value / (self.backward[1].value ** 2)), self.backward
 
@@ -341,6 +360,39 @@ class Variable:
 
         if self.operation == SIG:
             return (self.backward[0].value * (1 - self.backward[0].value), 0), self.backward
+
+        if self.operation == ARCSINH:
+            return (1 / sqrt(1 + self.backward[0].value ** 2), 0), self.backward
+
+        if self.operation == ARCTAN:
+            return (1 / (1 + self.backward[0].value ** 2)), self.backward
+
+        if self.operation == ARCCOS:
+            return (-1 / sqrt(1 - self.backward[0].value ** 2)), self.backward
+
+        if self.operation == TAN or self.operation == TANH:
+            return (1 - self.value ** 2, 0), self.backward
+
+        if self.operation == COSH:
+            return (E ** self.backward[0].value - E ** -self.backward[0].value, 0), self.backward
+
+        if self.operation == ARCCOSH:
+            return (1 / sqrt(self.backward[0].value ** 2 - 1), 0), self.backward
+
+        if self.operation == ARCTANH:
+            return (1 / (1 - self.backward[0].value ** 2), 0), self.backward
+
+        if self.operation == SINH:
+            return (E ** self.backward[0].value + E ** -self.backward[0].value, 0), self.backward
+
+        if self.operation == LOG10:
+            return (1 / (self.backward[0].value * ln10), 0), self.backward
+
+        if self.operation == LN1P:
+            return (1 / (self.backward[0].value + 1), 0), self.backward
+
+        if self.operation == LOGADDEXP:
+            return ((E ** self.backward[0].value) / self.value, (E ** self.backward[1].value) / self.value), self.backward
 
         return (1, 1), (0, 0)
 
@@ -423,6 +475,48 @@ class Variable:
             leaves = next_leaves
 
         return self.__calculate()  # Both updates self.value and returns it
+
+    @staticmethod
+    def buildBinaryOperation(v1, v2, f: Callable, opcode: int):
+        """
+            Add a particular operation to the computational graph,
+            defined by f and opcode, given arguments to operation
+            v1 and v2.
+
+            Args:
+                v1 (Variable): First argument to operation as a Variable
+                    object.
+
+                v2 (Variable): Second argument to operation as a Variable
+                    object.
+
+                f (Callable): Binary operation to perform on v1 and v2 as
+                    arguments, in order.
+
+                opcode (int): Operation code to flag the node as. Must be one
+                    of in [0, 11].
+
+            Returns:
+                Variable: Result of the operation, added as a parent to v1 and v2,
+                    having as children v1 and v2, flagged with given opcode.
+        """
+        res = f(v1.value, v2.value)
+        res = Variable(res)
+        res.backward = (v1, v2)
+        res.operation = opcode
+        v1.forward = res
+        v2.forward = res
+        return res
+
+    @staticmethod
+    def buildUnaryOperation(v, f: Callable, opcode: int):
+        res = f(v.value)
+        res = Variable(res)
+        res.backward = (v, Variable(1))
+        res.operation = opcode
+        v.forward = res
+        res.backward[1].forward = res
+        return res
 
     def __add__(self, arg):
         if not isinstance(arg, Variable):
