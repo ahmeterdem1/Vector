@@ -20,6 +20,12 @@ vectorgebra/array/api/dtype.py
 vectorgebra/array/api/dtypefunc.py
 vectorgebra/array/api/ewise.py
 vectorgebra/array/api/indexing.py
+vectorgebra/array/api/manipulation.py
+vectorgebra/array/api/searching.py
+vectorgebra/array/api/set.py
+vectorgebra/array/api/sort.py
+vectorgebra/array/api/statistical.py
+vectorgebra/array/api/utility.py
 vectorgebra/linalg/__init__.py
 vectorgebra/math/__init__.py
 vectorgebra/math/functions.py

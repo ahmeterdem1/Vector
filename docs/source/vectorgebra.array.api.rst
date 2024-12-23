@@ -52,6 +52,54 @@ vectorgebra.array.api.indexing module
    :undoc-members:
    :show-inheritance:
 
+vectorgebra.array.api.manipulation module
+-----------------------------------------
+
+.. automodule:: vectorgebra.array.api.manipulation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vectorgebra.array.api.searching module
+--------------------------------------
+
+.. automodule:: vectorgebra.array.api.searching
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vectorgebra.array.api.set module
+--------------------------------
+
+.. automodule:: vectorgebra.array.api.set
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vectorgebra.array.api.sort module
+---------------------------------
+
+.. automodule:: vectorgebra.array.api.sort
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vectorgebra.array.api.statistical module
+----------------------------------------
+
+.. automodule:: vectorgebra.array.api.statistical
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vectorgebra.array.api.utility module
+------------------------------------
+
+.. automodule:: vectorgebra.array.api.utility
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

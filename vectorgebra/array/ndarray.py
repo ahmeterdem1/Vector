@@ -503,12 +503,25 @@ class Array:
             res.ndim = self.ndim - 1
             res.size = N
             return res
+        elif isinstance(item, slice):
+
+            N = self.size // self.shape[0]
+
+            start, stop, step = item.indices(self.shape[0])
+            length = (stop - start) // step
+
+            res = Array()
+            res.dtype = self.dtype
+            res.device = self.device
+            res.values = self.values[start * N:stop * N:step]
+            res.shape = tuple([length, *self.shape[1:]])
+            res.ndim = self.ndim
+            res.size = N * length
+            return res
         elif isinstance(item, tuple):
-            Ns = []
-            n = 1
+            Ns = [self.size // self.shape[0]]
             for k in self.shape[1:]:
-                n *= k
-                Ns.append(n)
+                Ns.append(Ns[-1] // k)
 
             data = self.values
             new_shape = []
@@ -519,16 +532,43 @@ class Array:
             step: int
             length: int
 
+            sliced_previously = False
+
             for i, it in enumerate(item):
-                if isinstance(it, int):  # not a slice object
-                    data = data[it * Ns[-(i+1)]:(it + 1) * Ns[-(i+1)]]
-                else:  # Slice object, or raise error
-                    # TODO: Raise Exception if "it" is not a slice object
-                    start, stop, step = it.indices(self.shape[-(i+1)])
-                    data = data[it]
+                if isinstance(it, int):
+                    if sliced_previously:
+                        temp_data = []
+                        for k in range(new_size):  # self.shape[i - 1]
+                            temp_data.extend(data[it * Ns[i] + k * Ns[i-1]:it * Ns[i] + k * Ns[i-1] + Ns[i]])
+                        data = temp_data
+                    else:
+                        data = data[it * Ns[i]:(it + 1) * Ns[i]]
+                elif isinstance(it, slice):
+                    start, stop, step = it.indices(self.shape[i])
                     length = (stop - start) // step
+                    dN = length * Ns[i]
+
+                    if sliced_previously:
+                        temp_data = []
+                        for k in range(self.shape[i - 1]):
+                            temp_data.extend(data[start * Ns[i] + k * dN:stop * Ns[i] + k * dN:step])
+                        data = temp_data
+                    else:
+                        data = data[start * Ns[i]:stop * Ns[i]:step]
+
                     new_shape.append(length)
                     new_size *= length
+                    sliced_previously = True
+
+            diff = self.ndim - len(item)
+            if diff > 0:
+                temp_new_shape = []
+                for k in range(diff):
+                    new_size *= self.shape[-(k+1)]
+                    temp_new_shape.append(self.shape[-(k+1)])
+
+                temp_new_shape.reverse()
+                new_shape.extend(temp_new_shape)
 
             res = Array()
             res.dtype = self.dtype
@@ -1237,5 +1277,16 @@ class Array:
         for k in self.values:
             control |= k
         return control
+
+    def item(self):
+        """
+            Return the singular item stored in the array.
+
+            Raises:
+                DimensionError: If the size of self is not 1.
+        """
+        if self.size == 1:
+            return self.values[0]
+        raise DimensionError(0)
 
 

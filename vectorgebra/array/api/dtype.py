@@ -13,9 +13,13 @@ from ctypes import (
     # No complex defined
 )
 
-from typing import Union
+from typing import Union, Type
 
 INT_TYPE = Union[int, int8, uint8, int16, uint16, int32, uint32, int64, uint64]
 FLOAT_TYPE = Union[float, float32, float64]
 BOOL_TYPE = Union[bool, _bool]
 BASIC_ITERABLE = Union[list, tuple]
+
+
+def promotion(dtype1: Type, dtype2: Type) -> Type:
+    pass
