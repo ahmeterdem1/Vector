@@ -54,6 +54,7 @@ def max(x: Array, axis: Union[int, Tuple[int]] = None, dtype: Type = None, keepd
 
         temp_shape = [range(n) if i != axis else [slice(0, n, 1)] for i, n in enumerate(x.shape)]
         res.size = x.size // x.shape[axis]
+        res.ndim = len(res.shape)
         vals = [None] * res.size
         for i, produced_shape in enumerate(__product(*temp_shape)):
             vals[i] = __builtinMax(x[*produced_shape].values)
@@ -119,7 +120,7 @@ def mean(x: Array, axis: Union[int, Tuple[int]] = None, dtype: Type = None, keep
         res.dtype = x.dtype if dtype is None else dtype
         res.shape = tuple([x.shape[i] for i in range(x.ndim) if i != axis]) if not keepdims else tuple(
             [x.shape[i] if i != axis else 1 for i in range(x.ndim)])
-
+        res.ndim = len(res.shape)
         temp_shape = [range(n) if i != axis else [slice(0, n, 1)] for i, n in enumerate(x.shape)]
         res.size = x.size // x.shape[axis]
         vals = [None] * res.size
@@ -187,7 +188,7 @@ def min(x: Array, axis: Union[int, Tuple[int]] = None, dtype: Type = None, keepd
         res.dtype = x.dtype if dtype is None else dtype
         res.shape = tuple([x.shape[i] for i in range(x.ndim) if i != axis]) if not keepdims else tuple(
             [x.shape[i] if i != axis else 1 for i in range(x.ndim)])
-
+        res.ndim = len(res.shape)
         temp_shape = [range(n) if i != axis else [slice(0, n, 1)] for i, n in enumerate(x.shape)]
         res.size = x.size // x.shape[axis]
         vals = [None] * res.size
@@ -255,7 +256,7 @@ def prod(x: Array, axis: Union[int, Tuple[int]] = None, dtype: Type = None, keep
         res.dtype = x.dtype if dtype is None else dtype
         res.shape = tuple([x.shape[i] for i in range(x.ndim) if i != axis]) if not keepdims else tuple(
             [x.shape[i] if i != axis else 1 for i in range(x.ndim)])
-
+        res.ndim = len(res.shape)
         temp_shape = [range(n) if i != axis else [slice(0, n, 1)] for i, n in enumerate(x.shape)]
         res.size = x.size // x.shape[axis]
         vals = [None] * res.size
@@ -322,7 +323,7 @@ def std(x: Array, axis: Union[int, Tuple[int]] = None, dtype: Type = None, keepd
         res.dtype = x.dtype if dtype is None else dtype
         res.shape = tuple([x.shape[i] for i in range(x.ndim) if i != axis]) if not keepdims else tuple(
             [x.shape[i] if i != axis else 1 for i in range(x.ndim)])
-
+        res.ndim = len(res.shape)
         temp_shape = [range(n) if i != axis else [slice(0, n, 1)] for i, n in enumerate(x.shape)]
         res.size = x.size // x.shape[axis]
         vals = [None] * res.size
@@ -390,7 +391,7 @@ def sum(x: Array, axis: Union[int, Tuple[int]] = None, dtype: Type = None, keepd
         res.dtype = x.dtype if dtype is None else dtype
         res.shape = tuple([x.shape[i] for i in range(x.ndim) if i != axis]) if not keepdims else tuple(
             [x.shape[i] if i != axis else 1 for i in range(x.ndim)])
-
+        res.ndim = len(res.shape)
         temp_shape = [range(n) if i != axis else [slice(0, n, 1)] for i, n in enumerate(x.shape)]
         res.size = x.size // x.shape[axis]
         vals = [None] * res.size
@@ -458,7 +459,7 @@ def var(x: Array, axis: Union[int, Tuple[int]] = None, dtype: Type = None, keepd
         res.dtype = x.dtype if dtype is None else dtype
         res.shape = tuple([x.shape[i] for i in range(x.ndim) if i != axis]) if not keepdims else tuple(
             [x.shape[i] if i != axis else 1 for i in range(x.ndim)])
-
+        res.ndim = len(res.shape)
         temp_shape = [range(n) if i != axis else [slice(0, n, 1)] for i, n in enumerate(x.shape)]
         res.size = x.size // x.shape[axis]
         vals = [None] * res.size

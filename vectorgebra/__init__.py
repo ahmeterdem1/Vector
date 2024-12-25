@@ -2,7 +2,6 @@
     The numerical analysis library, fully implemented with Python.
 """
 
-from . import linalg  # Hide complex methods under linalg name
 from .array import *
 from .math import *
 from .utils import *

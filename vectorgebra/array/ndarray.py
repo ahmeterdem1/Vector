@@ -113,7 +113,7 @@ class Array:
     def broadcast(_array_1, _array_2) -> tuple:
         """
             Broadcasting algorithm specified by Python Array API v2023.12
-            at [https://data-apis.org/array-api/latest/API_specification/broadcasting.html#broadcasting](here).
+            at [here](https://data-apis.org/array-api/latest/API_specification/broadcasting.html#broadcasting).
 
             Args:
                 _array_1 (Array): First array to be broadcasted
@@ -250,8 +250,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] += c_self.values[i]
+
+            c_other.values = [c_other.values[i] + c_self.values[i] for i in range(c_self.size)]
 
             return c_other
 
@@ -290,8 +290,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] = c_other.values[i] & c_self.values[i]
+
+            c_other.values = [c_other.values[i] & c_self.values[i] for i in range(c_self.size)]
 
             c_other.dtype = bool
 
@@ -366,8 +366,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] = c_other.values[i] == c_self.values[i]
+
+            c_other.values = [c_other.values[i] == c_self.values[i] for i in range(c_self.size)]
 
             c_other.dtype = bool
 
@@ -420,8 +420,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] = c_self.values[i] // c_other.values[i]
+
+            c_other.values = [c_other.values[i] // c_self.values[i] for i in range(c_self.size)]
 
             return c_other
 
@@ -461,8 +461,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            for i in range(c_self.size):
-                c_other.values[i] = c_other.values[i] >= c_self.values[i]
+            c_other.values = [c_self.values[i] >= c_other.values[i] for i in range(c_self.size)]
 
             c_other.dtype = bool
 
@@ -606,8 +605,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] = c_other.values[i] > self.values[i]
+
+            c_other.values = [c_self.values[i] > c_other.values[i] for i in range(c_self.size)]
 
             c_other.dtype = bool
 
@@ -675,8 +674,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] = c_other.values[i] <= c_self.values[i]
+
+            c_other.values = [c_self.values[i] <= c_other.values[i] for i in range(c_self.size)]
 
             c_other.dtype = bool
 
@@ -709,7 +708,7 @@ class Array:
             res.ndim = c_self.ndim
             res.shape = copy(c_self.shape)
             res.size = c_self.size
-            res.values = [c_other.values[i] << c_self.values[i] for i in range(c_self.size)]
+            res.values = [c_self.values[i] << c_other.values[i] for i in range(c_self.size)]
         else:
             res.ndim = self.ndim
             res.shape = copy(self.shape)
@@ -743,8 +742,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] = c_other.values[i] < c_self.values[i]
+
+            c_other.values = [c_self.values[i] < c_other.values[i] for i in range(c_self.size)]
 
             c_other.dtype = bool
 
@@ -763,7 +762,31 @@ class Array:
         pass
 
     def __mod__(self, other):
-        pass
+        if isinstance(other, Array):
+            c_other = other.copy()
+            c_self = self
+            if other.shape != self.shape:
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.broadcast_to(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.broadcast_to(common_shape)
+
+            c_other.values = [c_self.values[i] % c_other.values[i] for i in range(c_self.size)]
+
+            c_other.dtype = int
+
+            return c_other
+        else:
+            res = Array()
+            res.dtype = int
+            res.device = self.device
+            res.ndim = self.ndim
+            res.shape = copy(self.shape)
+            res.size = self.size
+            res.values = [k % other for k in self.values]
+            return res
 
     def __mul__(self, other):
         """
@@ -791,8 +814,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] = c_other.values[i] * c_self.values[i]
+
+            c_other.values = [c_self.values[i] * c_other.values[i] for i in range(c_self.size)]
 
             return c_other
         else:
@@ -831,8 +854,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] = c_other.values[i] != c_self.values[i]
+
+            c_other.values = [c_self.values[i] != c_other.values[i] for i in range(c_self.size)]
 
             c_other.dtype = bool
 
@@ -891,8 +914,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] = c_other.values[i] | c_self.values[i]
+
+            c_other.values = [c_self.values[i] | c_other.values[i] for i in range(c_self.size)]
 
             c_other.dtype = bool
 
@@ -924,8 +947,41 @@ class Array:
         res.values = copy(self.values)
         return res
 
-    def __pow__(self, power, modulo=None):
-        pass
+    def __pow__(self, power):
+        res = Array()
+        res.device = None
+
+        if isinstance(power, Union[int, float, Decimal, Variable]):
+            res.size = self.size
+            res.ndim = self.ndim
+            res.shape = self.shape
+            res.values = [self.values[i] ** power for i in range(res.size)]
+
+        else:  # power is array
+
+            if self.shape == power.shape:
+                res.size = self.size
+                res.ndim = self.ndim
+                res.shape = self.shape
+                res.values = [self.values[i] ** power.values[i] for i in range(res.size)]
+
+            else:
+                common_shape = Array.broadcast(self, power)
+                c_x1 = self
+                c_x2 = power
+                if c_x1.shape != common_shape:
+                    c_x1 = c_x1.copy().broadcast_to(common_shape)
+                if c_x2.shape != common_shape:
+                    c_x2 = c_x2.copy().broadcast_to(common_shape)
+
+                res.size = c_x1.size
+                res.ndim = c_x1.ndim
+                res.shape = c_x1.shape
+                # There is no Variable check, Variable already implements pow
+                res.values = [c_x1.values[i] ** c_x2.values[i] for i in range(res.size)]
+
+        res.dtype = type(res.values[0])
+        return res
 
     def __radd__(self, other):
         if isinstance(other, Array):
@@ -938,8 +994,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] += c_self.values[i]
+
+            c_other.values = [c_self.values[i] + c_other.values[i] for i in range(c_self.size)]
 
             return c_other
 
@@ -970,7 +1026,7 @@ class Array:
             res.ndim = c_self.ndim
             res.shape = copy(c_self.shape)
             res.size = c_self.size
-            res.values = [c_other.values[i] >> c_self.values[i] for i in range(c_self.size)]
+            res.values = [c_self.values[i] >> c_other.values[i] for i in range(c_self.size)]
         else:
             res.ndim = self.ndim
             res.shape = copy(self.shape)
@@ -989,8 +1045,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] = c_other.values[i] - c_self.values[i]
+
+            c_other.values = [c_other.values[i] - c_self.values[i] for i in range(c_self.size)]
 
             return c_other
 
@@ -1004,7 +1060,76 @@ class Array:
             return res
 
     def __setitem__(self, key, value):
-        pass
+        if isinstance(key, int):
+            N = 1
+            for k in self.shape[1:]:
+                N *= k
+            self.values[key * N:(key + 1) * N] = value
+
+        elif isinstance(key, slice):
+
+            N = self.size // self.shape[0]
+            start, stop, step = key.indices(self.shape[0])
+
+            if isinstance(value, list):
+                self.values[start * N:stop * N:step] = value
+            else:
+                for i in range(start, stop, step):
+                    self.values[i * N:(i + 1) * N] = [value] * N
+
+        elif isinstance(key, tuple):
+            Ns = [self.size // self.shape[0]]
+            for k in self.shape[1:]:
+                Ns.append(Ns[-1] // k)
+
+            indices = []
+
+            start: int
+            stop: int
+            step: int
+
+            sliced_previously = False
+
+            for i, it in enumerate(key):
+                if isinstance(it, int):
+                    if sliced_previously:  # indices always exist
+                        temp_indices = []
+                        for k in range(len(indices)):
+                            temp_indices.extend(indices[it * Ns[i] + k * Ns[i-1]:it * Ns[i] + k * Ns[i-1] + Ns[i]])
+                        indices = temp_indices
+                    elif indices:
+                        indices = indices[it * Ns[i]:(it + 1) * Ns[i]]
+                    else:
+                        indices = list(range(it * Ns[i], (it + 1) * Ns[i]))
+
+                elif isinstance(it, slice):
+                    start, stop, step = it.indices(self.shape[i])
+
+                    if sliced_previously:
+                        dN = Ns[i] * (stop - start) // step
+
+                        temp_indices = []
+                        for k in range(self.shape[i - 1]):
+                            temp_indices.extend(indices[start * Ns[i] + k * dN:stop * Ns[i] + k * dN:step])
+                        indices = temp_indices
+                    elif indices:
+                        indices = indices[start * Ns[i]:stop * Ns[i]:step]
+                    else:
+                        indices = list(range(start * Ns[i], stop * Ns[i], step))
+
+                    sliced_previously = True
+
+            if isinstance(value, list):
+                for idx, val in zip(indices, value):
+                    self.values[idx] = val
+            else:
+                for idx in indices:
+                    self.values[idx] = value
+        elif isinstance(key, list):
+            # TODO: If array indexing is done with a list in __setitem__, all elements must be direct indexes to internal list.
+            #       Therefore, this option is only valid for outputs from api.utility.index_query_()
+            for i, idx in enumerate(key):
+                self.values[i] = value[idx]  # This will automatically raise an error if illegally indexed
 
     def __sub__(self, other):
         """
@@ -1033,8 +1158,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] = c_self.values[i] - c_other.values[i]
+
+            c_other.values = [c_self.values[i] - c_other.values[i] for i in range(c_self.size)]
 
             return c_other
 
@@ -1074,8 +1199,7 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] = c_self.values[i] / c_other.values[i]
+            c_other.values = [c_self.values[i] / c_other.values[i] for i in range(c_self.size)]
 
             return c_other
 
@@ -1114,8 +1238,8 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            for i in range(c_self.size):
-                c_other.values[i] = c_other.values[i] ^ c_self.values[i]
+
+            c_other.values = [c_self.values[i] ^ c_other.values[i] for i in range(c_self.size)]
 
             c_other.dtype = bool
 
