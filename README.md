@@ -10,6 +10,8 @@ Each section is explained below.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+[![Documentation Status](https://readthedocs.org/projects/vectorgebra/badge/?version=latest)](https://vectorgebra.readthedocs.io/en/latest/?badge=latest)
+
 _pip install vectorgebra_
 
 https://pypi.org/project/vectorgebra/
@@ -28,13 +30,36 @@ more and more bigger projects as scale. And this was a good test to it.
 Creating and training an ML model requires both floating point precision
 and good handling of high dimensional tensors.
 
-### Update notes on 3.4.0
+### New Vectorgebra, 4.0
 
-A new, single thread oriented Autograd implementation is added. "autograd()"
-is more than 2 times faster than "grad()". 
+Yet another major release of Vectorgebra. This release will be Array API
+compatibility update.
 
-Several helper methods are introduced to Variable class.
+This version, will be _mostly_ if not fully compatible with Array API.
+Device related operations will not be implemented but rest of the API
+will be implemented, and is being implemented.
 
+There was a "linalg" module, which was invisible to the end user. Now,
+a separate linalg is being created. This module will host most of the
+methods from Matrix class. In the final release of 4.0, there will only
+be a single Array parent class, from which special but not always necessary
+Vector and Matrix are created. For that purpose, methods like inverse, Cholesky
+decomposition and etc. will all be carried to "linalg" module.
+
+Autograd is now more performant, with addition of special unary operations.
+Common operations like sigmoid, natural exponential, logarithm, etc. each
+have their corresponding operators in the computational graph. Each of these
+unary operations integrate to the graph with a dummy second Variable object,
+that has no children, so that they imitate being binary. This was easier than
+updating the graph traversal algorithm.
+
+For now, eager calculation of the computational graph is enforced, but in the
+final 4.0 release, I aim to make this optional with a context manager.
+
+And a final notice, a new MLgebra will be developed after the 4.0 release.
+Currently, it is not more than just an experiment with Vectorgebra.
+
+# Vectorgebra 3.4.0
 
 ## Vectorgebra.Variable
 

@@ -1,6 +1,6 @@
-from .undefined import *
+from ..utils import *
 from decimal import *
-from typing import Callable, Union, List
+from typing import Union
 
 PI = 3.14159265359
 
@@ -9,7 +9,7 @@ def sqrt(arg, resolution: int = 10):
         Computes the square root of a numerical argument with a specified resolution.
 
         Args:
-            arg (int, float, Decimal, Complex, Infinity, Undefined): The numerical value or type for which the square root is to be computed.
+            arg: The numerical value or type for which the square root is to be computed.
             resolution (int, optional): The number of iterations for the approximation. Defaults to 10.
 
         Returns:
@@ -20,7 +20,8 @@ def sqrt(arg, resolution: int = 10):
             RangeError: If the resolution is not a positive integer.
     """
     if isinstance(arg, Union[int, float, Decimal]):
-        if resolution < 1: raise RangeError("Resolution must be a positive integer")
+        if resolution < 1:
+            raise RangeError("Resolution must be a positive integer")
         c = True if arg >= 0 else False
         arg = abs(arg)
         digits = 0
@@ -48,13 +49,13 @@ def sqrt(arg, resolution: int = 10):
         return Undefined()
     raise ArgTypeError()
 
-def __cumdiv(x, power: int):
+def __cumdiv(x: Union[int, float, Decimal, Undefined], power: int):
     """
         Computes the cumulative division of a numerical value 'x' by a specified power, cumulative
-        divison being a related term at Taylor Series.
+        division being a related term at Taylor Series.
 
         Args:
-            x (int, float, Decimal, Infinity, Undefined): The numerical value to be divided cumulatively.
+            x: The numerical value to be divided cumulatively.
             power (int): The power by which 'x' is to be divided cumulatively.
 
         Returns:
@@ -74,12 +75,12 @@ def __cumdiv(x, power: int):
         result *= x / k
     return result
 
-def sin(angle, resolution=15):
+def sin(angle: Union[int, float, Decimal, Undefined], resolution: int = 15):
     """
         Computes the sine of the given angle using Taylor Series approximation.
 
         Args:
-            angle (int, float, Decimal, Infinity, Undefined): The angle in degrees.
+            angle: The angle in degrees.
             resolution (int, optional): The resolution for the approximation. Defaults to 15.
 
         Returns:
@@ -93,21 +94,22 @@ def sin(angle, resolution=15):
     if not isinstance(angle, Union[int, float, Decimal, Infinity, Undefined]):
         raise ArgTypeError("Must be a numerical value.")
 
-    radian: float = (2 * PI * (angle % 360 / 360)) % (2 * PI)
-    result: float = 0
+    # Below calculation can be optimized away. It is done so in Vectorgebra/C++.
+    radian = (2 * PI * (angle % 360 / 360)) % (2 * PI)
+    result = 0
     if not resolution % 2:
         resolution += 1
     for k in range(resolution, 0, -2):
-        result = result + __cumdiv(radian, k) * pow(-1, (k - 1) / 2)
+        result = result + __cumdiv(radian, k) * (-1)**((k - 1) / 2)
 
     return result
 
-def cos(angle, resolution=16):
+def cos(angle: Union[int, float, Decimal, Undefined], resolution: int = 16):
     """
         Computes the cosine of the given angle using Taylor Series approximation.
 
         Args:
-            angle (int, float, Decimal, Infinity, Undefined): The angle in degrees.
+            angle: The angle in degrees.
             resolution (int, optional): The resolution for the approximation. Defaults to 16.
 
         Returns:
@@ -121,22 +123,22 @@ def cos(angle, resolution=16):
     if not isinstance(angle, Union[int, float, Decimal, Infinity, Undefined]):
         raise ArgTypeError("Must be a numerical value.")
 
-    radian: float = (2 * PI * (angle % 360 / 360)) % (2 * PI)
-    result: float = 1
+    radian = (2 * PI * (angle % 360 / 360)) % (2 * PI)
+    result = 1
 
     if resolution % 2:
         resolution += 1
 
     for k in range(resolution, 0, -2):
-        result = result + __cumdiv(radian, k) * pow(-1, k / 2)
+        result = result + __cumdiv(radian, k) * (-1)**(k / 2)
     return result
 
-def arcsin(x, resolution: int = 20):
+def arcsin(x: Union[int, float, Decimal, Undefined], resolution: int = 20):
     """
         Computes the arc sine of the given number in degrees.
 
         Args:
-            x (int, float, Decimal, Infinity, Undefined): The number.
+            x: The number.
             resolution (int, optional): The resolution for the approximation. Defaults to 20.
 
         Returns:
@@ -148,13 +150,16 @@ def arcsin(x, resolution: int = 20):
     """
     if not isinstance(x, Union[int, float, Decimal, Infinity, Undefined]):
         raise ArgTypeError("Must be a numerical value.")
-    if not (-1 <= x <= 1): raise RangeError()
-    if resolution < 1: raise RangeError("Resolution must be a positive integer")
+    if not (-1 <= x <= 1):
+        raise RangeError()
+    if resolution < 1:
+        raise RangeError("Resolution must be a positive integer")
+
     c = 1
     sol = x
     for k in range(1, resolution):
         c *= (2 * k - 1) / (2 * k)
-        sol += c * pow(x, 2 * k + 1) / (2 * k + 1)
+        sol += c * x**(2 * k + 1) / (2 * k + 1)
     return sol * 360 / (2 * PI)
 
 class Complex:
