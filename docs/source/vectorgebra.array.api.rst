@@ -68,6 +68,14 @@ vectorgebra.array.api.manipulation module
    :undoc-members:
    :show-inheritance:
 
+vectorgebra.array.api.random module
+-----------------------------------
+
+.. automodule:: vectorgebra.array.api.random
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vectorgebra.array.api.searching module
 --------------------------------------
 

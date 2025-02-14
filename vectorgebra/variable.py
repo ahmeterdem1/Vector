@@ -133,6 +133,18 @@ class Variable:
     def __str__(self):
         return self.value.__str__()
 
+    def __int__(self):
+        return self.value.__int__()
+
+    def __float__(self):
+        return self.value.__float__()
+
+    def __bool__(self):
+        return self.value.__bool__()
+
+    def __complex__(self):
+        return self.value.__complex__()
+
     def __repr__(self):
         return self.value.__repr__()
 

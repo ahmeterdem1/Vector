@@ -1,13 +1,86 @@
-from ..ndarray import Array
+from ..ndarray import Array, ArgTypeError
 from typing import Tuple, Union
 from itertools import product as __product
 from math import prod as __prod
 
-def all():
-    pass
+def all(x: Array, axis: Union[int, Tuple[int]] = None, keepdims: bool = False):
+    """
+        Tests whether all input array elements evaluate to True along a specified axis.
 
-def any():
-    pass
+        Args:
+            x (Array): The array to perform "all" operation on.
+
+            axis: The axis to calculate the truth value along. There may be multiple axes
+                as a tuple of integers. If left as None, truth value is calculated over
+                all of the array. The default is None.
+
+            keepdims (bool): If True, reduced axes are included in the shape of the
+                returned array. The default is False.
+
+        Returns:
+            The array containing the truth values from the "all" operation.
+
+        Raises:
+            ArgTypeError: If given axis does not conform to allowed format.
+    """
+
+    res = Array()
+    values = [x[shape_].all() for shape_ in axis_query_(x.shape, axis)]
+    res.values = values
+    res.size = len(values)
+    res.dtype = bool
+
+    if isinstance(axis, int):
+        res.shape = tuple([x.shape[i] for i in range(x.ndim) if i != axis]) if not keepdims else tuple(
+            [x.shape[i] if i != axis else 1 for i in range(x.ndim)])
+    elif isinstance(axis, tuple):
+        res.shape = tuple([x.shape[i] for i in range(x.ndim) if i not in axis]) if not keepdims else tuple(
+            [x.shape[i] if i not in axis else 1 for i in range(x.ndim)])
+    else:
+        raise ArgTypeError("Argument 'axis' must be one of [None, int, tuple[int]]")
+
+    res.ndim = len(res.shape)
+    return res
+
+
+def any(x: Array, axis: Union[int, Tuple[int]] = None, keepdims: bool = False):
+    """
+        Tests whether "any" input array elements evaluate to True along a specified axis.
+
+        Args:
+            x (Array): The array to perform "any" operation on.
+
+            axis: The axis to calculate the truth value along. There may be multiple axes
+                as a tuple of integers. If left as None, truth value is calculated over
+                all of the array. The default is None.
+
+            keepdims (bool): If True, reduced axes are included in the shape of the
+                returned array. The default is False.
+
+        Returns:
+            The array containing the truth values from the "any" operation.
+
+        Raises:
+            ArgTypeError: If given axis does not conform to allowed format.
+    """
+
+    res = Array()
+    values = [x[shape_].any() for shape_ in axis_query_(x.shape, axis)]
+    res.values = values
+    res.size = len(values)
+    res.dtype = bool
+
+    if isinstance(axis, int):
+        res.shape = tuple([x.shape[i] for i in range(x.ndim) if i != axis]) if not keepdims else tuple(
+            [x.shape[i] if i != axis else 1 for i in range(x.ndim)])
+    elif isinstance(axis, tuple):
+        res.shape = tuple([x.shape[i] for i in range(x.ndim) if i not in axis]) if not keepdims else tuple(
+            [x.shape[i] if i not in axis else 1 for i in range(x.ndim)])
+    else:
+        raise ArgTypeError("Argument 'axis' must be one of [None, int, tuple[int]]")
+
+    res.ndim = len(res.shape)
+    return res
 
 def axis_query_(shape: tuple, axis: Union[int, Tuple[int]]):
     """
