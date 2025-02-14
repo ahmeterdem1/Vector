@@ -52,6 +52,14 @@ vectorgebra.array.api.indexing module
    :undoc-members:
    :show-inheritance:
 
+vectorgebra.array.api.linalg module
+-----------------------------------
+
+.. automodule:: vectorgebra.array.api.linalg
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vectorgebra.array.api.manipulation module
 -----------------------------------------
 

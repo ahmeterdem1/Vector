@@ -8,7 +8,6 @@ Subpackages
    :maxdepth: 4
 
    vectorgebra.array
-   vectorgebra.linalg
    vectorgebra.math
    vectorgebra.utils
 

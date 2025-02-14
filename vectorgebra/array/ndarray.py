@@ -12,9 +12,11 @@ from typing import Type, Union, Callable
 from copy import deepcopy, copy
 from decimal import Decimal
 from ..variable import Variable
+from itertools import product as _product  # Does not work with the second _ ?
 
 BASIC_ITERABLE = Union[list, tuple]
 __NAMESPACE = None
+
 
 class Array:
 
@@ -138,6 +140,31 @@ class Array:
 
             n2 = _array_2.ndim - N + i
             d2 = _array_2.shape[n2] if n2 >= 0 else 1
+
+            if d1 == 1:
+                shape[i] = d2
+            elif d2 == 1 or d1 == d2:
+                shape[i] = d1
+            else:
+                raise DimensionError(0)
+        return tuple(shape)
+
+    @staticmethod
+    def broadcast_shapes(shape1, shape2):
+        ndim1 = len(shape1)
+        ndim2 = len(shape2)
+        N = max(ndim1, ndim2)
+        n1: int
+        n2: int
+        d1: int
+        d2: int
+        shape = [None for k in range(N)]
+        for i in range(N-1, -1, -1):
+            n1 = ndim1 - N + i
+            d1 = shape1[n1] if n1 >= 0 else 1
+
+            n2 = ndim2 - N + i
+            d2 = shape2[n2] if n2 >= 0 else 1
 
             if d1 == 1:
                 shape[i] = d2
@@ -759,7 +786,131 @@ class Array:
             return res
 
     def __matmul__(self, other):
-        pass
+
+        if not isinstance(other, Array):
+            raise ArgTypeError("Must be an Array")
+
+        # Potentially raises dimension error here, no need to compare shapes later on
+        #common_shape = Array.broadcast_shapes(self.shape[-2:], other.shape[:2])
+        if self.shape[-1] != other.shape[0]:
+            raise DimensionError(0)
+
+        if self.ndim == other.ndim == 1:  # Both are vectors
+            res = Array()
+            res.device = self.device
+            res.size = 1
+            res.shape = (0,)
+            res.ndim = 0
+            res.values = [sum([self.values[i] * other.values[i] for i in range(self.size)])]
+            res.dtype = type(res.values[0])
+            return res
+
+        if other.ndim == 1:  # Other is vector self is tensor
+            reduced_shape = [range(n) if i != self.ndim - 1 else [slice(0, n, 1)] for i, n in enumerate(self.shape)]
+            # Apply dot product along the vector, along all "stack" axes of self
+            values = [sum([self[*shape_].values[i] * other.values[i] for i in range(other.size)])
+                      for shape_ in _product(*reduced_shape)]
+
+            res = Array()
+            res.dtype = type(values[0])
+            res.device = self.device
+            res.ndim = self.ndim - 1
+            res.size = self.size // self.shape[-1]
+            res.shape = self.shape[:-1]
+            res.values = values
+            return res
+
+        if self.ndim == 1:  # self is vector, other is a tensor (multiplication axis changes)
+            reduced_shape = [range(n) if i != 0 else [slice(0, n, 1)] for i, n in enumerate(other.shape)]
+            values = [sum([other[*shape_].values[i] * self.values[i] for i in range(self.size)])
+                      for shape_ in _product(*reduced_shape)]
+
+            res = Array()
+            res.dtype = type(values[0])
+            res.device = self.device
+            res.ndim = other.ndim - 1
+            res.size = other.size // other.shape[0]
+            res.shape = other.shape[1:]
+            res.values = values
+            return res
+
+        if self.ndim == other.ndim == 2:  # Both are exact matrices
+            # Transpose self, leave the other
+            reduced_shape_other = [[slice(0, other.shape[0], 1)], range(other.shape[1])]
+            reduced_shape_self = [range(self.shape[0]), [slice(0, self.shape[1], 1)]]
+            # O(n^3)
+            values = [
+                sum([self[*self_shape_].values[i] * other[*other_shape_].values[i] for i in range(self.shape[1])])
+                for self_shape_ in _product(*reduced_shape_self)
+                for other_shape_ in _product(*reduced_shape_other)
+            ]
+
+            res = Array()
+            res.dtype = type(values[0])
+            res.device = self.device
+            res.ndim = 2
+            res.size = self.shape[0] * other.shape[1]
+            res.shape = (self.shape[0], other.shape[1])
+            res.values = values
+            return res
+
+        if other.ndim == 2:  # self is a tensor, other is an exact matrix
+            reduced_shape_other = [[slice(0, other.shape[0], 1)], range(other.shape[1])]
+            reduced_shape_self = [range(n) if i != self.ndim - 1 else [slice(0, n, 1)] for i, n in enumerate(self.shape)]
+
+            values = [
+                sum([self[*self_shape_].values[i] * other[*other_shape_].values[i] for i in range(self.shape[-1])])
+                for self_shape_ in _product(*reduced_shape_self)
+                for other_shape_ in _product(*reduced_shape_other)
+            ]
+
+            res = Array()
+            res.dtype = type(values[0])
+            res.device = self.device
+            res.shape = (*self.shape[:-1], other.shape[1])
+            res.size = (self.size // self.shape[-1]) * other.shape[1]
+            res.ndim = len(res.shape)
+            res.values = values
+            return res
+
+        if self.ndim == 2:  # self is an exact matrix, other is a tensor
+            reduced_shape_other = [range(n) if i != 0 else [slice(0, n, 1)] for i, n in enumerate(other.shape)]
+            reduced_shape_self = [range(self.shape[0]), [slice(0, self.shape[1], 1)]]
+
+            values = [
+                sum([self[*self_shape_].values[i] * other[*other_shape_].values[i] for i in range(self.shape[-1])])
+                for self_shape_ in _product(*reduced_shape_self)
+                for other_shape_ in _product(*reduced_shape_other)
+            ]
+
+            res = Array()
+            res.dtype = type(values[0])
+            res.device = self.device
+            res.shape = (self.shape[0], *other.shape[1:])
+            res.size = (other.size // other.shape[0]) * self.shape[0]
+            res.ndim = len(res.shape)
+            res.values = values
+            return res
+
+        # Arbitrary shape case
+
+        reduced_shape_other = [range(n) if i != 0 else [slice(0, n, 1)] for i, n in enumerate(other.shape)]
+        reduced_shape_self = [range(n) if i != self.shape[-1] else [slice(0, n, 1)] for i, n in enumerate(self.shape)]
+
+        values = [
+            sum([self[*self_shape_].values[i] * other[*other_shape_].values[i] for i in range(self.shape[-1])])
+            for self_shape_ in _product(*reduced_shape_self)
+            for other_shape_ in _product(*reduced_shape_other)
+        ]
+
+        res = Array()
+        res.dtype = type(values[0])
+        res.device = self.device
+        res.shape = (*self.shape[:-1], *other.shape[1:])
+        res.size = (self.size * other.size // self.shape[-1]) // other.shape[0]
+        res.ndim = len(res.shape)
+        res.values = values
+        return res
 
     def __mod__(self, other):
         if isinstance(other, Array):
@@ -1254,6 +1405,39 @@ class Array:
             res.values = [k ^ other for k in self.values]
             return res
 
+    def dot(self, other):
+        """
+            Calculates the dot product between self and other.
+
+            Args:
+                other (Array): An array that is broadcastable
+                    to self.
+
+            Returns:
+                 A single element Array containing the
+                 multiply-sum of given arrays.
+        """
+        common_shape = Array.broadcast_shapes(self.shape, other.shape)
+
+        c_self = self
+        c_other = other
+
+        if c_self.shape != common_shape:
+            c_self.broadcast_to(common_shape)
+        if c_other.shape != common_shape:
+            c_other.broadcast_to(common_shape)
+
+        res = Array()
+        res.device = self.device
+        res.ndim = 0
+        res.shape = (0,)
+        res.size = 1
+        res.values = [sum(
+            [c_self.values[i] * c_other.values[i] for i in range(c_self.size)]
+        )]
+        res.dtype = type(res.values[0])
+        return res
+
     def to_device(self, device):
         """
             This method is not implemented and only exists to
@@ -1295,6 +1479,24 @@ class Array:
             else:
                 raise DimensionError(0)
 
+    def sum(self):
+        """
+            Calculate the sum of values within the array. The same
+            operation as api.sum(self). Returns a single element
+            array.
+
+            Returns:
+                 A single element Array object containing the sum of
+                 all elements within self.
+        """
+        res = Array()
+        res.dtype = self.dtype
+        res.device = self.device
+        res.ndim = 0
+        res.shape = (0,)
+        res.size = 1
+        res.values = [sum(self.values)]
+        return res
 
     def __broadcast(self, shape: BASIC_ITERABLE) -> list:
         """
