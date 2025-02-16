@@ -13,6 +13,7 @@ from copy import deepcopy, copy
 from decimal import Decimal
 from ..variable import Variable
 from itertools import product as _product  # Does not work with the second _ ?
+from operator import mul as _mul
 
 BASIC_ITERABLE = Union[list, tuple]
 __NAMESPACE = None
@@ -504,7 +505,6 @@ class Array:
             return res
 
     def __getitem__(self, item: Union[int, tuple]):
-
         """
             Indexes the data in self, returns a new array object
             with a view (not a copy) of the indexed data.
@@ -801,14 +801,15 @@ class Array:
             res.size = 1
             res.shape = (0,)
             res.ndim = 0
-            res.values = [sum([self.values[i] * other.values[i] for i in range(self.size)])]
+            res.values = [sum(map(_mul, self.values, other.values))]
             res.dtype = type(res.values[0])
             return res
 
         if other.ndim == 1:  # Other is vector self is tensor
             reduced_shape = [range(n) if i != self.ndim - 1 else [slice(0, n, 1)] for i, n in enumerate(self.shape)]
             # Apply dot product along the vector, along all "stack" axes of self
-            values = [sum([self[*shape_].values[i] * other.values[i] for i in range(other.size)])
+            values = [sum(map(_mul, self.__fast_matrix_query_end(shape_), other.values))
+                      #sum([val * other.values[i] for i, val in enumerate(self.__fast_query(shape_))])
                       for shape_ in _product(*reduced_shape)]
 
             res = Array()
@@ -822,7 +823,8 @@ class Array:
 
         if self.ndim == 1:  # self is vector, other is a tensor (multiplication axis changes)
             reduced_shape = [range(n) if i != 0 else [slice(0, n, 1)] for i, n in enumerate(other.shape)]
-            values = [sum([other[*shape_].values[i] * self.values[i] for i in range(self.size)])
+            values = [sum(map(_mul, other.__fast_matrix_query_end(shape_), self.values))
+                      #sum([val1 * val2 for (val1, val2) in zip(other.__fast_query(shape_), self.values)])
                       for shape_ in _product(*reduced_shape)]
 
             res = Array()
@@ -840,7 +842,7 @@ class Array:
             reduced_shape_self = [range(self.shape[0]), [slice(0, self.shape[1], 1)]]
             # O(n^3)
             values = [
-                sum([self[*self_shape_].values[i] * other[*other_shape_].values[i] for i in range(self.shape[1])])
+                sum(map(_mul, self.__fast_matrix_query_end(self_shape_), other.__fast_matrix_query_begin(other_shape_)))
                 for self_shape_ in _product(*reduced_shape_self)
                 for other_shape_ in _product(*reduced_shape_other)
             ]
@@ -859,7 +861,8 @@ class Array:
             reduced_shape_self = [range(n) if i != self.ndim - 1 else [slice(0, n, 1)] for i, n in enumerate(self.shape)]
 
             values = [
-                sum([self[*self_shape_].values[i] * other[*other_shape_].values[i] for i in range(self.shape[-1])])
+                sum(map(_mul, self.__fast_query_end(self_shape_), other.__fast_matrix_query_begin(other_shape_)))
+                #sum([val1 * val2 for (val1, val2) in zip(self.__fast_query(self_shape_), other.__fast_query(other_shape_))])
                 for self_shape_ in _product(*reduced_shape_self)
                 for other_shape_ in _product(*reduced_shape_other)
             ]
@@ -878,7 +881,8 @@ class Array:
             reduced_shape_self = [range(self.shape[0]), [slice(0, self.shape[1], 1)]]
 
             values = [
-                sum([self[*self_shape_].values[i] * other[*other_shape_].values[i] for i in range(self.shape[-1])])
+                sum(map(_mul, self.__fast_matrix_query_end(self_shape_), other.__fast_query_begin(other_shape_)))
+                #sum([val1 * val2 for (val1, val2) in zip(self.__fast_query(self_shape_), other.__fast_query(other_shape_))])
                 for self_shape_ in _product(*reduced_shape_self)
                 for other_shape_ in _product(*reduced_shape_other)
             ]
@@ -895,10 +899,11 @@ class Array:
         # Arbitrary shape case
 
         reduced_shape_other = [range(n) if i != 0 else [slice(0, n, 1)] for i, n in enumerate(other.shape)]
-        reduced_shape_self = [range(n) if i != self.shape[-1] else [slice(0, n, 1)] for i, n in enumerate(self.shape)]
+        reduced_shape_self = [range(n) if i != self.ndim - 1 else [slice(0, n, 1)] for i, n in enumerate(self.shape)]
 
         values = [
-            sum([self[*self_shape_].values[i] * other[*other_shape_].values[i] for i in range(self.shape[-1])])
+            sum(map(_mul, self.__fast_query_end(self_shape_), other.__fast_query_begin(other_shape_)))
+            #sum([val1 * val2 for (val1, val2) in zip(self.__fast_query(self_shape_), other.__fast_query(other_shape_))])
             for self_shape_ in _product(*reduced_shape_self)
             for other_shape_ in _product(*reduced_shape_other)
         ]
@@ -1533,6 +1538,77 @@ class Array:
             self.ndim = len(shape)
             self.shape = tuple(temp)
             return self.__broadcast(shape)
+
+    def __fast_query_end(self, item: tuple):
+        """
+            Assume the slicing is only at the end, rapidly index the data
+            and return as a list without converting to an Array.
+
+        """
+        Ns = [self.size // self.shape[0]]
+        for k in self.shape[1:]:
+            Ns.append(Ns[-1] // k)
+
+        data = self.values
+
+        for i, it in enumerate(item[:-1]):
+            data = data[it * Ns[i]:(it + 1) * Ns[i]]
+
+        start, stop, step = item[-1].indices(self.shape[-1])
+        return data[start * Ns[-1]:stop * Ns[-1]:step]
+
+    def __fast_query_begin(self, item):
+        Ns = [self.size // self.shape[0]]
+        for k in self.shape[1:]:
+            Ns.append(Ns[-1] // k)
+
+        data = self.values
+
+        start, stop, step = item[0].indices(self.shape[0])
+        data = data[start * Ns[0]:stop * Ns[0]:step]
+        new_size = (stop - start) // step
+
+        temp_data: list
+        for i, it in enumerate(item[1:]):
+            temp_data = []
+            for k in range(new_size):
+                temp_data.extend(data[it * Ns[i] + k * Ns[i - 1]:it * Ns[i] + k * Ns[i - 1] + Ns[i]])
+            data = temp_data
+
+        return data
+
+    def __fast_matrix_query_end(self, item):  # (0, :)
+        """
+            Rapidly queries the array, assuming it is a matrix.
+
+            Returns a list, instead of an array to prevent the overhead
+            of constructing an Array.
+
+            Assumes that the given shape here is of the form (number, slice).
+
+            This subroutine is used to query the axes for doing dot products
+            from within the matrix multiplication operation.
+        """
+        start, stop, step = item[1].indices(self.shape[1])
+        N = (stop - start) // step
+        return self.values[N * item[0] + start:N * item[0] + stop:step]
+
+    def __fast_matrix_query_begin(self, item):  # (:, 0)
+        """
+            Rapidly queries the array, assuming it is a matrix.
+
+            Returns a list, instead of an array to prevent the overhead
+            of constructing an Array.
+
+            Assumes that the given shape here is of the form (slice, number).
+
+            This subroutine is used to query the axes for doing dot products
+            from within the matrix multiplication operation.
+        """
+        start, stop, step = item[0].indices(self.shape[0])
+        N = (stop - start) // step
+        return self.values[item[1] + N * start:item[1] + N * stop:N]
+
 
     def broadcast_to(self, shape: BASIC_ITERABLE):
         """

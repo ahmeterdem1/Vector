@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vectorgebra"
-version = "4.0.0b8"
+version = "4.0.0b9"
 description = "A numerical methods tool for python, in python."
 authors = ["Ahmet Erdem <ahmetblk1035@gmail.com>"]
 license = "MIT"
