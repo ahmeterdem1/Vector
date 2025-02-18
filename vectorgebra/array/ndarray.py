@@ -212,27 +212,23 @@ class Array:
 
     @property
     def T(self):
-        # TODO: Fix this property, this is still from nested list implementation
         res = Array()
         res.dtype = self.dtype
         res.device = self.device
         res.ndim = self.ndim
         res.shape = tuple([k for k in self.shape[::-1]])
+        query_shape = [range(k) for k in res.shape]
         res.size = self.size
-        res.values = Array.__transpose(deepcopy(self.values))
-        #return res
-        raise NotImplementedError()
+        res.values = [self.values[self.get_index_(shape)] for shape in _product(*query_shape)]
+        return res
 
-    @staticmethod
-    def __transpose(arraylike: Union[list, tuple]):
-
-        if isinstance(arraylike[0], Union[list, tuple]):
-            return [[arraylike[l][k] for l in range(len(arraylike))] for k in range(len(arraylike[0]))]
-
-        transposed = []
-        for colidx in range(len(arraylike[0])):
-            transposed.append([Array.__transpose(row[colidx]) for row in arraylike])
-        return transposed
+    def get_index_(self, query_shape: BASIC_ITERABLE) -> int:
+        i: int = 0
+        _size = self.size
+        for k, val in enumerate(query_shape[::-1]):
+            _size //= self.shape[k]
+            i += _size * val
+        return i
 
     def __repr__(self):
         return "<" + str(self.values) + ">"
