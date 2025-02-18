@@ -82,6 +82,13 @@ def asarray(obj, dtype: Type = None, device=None, copy: bool = False) -> Array:
 
     return Array(obj if not copy else deepcopy(obj), dtype, device)
 
+def array(obj, dtype: Type = None, device=None, copy: bool = False) -> Array:
+    """
+        This is just an alias for "api.asarray".
+    """
+
+    return Array(obj if not copy else deepcopy(obj), dtype, device)
+
 def empty(shape: BASIC_ITERABLE, dtype: Type = None, device=None) -> Array:
     """
         Returns a Python style uninitialized Array given the shape and
@@ -287,9 +294,8 @@ def linspace(start, stop, num: int, dtype: Type = None, device=None, endpoint: b
     res.size = res.shape[0]
     return res
 
-
 def meshgrid(*arrays, indexing: str = "xy"):
-    pass
+    raise NotImplementedError()
 
 def ones(shape: BASIC_ITERABLE, dtype: Type = None, device=None):
     """

@@ -385,9 +385,38 @@ def ceil(x: Array) -> Array:
         res.values = [math.ceil(k) for k in x.values]
     return res
 
-def clip(x: Array, min: Union[INT_TYPE, FLOAT_TYPE, Array, ...], max: Union[INT_TYPE, FLOAT_TYPE, Array, ...]) -> Array:
-    # TODO: Implement clip method with proper logic
-    raise NotImplementedError()
+def clip(x: Array,
+         min: Union[INT_TYPE, FLOAT_TYPE, Array, ...],
+         max: Union[INT_TYPE, FLOAT_TYPE, Array, ...]) -> Array:
+    """
+        Clip the values of the array between *min* and *max*. Conserves the original data type
+        of the array, if it is not Variable. Else, casts to the contained data type within
+        Variable objects.
+
+        Args:
+            x (Array): The Array object to be clipped.
+
+            min: Minimum allowed value within the result array.
+
+            max: Maximum allowed value within the result array.
+
+        Notes:
+            Breaks the computational graph, if given a Variable array.
+
+    """
+
+    res = Array()
+    res.dtype = x.dtype if x.dtype != Variable else type(x.values[0].value)
+    res.device = x.device
+    res.size = x.size
+    res.ndim = x.ndim
+    res.shape = x.shape
+
+    if x.dtype == Variable:
+        res.values = [min if k.value < min else k.value if k.value < max else max for k in x.values]
+    else:
+        res.values = [min if k < min else k if k < max else max for k in x.values]
+    return res
 
 def conj(x: Array) -> Array:
     """

@@ -8,7 +8,7 @@
 # Some of below imports are not used here, but used in api module
 from ..utils import *
 from ..math import abs, Complex
-from typing import Type, Union, Callable
+from typing import Union, Callable
 from copy import deepcopy, copy
 from decimal import Decimal
 from ..variable import Variable
@@ -25,7 +25,7 @@ class Array:
         Base implementation of n-dimensional arrays.
 
         Attributes:
-            dtype (Type): Data type contained in the array
+            dtype (type): Data type contained in the array
             device (None): Currently not implemented, left as None. It exists to conform to Array API
             ndim (int): Number of dimensions contained in the array (length of shape)
             shape (tuple): A tuple containing the dimensionality of each axes in the array
@@ -33,14 +33,14 @@ class Array:
             values (list): Core list containing all the numerical data in the array
     """
 
-    dtype: Type
+    dtype: type
     device = None  # No device support, yet.
     ndim: int
     shape: tuple
     size: int
     values: list
 
-    def __init__(self, data=None, dtype: Union[Type, None] = None,
+    def __init__(self, data=None, dtype: Union[type, None] = None,
                  device=None):
         """
             Create an N dimensional array.
@@ -279,7 +279,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_other.values[i] + c_self.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 + val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             return c_other
 
@@ -319,7 +319,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_other.values[i] & c_self.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 & val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             c_other.dtype = bool
 
@@ -395,7 +395,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_other.values[i] == c_self.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 == val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             c_other.dtype = bool
 
@@ -449,7 +449,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_other.values[i] // c_self.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 // val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             return c_other
 
@@ -489,7 +489,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_self.values[i] >= c_other.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 >= val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             c_other.dtype = bool
 
@@ -633,7 +633,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_self.values[i] > c_other.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 > val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             c_other.dtype = bool
 
@@ -702,7 +702,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_self.values[i] <= c_other.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 <= val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             c_other.dtype = bool
 
@@ -735,7 +735,7 @@ class Array:
             res.ndim = c_self.ndim
             res.shape = copy(c_self.shape)
             res.size = c_self.size
-            res.values = [c_self.values[i] << c_other.values[i] for i in range(c_self.size)]
+            res.values = [val1 << val2 for val1, val2 in zip(c_self.values, c_other.values)]
         else:
             res.ndim = self.ndim
             res.shape = copy(self.shape)
@@ -770,7 +770,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_self.values[i] < c_other.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 < val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             c_other.dtype = bool
 
@@ -809,8 +809,10 @@ class Array:
             reduced_shape = [range(n) if i != self.ndim - 1 else [slice(0, n, 1)] for i, n in enumerate(self.shape)]
             # Apply dot product along the vector, along all "stack" axes of self
             values = [sum(map(_mul, self.__fast_matrix_query_end(shape_), other.values))
-                      #sum([val * other.values[i] for i, val in enumerate(self.__fast_query(shape_))])
-                      for shape_ in _product(*reduced_shape)]
+                      for shape_ in _product(*reduced_shape)] \
+                    if self.ndim == 2 else \
+                     [sum(map(_mul, self.__fast_query_end(shape_), other.values))
+                         for shape_ in _product(*reduced_shape)]
 
             res = Array()
             res.dtype = type(values[0])
@@ -824,8 +826,10 @@ class Array:
         if self.ndim == 1:  # self is vector, other is a tensor (multiplication axis changes)
             reduced_shape = [range(n) if i != 0 else [slice(0, n, 1)] for i, n in enumerate(other.shape)]
             values = [sum(map(_mul, other.__fast_matrix_query_end(shape_), self.values))
-                      #sum([val1 * val2 for (val1, val2) in zip(other.__fast_query(shape_), self.values)])
-                      for shape_ in _product(*reduced_shape)]
+                      for shape_ in _product(*reduced_shape)] \
+                    if other.ndim == 2 else \
+                     [sum(map(_mul, other.__fast_query_end(shape_), self.values))
+                         for shape_ in _product(*reduced_shape)]
 
             res = Array()
             res.dtype = type(values[0])
@@ -862,7 +866,6 @@ class Array:
 
             values = [
                 sum(map(_mul, self.__fast_query_end(self_shape_), other.__fast_matrix_query_begin(other_shape_)))
-                #sum([val1 * val2 for (val1, val2) in zip(self.__fast_query(self_shape_), other.__fast_query(other_shape_))])
                 for self_shape_ in _product(*reduced_shape_self)
                 for other_shape_ in _product(*reduced_shape_other)
             ]
@@ -882,7 +885,6 @@ class Array:
 
             values = [
                 sum(map(_mul, self.__fast_matrix_query_end(self_shape_), other.__fast_query_begin(other_shape_)))
-                #sum([val1 * val2 for (val1, val2) in zip(self.__fast_query(self_shape_), other.__fast_query(other_shape_))])
                 for self_shape_ in _product(*reduced_shape_self)
                 for other_shape_ in _product(*reduced_shape_other)
             ]
@@ -903,7 +905,6 @@ class Array:
 
         values = [
             sum(map(_mul, self.__fast_query_end(self_shape_), other.__fast_query_begin(other_shape_)))
-            #sum([val1 * val2 for (val1, val2) in zip(self.__fast_query(self_shape_), other.__fast_query(other_shape_))])
             for self_shape_ in _product(*reduced_shape_self)
             for other_shape_ in _product(*reduced_shape_other)
         ]
@@ -929,7 +930,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_self.values[i] % c_other.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 % val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             c_other.dtype = int
 
@@ -971,7 +972,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_self.values[i] * c_other.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 * val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             return c_other
         else:
@@ -1011,7 +1012,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_self.values[i] != c_other.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 != val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             c_other.dtype = bool
 
@@ -1071,7 +1072,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_self.values[i] | c_other.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 | val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             c_other.dtype = bool
 
@@ -1119,7 +1120,7 @@ class Array:
                 res.size = self.size
                 res.ndim = self.ndim
                 res.shape = self.shape
-                res.values = [self.values[i] ** power.values[i] for i in range(res.size)]
+                res.values = [val1 ** val2 for val1, val2 in zip(self.values, power.values)]
 
             else:
                 common_shape = Array.broadcast(self, power)
@@ -1151,7 +1152,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_self.values[i] + c_other.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 + val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             return c_other
 
@@ -1182,7 +1183,7 @@ class Array:
             res.ndim = c_self.ndim
             res.shape = copy(c_self.shape)
             res.size = c_self.size
-            res.values = [c_self.values[i] >> c_other.values[i] for i in range(c_self.size)]
+            res.values = [val1 >> val2 for val1, val2 in zip(c_self.values, c_other.values)]
         else:
             res.ndim = self.ndim
             res.shape = copy(self.shape)
@@ -1202,7 +1203,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_other.values[i] - c_self.values[i] for i in range(c_self.size)]
+            c_other.values = [val2 - val1 for val1, val2 in zip(c_self.values, c_other.values)]
 
             return c_other
 
@@ -1315,7 +1316,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_self.values[i] - c_other.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 - val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             return c_other
 
@@ -1355,7 +1356,7 @@ class Array:
                 if self.shape != common_shape:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
-            c_other.values = [c_self.values[i] / c_other.values[i] for i in range(c_self.size)]
+            c_other.values = [val1 / val2 for val1, val2 in zip(c_self.values, c_other.values)]
 
             return c_other
 
@@ -1395,8 +1396,7 @@ class Array:
                     c_self = c_self.copy()
                     c_self.broadcast_to(common_shape)
 
-            c_other.values = [c_self.values[i] ^ c_other.values[i] for i in range(c_self.size)]
-
+            c_other.values = [val1 ^ val2 for val1, val2 in zip(c_self.values, c_other.values)]
             c_other.dtype = bool
 
             return c_other
@@ -1438,7 +1438,7 @@ class Array:
         res.shape = (0,)
         res.size = 1
         res.values = [sum(
-            [c_self.values[i] * c_other.values[i] for i in range(c_self.size)]
+            map(_mul, c_self.values, c_other.values)
         )]
         res.dtype = type(res.values[0])
         return res
@@ -1447,7 +1447,6 @@ class Array:
         """
             This method is not implemented and only exists to
             conform to Array API.
-
         """
         raise NotImplementedError()
 
@@ -1635,12 +1634,12 @@ class Array:
         res.values = self.values.copy()
         return res
 
-    def astype(self, dtype: Union[Type, None] = None):
+    def astype(self, dtype: Union[type, None] = None):
         """
             Cast self to given type. Return the casted array.
             
             Args:
-                dtype (Type): Dtype to cast to. Must be a Python
+                dtype (type): Dtype to cast to. Must be a Python
                     or Vectorgebra type (includes aliased ctypes).
                     If left as none, simply copies self and returns
                     the new array.
