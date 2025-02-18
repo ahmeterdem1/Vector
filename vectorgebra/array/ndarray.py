@@ -234,6 +234,9 @@ class Array:
             transposed.append([Array.__transpose(row[colidx]) for row in arraylike])
         return transposed
 
+    def __repr__(self):
+        return "<" + str(self.values) + ">"
+
     def __abs__(self):
         """
             Takes the absolute value of self. Does not modify
@@ -1165,6 +1168,179 @@ class Array:
             res.values = [k + other for k in self.values]
             return res
 
+    def __rdiv__(self, other):
+        """
+            Divide 2 arrays, or divide by a numerical object.
+            Broadcasting is applied when necessary if given an array.
+
+            Returns:
+                Element-wise division of self and other (array or numerical)
+                as an array
+
+            Raises:
+                DimensionError: If broadcasting is not viable.
+
+                This method is based on Python Array API v2023.12
+
+                https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__truediv__.html
+
+        """
+        if isinstance(other, Array):
+            c_other = other.copy()
+            c_self = self
+            if other.shape != self.shape:
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.broadcast_to(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.broadcast_to(common_shape)
+            c_other.values = [val2 / val1 for val1, val2 in zip(c_self.values, c_other.values)]
+
+            return c_other
+
+        else:
+            res = Array()
+            res.device = self.device
+            res.ndim = self.ndim
+            res.size = self.size
+            res.shape = copy(self.shape)
+            res.values = [other / k for k in self.values]
+            return res
+
+    def __rtruediv__(self, other):
+        """
+                    Divide 2 arrays, or divide by a numerical object.
+                    Broadcasting is applied when necessary if given an array.
+
+                    Returns:
+                        Element-wise division of self and other (array or numerical)
+                        as an array
+
+                    Raises:
+                        DimensionError: If broadcasting is not viable.
+
+                        This method is based on Python Array API v2023.12
+
+                        https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__truediv__.html
+
+                """
+        if isinstance(other, Array):
+            c_other = other.copy()
+            c_self = self
+            if other.shape != self.shape:
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.broadcast_to(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.broadcast_to(common_shape)
+            c_other.values = [val2 / val1 for val1, val2 in zip(c_self.values, c_other.values)]
+
+            return c_other
+
+        else:
+            res = Array()
+            res.device = self.device
+            res.ndim = self.ndim
+            res.size = self.size
+            res.shape = copy(self.shape)
+            res.values = [other / k for k in self.values]
+            return res
+
+    def __rmod__(self, other):
+        if isinstance(other, Array):
+            c_other = other.copy()
+            c_self = self
+            if other.shape != self.shape:
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.broadcast_to(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.broadcast_to(common_shape)
+
+            c_other.values = [val1 % val2 for val1, val2 in zip(c_self.values, c_other.values)]
+
+            c_other.dtype = int
+
+            return c_other
+        else:
+            res = Array()
+            res.dtype = int
+            res.device = self.device
+            res.ndim = self.ndim
+            res.shape = copy(self.shape)
+            res.size = self.size
+            res.values = [k % other for k in self.values]
+            return res
+
+    def __rmul__(self, other):
+        """
+            Calculate element-wise multiplication of self and other.
+            Broadcasting is applied when necessary if an array is given.
+
+            Returns:
+                Element-wise multiplication of self and other (array or numerical)
+                as an array
+
+            Raises:
+                DimensionError: If broadcasting is not viable.
+
+                This method is based on Python Array API v2023.12
+
+                https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__mul__.html
+                """
+        if isinstance(other, Array):
+            c_other = other.copy()
+            c_self = self
+            if other.shape != self.shape:
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.broadcast_to(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.broadcast_to(common_shape)
+
+            c_other.values = [val1 * val2 for val1, val2 in zip(c_self.values, c_other.values)]
+
+            return c_other
+        else:
+            res = Array()
+            res.dtype = self.dtype
+            res.device = self.device
+            res.ndim = self.ndim
+            res.shape = copy(self.shape)
+            res.size = self.size
+            res.values = [k * other for k in self.values]
+            return res
+
+    def __rlshift__(self, other):
+        res = Array()
+        res.dtype = self.dtype
+        res.device = self.device
+        if isinstance(other, Array):
+            c_other = other.copy()
+            c_self = self
+            if other.shape != self.shape:
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.broadcast_to(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.broadcast_to(common_shape)
+
+            res.ndim = c_self.ndim
+            res.shape = copy(c_self.shape)
+            res.size = c_self.size
+            res.values = [val1 >> val2 for val1, val2 in zip(c_self.values, c_other.values)]
+        else:
+            res.ndim = self.ndim
+            res.shape = copy(self.shape)
+            res.size = self.size
+            res.values = [k >> other for k in self.values]
+        return res
+
     def __rshift__(self, other):
         res = Array()
         res.dtype = self.dtype
@@ -1189,6 +1365,32 @@ class Array:
             res.shape = copy(self.shape)
             res.size = self.size
             res.values = [k >> other for k in self.values]
+        return res
+
+    def __rrshift__(self, other):
+        res = Array()
+        res.dtype = self.dtype
+        res.device = self.device
+        if isinstance(other, Array):
+            c_other = other.copy()
+            c_self = self
+            if other.shape != self.shape:
+                common_shape = Array.broadcast(self, c_other)
+                if c_other.shape != common_shape:
+                    c_other.broadcast_to(common_shape)
+                if self.shape != common_shape:
+                    c_self = c_self.copy()
+                    c_self.broadcast_to(common_shape)
+
+            res.ndim = c_self.ndim
+            res.shape = copy(c_self.shape)
+            res.size = c_self.size
+            res.values = [val1 << val2 for val1, val2 in zip(c_self.values, c_other.values)]
+        else:
+            res.ndim = self.ndim
+            res.shape = copy(self.shape)
+            res.size = self.size
+            res.values = [k << other for k in self.values]
         return res
 
     def __rsub__(self, other):

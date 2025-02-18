@@ -335,76 +335,89 @@ class Variable:
 
         # TODO: Optimize below if-else logic
 
-        if self.operation == ADD:
-            return (1, 1), self.backward
+        if self.operation is None:
+            return (1, 1), (0, 0)
 
-        if self.operation == MUL:
-            return (self.backward[1].value, self.backward[0].value), self.backward
+        if self.operation < 10:
+            if self.operation < 5:
+                if self.operation == ADD:
+                    return (1, 1), self.backward
 
-        if self.operation == POW:
-            return ((self.backward[1].value * (self.backward[0].value ** (self.backward[1].value - 1)),
-                    ln(self.backward[0].value) * (self.backward[0].value ** self.backward[1].value)),
-                    self.backward)
+                if self.operation == MUL:
+                    return (self.backward[1].value, self.backward[0].value), self.backward
 
-        if self.operation == DIV:
-            return (1/self.backward[1].value, -self.backward[0].value / (self.backward[1].value ** 2)), self.backward
+                if self.operation == POW:
+                    return ((self.backward[1].value * (self.backward[0].value ** (self.backward[1].value - 1)),
+                             ln(self.backward[0].value) * (self.backward[0].value ** self.backward[1].value)),
+                            self.backward)
 
-        if self.operation == SQRT:
-            return (1/(2*self.value), 0), self.backward
+                if self.operation == DIV:
+                    return (
+                    1 / self.backward[1].value, -self.backward[0].value / (self.backward[1].value ** 2)), self.backward
 
-        if self.operation == EXP:
-            return (self.value, 0), self.backward
+                if self.operation == SQRT:
+                    return (1 / (2 * self.value), 0), self.backward
+            else:
+                if self.operation == EXP:
+                    return (self.value, 0), self.backward
 
-        if self.operation == SIN:
-            return (cos(self.backward[0].value), 0), self.backward
+                if self.operation == SIN:
+                    return (cos(self.backward[0].value), 0), self.backward
 
-        if self.operation == COS:
-            return (-sin(self.backward[0].value), 0), self.backward
+                if self.operation == COS:
+                    return (-sin(self.backward[0].value), 0), self.backward
 
-        if self.operation == ARCSIN:
-            return (1/sqrt(1 - (self.backward[0].value ** 2)), 0), self.backward
+                if self.operation == ARCSIN:
+                    return (1 / sqrt(1 - (self.backward[0].value ** 2)), 0), self.backward
 
-        if self.operation == LOG2:
-            return (1/(self.backward[0].value * ln2), 0), self.backward
+                if self.operation == LOG2:
+                    return (1 / (self.backward[0].value * ln2), 0), self.backward
+        elif self.operation < 20:
+            if self.operation < 15:
+                if self.operation == LN:
+                    return (1 / self.backward[0].value, 0), self.backward
 
-        if self.operation == LN:
-            return (1/self.backward[0].value, 0), self.backward
+                if self.operation == SIG:
+                    return (self.backward[0].value * (1 - self.backward[0].value), 0), self.backward
 
-        if self.operation == SIG:
-            return (self.backward[0].value * (1 - self.backward[0].value), 0), self.backward
+                if self.operation == ARCSINH:
+                    return (1 / sqrt(1 + self.backward[0].value ** 2), 0), self.backward
 
-        if self.operation == ARCSINH:
-            return (1 / sqrt(1 + self.backward[0].value ** 2), 0), self.backward
+                if self.operation == ARCTAN:
+                    return (1 / (1 + self.backward[0].value ** 2)), self.backward
 
-        if self.operation == ARCTAN:
-            return (1 / (1 + self.backward[0].value ** 2)), self.backward
+                if self.operation == ARCCOS:
+                    return (-1 / sqrt(1 - self.backward[0].value ** 2)), self.backward
+            else:
+                if self.operation == TAN:
+                    return (1 - self.value ** 2, 0), self.backward
 
-        if self.operation == ARCCOS:
-            return (-1 / sqrt(1 - self.backward[0].value ** 2)), self.backward
+                if self.operation == COSH:
+                    return (E ** self.backward[0].value - E ** -self.backward[0].value, 0), self.backward
 
-        if self.operation == TAN or self.operation == TANH:
-            return (1 - self.value ** 2, 0), self.backward
+                if self.operation == ARCCOSH:
+                    return (1 / sqrt(self.backward[0].value ** 2 - 1), 0), self.backward
 
-        if self.operation == COSH:
-            return (E ** self.backward[0].value - E ** -self.backward[0].value, 0), self.backward
+                if self.operation == ARCTANH:
+                    return (1 / (1 - self.backward[0].value ** 2), 0), self.backward
 
-        if self.operation == ARCCOSH:
-            return (1 / sqrt(self.backward[0].value ** 2 - 1), 0), self.backward
+                if self.operation == SINH:
+                    return (E ** self.backward[0].value + E ** -self.backward[0].value, 0), self.backward
+        elif self.operation < 30:
+            if self.operation < 25:
+                if self.operation == TANH:
+                    return (1 - self.value ** 2, 0), self.backward
+                if self.operation == LOG10:
+                    return (1 / (self.backward[0].value * ln10), 0), self.backward
 
-        if self.operation == ARCTANH:
-            return (1 / (1 - self.backward[0].value ** 2), 0), self.backward
+                if self.operation == LN1P:
+                    return (1 / (self.backward[0].value + 1), 0), self.backward
 
-        if self.operation == SINH:
-            return (E ** self.backward[0].value + E ** -self.backward[0].value, 0), self.backward
-
-        if self.operation == LOG10:
-            return (1 / (self.backward[0].value * ln10), 0), self.backward
-
-        if self.operation == LN1P:
-            return (1 / (self.backward[0].value + 1), 0), self.backward
-
-        if self.operation == LOGADDEXP:
-            return ((E ** self.backward[0].value) / self.value, (E ** self.backward[1].value) / self.value), self.backward
+                if self.operation == LOGADDEXP:
+                    return ((E ** self.backward[0].value) / self.value,
+                            (E ** self.backward[1].value) / self.value), self.backward
+            else:
+                pass
 
         return (1, 1), (0, 0)
 

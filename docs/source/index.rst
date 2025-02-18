@@ -1,4 +1,4 @@
-Vectorgebra 4.0.0b10
+Vectorgebra 4.0.0b11
 ==============================================
 
 This is the main documentation of the Vectorgebra.
