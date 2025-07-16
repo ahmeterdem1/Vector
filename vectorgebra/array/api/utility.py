@@ -42,7 +42,6 @@ def all(x: Array, axis: Union[int, Tuple[int]] = None, keepdims: bool = False):
     res.ndim = len(res.shape)
     return res
 
-
 def any(x: Array, axis: Union[int, Tuple[int]] = None, keepdims: bool = False):
     """
         Tests whether "any" input array elements evaluate to True along a specified axis.
@@ -191,3 +190,58 @@ def get_index_(shape: tuple, index: int) -> tuple:
         index //= dim
 
     return tuple(reversed(indices))
+
+def get_reversed_index(shape: tuple, indices: tuple) -> int:
+    size = __prod(indices)
+
+    res: int = 0
+    for i, val in enumerate(indices):
+        size //= shape[i]  # will be 1 at the last iteration
+        res += size * val
+    return res
+
+def index_carry_(shape1: tuple, shape2: tuple, index: int) -> int:
+    indices = []
+
+    for dim in reversed(shape1):
+        indices.append(index % dim)
+        index //= dim
+
+    indices.reverse()
+    size = __prod(indices)
+
+    res: int = 0
+    for i, val in enumerate(indices):
+        size //= shape2[i]  # will be 1 at the last iteration
+        res += size * val
+    return res
+
+def index_map_(shape: tuple, perm: tuple, index: tuple) -> tuple:
+    """
+        Calculates the integer index of a given tuple index,
+        within the new shape that is defined by the given
+        permutation of the given shape.
+
+        Args:
+            shape (tuple): Shape of the source array.
+
+            perm (tuple): Permutation tuple, containing the
+                indexes of each corresponding element of
+                the given shape, in the target shape. E.g.
+                (0, 2, 1).
+
+            index (tuple): Tuple-index of an element within
+                the given shape.
+
+    """
+    target_shape = [shape[i] for i in perm]
+    target_index = [index[i] for i in perm]
+    size = __prod(target_shape)
+
+    res: int = 0
+    for i, val in enumerate(target_index):
+        size //= target_shape[i]  # will be 1 at the last iteration
+        res += size * target_index[val]
+    return res
+
+

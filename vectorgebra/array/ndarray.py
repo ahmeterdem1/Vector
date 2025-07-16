@@ -113,44 +113,6 @@ class Array:
         return result
 
     @staticmethod
-    def broadcast(_array_1, _array_2) -> tuple:
-        """
-            Broadcasting algorithm specified by Python Array API v2023.12
-            at [here](https://data-apis.org/array-api/latest/API_specification/broadcasting.html#broadcasting).
-
-            Args:
-                _array_1 (Array): First array to be broadcasted
-                _array_2 (Array): Second array to be broadcasted
-
-            Returns:
-                The common shape, as a tuple, that is the result of the
-                broadcasting.
-
-            Raises:
-                DimensionError: If broadcasting is not viable
-        """
-        N = max(_array_1.ndim, _array_2.ndim)
-        n1: int
-        n2: int
-        d1: int
-        d2: int
-        shape = [None for k in range(N)]
-        for i in range(N-1, -1, -1):
-            n1 = _array_1.ndim - N + i
-            d1 = _array_1.shape[n1] if n1 >= 0 else 1
-
-            n2 = _array_2.ndim - N + i
-            d2 = _array_2.shape[n2] if n2 >= 0 else 1
-
-            if d1 == 1:
-                shape[i] = d2
-            elif d2 == 1 or d1 == d2:
-                shape[i] = d1
-            else:
-                raise DimensionError(0)
-        return tuple(shape)
-
-    @staticmethod
     def broadcast_shapes(shape1, shape2):
         ndim1 = len(shape1)
         ndim2 = len(shape2)
@@ -212,6 +174,10 @@ class Array:
 
     @property
     def T(self):
+        """
+            Returns the transpose of self.
+            Reverses the shape.
+        """
         res = Array()
         res.dtype = self.dtype
         res.device = self.device
@@ -231,7 +197,7 @@ class Array:
         return i
 
     def __repr__(self):
-        return "<" + str(self.values) + ">"
+        return f"<Shape: ({','.join(self.shape)}), " + str(self.values) + ">"
 
     def __abs__(self):
         """
@@ -271,7 +237,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -311,7 +277,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -387,7 +353,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -441,7 +407,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -481,7 +447,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -625,7 +591,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -694,7 +660,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -724,7 +690,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -762,7 +728,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -922,7 +888,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -964,7 +930,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1004,7 +970,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1064,7 +1030,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1122,7 +1088,7 @@ class Array:
                 res.values = [val1 ** val2 for val1, val2 in zip(self.values, power.values)]
 
             else:
-                common_shape = Array.broadcast(self, power)
+                common_shape = Array.broadcast_shapes(self.shape, power.shape)
                 c_x1 = self
                 c_x2 = power
                 if c_x1.shape != common_shape:
@@ -1144,7 +1110,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1185,7 +1151,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1225,7 +1191,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1249,7 +1215,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1291,7 +1257,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1319,7 +1285,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1345,7 +1311,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1371,7 +1337,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1394,7 +1360,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1507,7 +1473,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1548,7 +1514,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
@@ -1587,7 +1553,7 @@ class Array:
             c_other = other.copy()
             c_self = self
             if other.shape != self.shape:
-                common_shape = Array.broadcast(self, c_other)
+                common_shape = Array.broadcast_shapes(self.shape, c_other.shape)
                 if c_other.shape != common_shape:
                     c_other.broadcast_to(common_shape)
                 if self.shape != common_shape:
