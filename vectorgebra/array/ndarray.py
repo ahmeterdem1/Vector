@@ -197,7 +197,7 @@ class Array:
         return i
 
     def __repr__(self):
-        return f"<Shape: ({','.join(self.shape)}), " + str(self.values) + ">"
+        return "<" + str(self.values) + ">"
 
     def __abs__(self):
         """
@@ -1752,6 +1752,7 @@ class Array:
             This subroutine is used to query the axes for doing dot products
             from within the matrix multiplication operation.
         """
+        #slice.indices()
         start, stop, step = item[1].indices(self.shape[1])
         N = (stop - start) // step
         return self.values[N * item[0] + start:N * item[0] + stop:step]
@@ -1770,7 +1771,7 @@ class Array:
         """
         start, stop, step = item[0].indices(self.shape[0])
         N = (stop - start) // step
-        return self.values[item[1] + N * start:item[1] + N * stop:N]
+        return self.values[item[1] + N * start:item[1] + N * stop:self.shape[1]]
 
 
     def broadcast_to(self, shape: BASIC_ITERABLE):
@@ -1779,11 +1780,12 @@ class Array:
             Modifies attributes of self, including the data.
 
             Returns:
-                None, modifies the data in self.
+                Returns self object.
         """
         self.values = self.__broadcast(shape)
         self.shape = copy(tuple(shape))
         self.size = len(self.values)
+        return self
 
     def copy(self):
         """

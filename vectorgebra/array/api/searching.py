@@ -6,7 +6,7 @@ from ..ndarray import Array
 from .utility import *
 from builtins import max as __builtinMax, min as __builtinMin
 
-def argmax(x: Array, axis: Union[int, Tuple[int]] = None, keepdims: bool = False) -> Array:
+def argmax(x: Array, axis: int = None, keepdims: bool = False) -> Array:
     """
         Get the index of the maximal element(s), along the given axis.
 
@@ -30,6 +30,7 @@ def argmax(x: Array, axis: Union[int, Tuple[int]] = None, keepdims: bool = False
 
     if axis is None:
         vals.append(x.values.index(__builtinMax(x.values)))
+        res.values = vals
         res.size = 1
         res.ndim = 0
         res.shape = (0,)
@@ -42,19 +43,19 @@ def argmax(x: Array, axis: Union[int, Tuple[int]] = None, keepdims: bool = False
         res.size = x.size // x.shape[axis]
         res.ndim = len(res.shape)
         res.values = vals
-    elif isinstance(axis, tuple):
-        for shape in axis_query_(x.shape, axis):
-            temp = x[*shape].values
-            vals.append(temp.index(__builtinMax(temp)))
-        res.shape = tuple([x.shape[i] for i in range(x.ndim) if i not in axis]) if not keepdims else tuple(
-            [x.shape[i] if i not in axis else 1 for i in range(x.ndim)])
-        res.size = x.size // x.shape[axis]
-        res.ndim = len(res.shape)
-        res.values = vals
+    #elif isinstance(axis, tuple):
+    #    for shape in axis_query_(x.shape, axis):
+    #        temp = x[*shape].values
+    #        vals.append(temp.index(__builtinMax(temp)))
+    #    res.shape = tuple([x.shape[i] for i in range(x.ndim) if i not in axis]) if not keepdims else tuple(
+    #        [x.shape[i] if i not in axis else 1 for i in range(x.ndim)])
+    #    res.size = x.size // x.shape[axis]
+    #    res.ndim = len(res.shape)
+    #    res.values = vals
 
     return res
 
-def argmin(x: Array, axis: Union[int, Tuple[int]] = None, keepdims: bool = False) -> Array:
+def argmin(x: Array, axis: int = None, keepdims: bool = False) -> Array:
     """
         Get the index of the minimal element(s), along the given axis.
 
@@ -78,6 +79,7 @@ def argmin(x: Array, axis: Union[int, Tuple[int]] = None, keepdims: bool = False
 
     if axis is None:
         vals.append(x.values.index(__builtinMin(x.values)))
+        res.values = vals
         res.size = 1
         res.ndim = 0
         res.shape = (0,)
@@ -90,15 +92,15 @@ def argmin(x: Array, axis: Union[int, Tuple[int]] = None, keepdims: bool = False
         res.size = x.size // x.shape[axis]
         res.ndim = len(res.shape)
         res.values = vals
-    elif isinstance(axis, tuple):
-        for shape in axis_query_(x.shape, axis):
-            temp = x[*shape].values
-            vals.append(temp.index(__builtinMin(temp)))
-        res.shape = tuple([x.shape[i] for i in range(x.ndim) if i not in axis]) if not keepdims else tuple(
-            [x.shape[i] if i not in axis else 1 for i in range(x.ndim)])
-        res.size = x.size // x.shape[axis]
-        res.ndim = len(res.shape)
-        res.values = vals
+    #elif isinstance(axis, tuple):
+    #    for shape in axis_query_(x.shape, axis):
+    #        temp = x[*shape].values
+    #        vals.append(temp.index(__builtinMin(temp)))
+    #    res.shape = tuple([x.shape[i] for i in range(x.ndim) if i not in axis]) if not keepdims else tuple(
+    #        [x.shape[i] if i not in axis else 1 for i in range(x.ndim)])
+    #    res.size = x.size // x.shape[axis]
+    #    res.ndim = len(res.shape)
+    #    res.values = vals
 
     return res
 
@@ -150,7 +152,7 @@ def where(condition: Array, x1: Array, x2: Array) -> Array:
         res.values = [x1.values[i] if condition.values[i] else x2.values[i] for i in range(res.size)]
         return res
     if condition.shape == x1.shape:
-        common_shape = Array.broadcast(condition, x2)
+        common_shape = Array.broadcast_shapes(condition.shape, x2.shape)
         c_condition = condition
         c_x1 = x1
         c_x2 = x2
@@ -170,7 +172,7 @@ def where(condition: Array, x1: Array, x2: Array) -> Array:
         return res
 
     if condition.shape == x2.shape:
-        common_shape = Array.broadcast(condition, x1)
+        common_shape = Array.broadcast_shapes(condition.shape, x1.shape)
         c_condition = condition
         c_x1 = x1
         c_x2 = x2
@@ -189,7 +191,7 @@ def where(condition: Array, x1: Array, x2: Array) -> Array:
         res.values = [c_x1.values[i] if c_condition.values[i] else c_x2.values[i] for i in range(res.size)]
         return res
     if x1.shape == x2.shape:
-        common_shape = Array.broadcast(condition, x2)
+        common_shape = Array.broadcast_shapes(condition.shape, x2.shape)
         c_condition = condition
         c_x1 = x1
         c_x2 = x2
@@ -210,7 +212,7 @@ def where(condition: Array, x1: Array, x2: Array) -> Array:
     else:
         # The optimal broadcasting order here is probably an NP hard problem.
         # We assume, "condition" is likely to be in the broadcasted shapes of x1 and x2
-        common_shape = Array.broadcast(x1, x2)
+        common_shape = Array.broadcast_shapes(x1.shape, x2.shape)
         c_condition = condition
         c_x1 = x1
         c_x2 = x2
@@ -222,7 +224,7 @@ def where(condition: Array, x1: Array, x2: Array) -> Array:
 
         # It is now assured that x1 and x2 are in the same shape
 
-        common_shape = Array.broadcast(condition, c_x1)
+        common_shape = Array.broadcast_shapes(condition.shape, c_x1.shape)
 
         if common_shape != condition.shape:
             c_condition = condition.copy().broadcast_to(common_shape)

@@ -333,7 +333,7 @@ class Variable:
 
         """
 
-        # TODO: Optimize below if-else logic
+        # Optimize below if-else logic
 
         if self.operation is None:
             return (1, 1), (0, 0)
@@ -799,8 +799,9 @@ def autograd(node: Variable, args: Union[List[Variable], None] = None):
         However, the internal algorithm of this function is more than 2 times
         faster than "grad()". The disadvantage being, this function
         cannot be parallelized with threads or processes because of
-        how its algorithm works. Each thread would require its own
-        separate fully functional computational graph.
+        how its algorithm works (not that grad() was parallelized though).
+        Each thread would require its own separate fully functional computational
+        graph.
 
         This function also accepts "None" as an argument to take the derivative
         against. When left "None", the full gradient values for all of the

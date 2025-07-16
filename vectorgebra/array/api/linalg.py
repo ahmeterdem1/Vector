@@ -34,7 +34,7 @@ def det(x: Array, epsilon: float = 1e-07) -> Array:
             DimensionError: If the matrix or matrices are not square.
     """
 
-    if x.ndim > 2:
+    if x.ndim > 2:  # If there is a structured stack of matrices
         dets = []
         query_shapes = [range(x.shape[i]) if i < x.ndim - 2 else [slice(0, x.shape[i], 1)] for i in range(x.ndim)]
         factor: x.dtype
