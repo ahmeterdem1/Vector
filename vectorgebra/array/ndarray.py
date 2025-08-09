@@ -509,7 +509,7 @@ class Array:
             res.ndim = self.ndim
             res.size = N * length
             return res
-        elif isinstance(item, tuple):
+        elif isinstance(item, tuple) or isinstance(item, list):
             Ns = [self.size // self.shape[0]]
             for k in self.shape[1:]:
                 Ns.append(Ns[-1] // k)

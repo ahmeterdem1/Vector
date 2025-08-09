@@ -1,5 +1,5 @@
 from ..ndarray import Array, ArgTypeError
-from typing import Tuple, Union
+from typing import Tuple, Union, List
 from itertools import product as __product
 from math import prod as __prod
 
@@ -25,12 +25,14 @@ def all(x: Array, axis: Union[int, Tuple[int]] = None, keepdims: bool = False):
     """
 
     res = Array()
-    values = [x[shape_].all() for shape_ in axis_query_(x.shape, axis)]
+    values = [x[shape_].all() for shape_ in axis_query_(x.shape, axis)] if axis is not None else [all(x.values)]
     res.values = values
     res.size = len(values)
     res.dtype = bool
 
-    if isinstance(axis, int):
+    if axis is None:
+        res.shape = (1,) * x.ndim if keepdims else (0,)
+    elif isinstance(axis, int):
         res.shape = tuple([x.shape[i] for i in range(x.ndim) if i != axis]) if not keepdims else tuple(
             [x.shape[i] if i != axis else 1 for i in range(x.ndim)])
     elif isinstance(axis, tuple):
@@ -64,12 +66,14 @@ def any(x: Array, axis: Union[int, Tuple[int]] = None, keepdims: bool = False):
     """
 
     res = Array()
-    values = [x[shape_].any() for shape_ in axis_query_(x.shape, axis)]
+    values = [x[shape_].any() for shape_ in axis_query_(x.shape, axis)] if axis is not None else [any(x.values)]
     res.values = values
     res.size = len(values)
     res.dtype = bool
 
-    if isinstance(axis, int):
+    if axis is None:
+        res.shape = (1,) * x.ndim if keepdims else (0,)
+    elif isinstance(axis, int):
         res.shape = tuple([x.shape[i] for i in range(x.ndim) if i != axis]) if not keepdims else tuple(
             [x.shape[i] if i != axis else 1 for i in range(x.ndim)])
     elif isinstance(axis, tuple):
@@ -81,7 +85,29 @@ def any(x: Array, axis: Union[int, Tuple[int]] = None, keepdims: bool = False):
     res.ndim = len(res.shape)
     return res
 
-def axis_query_(shape: tuple, axis: Union[int, Tuple[int]]):
+def permute_array_(array: Union[list, tuple], permutation: Union[list, tuple]) -> list:
+    """
+        Permutes the given array according to the given permutation.
+
+        Args:
+            array (list or tuple): The array to permute.
+
+            permutation (list or tuple): The permutation to apply to the array.
+                It should contain indices that correspond to the new order of
+                elements in the array.
+
+    """
+    return [array[idx] for idx in permutation]
+
+def inverse_permutation_(perm: Union[list, tuple]) -> list:
+    inv = [0] * len(perm)
+    for i, p in enumerate(perm):
+        inv[p] = i
+    return inv
+
+def axis_query_(shape: tuple,
+                axis: Union[int, Tuple[int], None] = None,
+                priority: Union[List[int], Tuple[int]] = None):
     """
         A generator, that indexes the given shape in lexical order,
         while indexing through all of the given axes.
@@ -95,11 +121,14 @@ def axis_query_(shape: tuple, axis: Union[int, Tuple[int]]):
             shape (tuple): The shape to iterate through.
 
             axis: Axis/axes to index through whilst iterating over the other
-                axes.
+                axes. Defaults to None, which means that all axes are indexed.
+
+            priority (list[int]): Optional ordering of axes for iteration priority.
+                              Lower indices in this list vary fastest.
 
         Example:
             shape - (2, 3, 2)
-
+            priority - (0, 1, 2)
             axis - 1
 
             outputs in order
@@ -108,14 +137,33 @@ def axis_query_(shape: tuple, axis: Union[int, Tuple[int]]):
                 - (1, :, 0)
                 - (1, :, 1)
     """
-    if isinstance(axis, int):
-        reduced_shape = [range(n) if i != axis else [slice(0, n, 1)] for i, n in enumerate(shape)]
+
+    if priority is None:
+        priority = list(range(len(shape)))
+
+    inverse_priority = inverse_permutation_(priority)
+    shape = permute_array_(shape, priority)
+
+    if axis is None:
+        for shape_ in __product(*[range(n) for n in shape]):
+            yield permute_array_(shape_, inverse_priority)
+    elif isinstance(axis, int):
+        permuted_axis = inverse_priority[axis]
+        reduced_shape = [range(n) if i != permuted_axis else [slice(0, n, 1)] for i, n in enumerate(shape)]
         for shape_ in __product(*reduced_shape):
-            yield shape_
+            yield permute_array_(shape_, inverse_priority)
     elif isinstance(axis, tuple):
-        reduced_shape = [range(n) if i not in axis else [slice(0, n, 1)] for i, n in enumerate(shape)]
+        permuted_axis = [inverse_priority[ax] for ax in axis]
+        reduced_shape = [range(n) if i not in permuted_axis else [slice(0, n, 1)] for i, n in enumerate(shape)]
         for shape_ in __product(*reduced_shape):
-            yield shape_
+            yield permute_array_(shape_, inverse_priority)
+
+def axis_index_(query: Union[list, tuple], axis: int, n: int) -> tuple:
+    slice_axe = query[axis]
+    start, stop, step = slice_axe.indices(n)
+
+    for i in range(start, stop, step):
+        yield tuple(query[j] if j != axis else i for j in range(len(query)))
 
 def index_query_(shape: tuple, key) -> list:
     """
@@ -192,7 +240,11 @@ def get_index_(shape: tuple, index: int) -> tuple:
     return tuple(reversed(indices))
 
 def get_reversed_index(shape: tuple, indices: tuple) -> int:
-    size = __prod(indices)
+    """
+        Returns the integer inner index of a given tuple index
+        within the given shape domain.
+    """
+    size = __prod(shape)
 
     res: int = 0
     for i, val in enumerate(indices):

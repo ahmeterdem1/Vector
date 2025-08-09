@@ -6,7 +6,7 @@ from ..ndarray import Array, ArgTypeError
 from typing import Type, Union, Tuple
 from builtins import sum as __builtinSum, max as __builtinMax, min as __builtinMin
 from itertools import product as __product
-from statistics import variance as __variance, stdev as __stdev, mean as __mean
+from statistics import pvariance as __variance, pstdev as __stdev, mean as __mean
 from math import prod as __prod
 
 def cumulative_sum():

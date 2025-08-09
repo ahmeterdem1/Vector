@@ -14,6 +14,7 @@ from .statistical import *
 from .utility import *
 from .searching import *
 from .set import *
+from .manipulation import *
 from . import random, linalg
 
 
