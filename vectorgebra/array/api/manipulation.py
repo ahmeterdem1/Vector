@@ -32,7 +32,6 @@ def broadcast_arrays(*arrays) -> List[Tuple]:
 
     return [arr.broadcast_to(common_shape) for arr in arrays]
 
-
 def broadcast_to(x: Array, shape: Union[list, tuple]) -> Array:
     """
         Broadcast the array to given shape. Does not
@@ -98,13 +97,11 @@ def concat(arrays: Union[Tuple[Array], List[Array]], axis: int = 0) -> Array:
     target_shape = list(_initial.shape)
     res = Array()
     res.ndim = _initial.ndim
-    res.size = sum([arr.size for arr in arrays])
-    res.values = [None] * res.size
     res.device = _initial.device  # Be careful here in the future
 
     _dtype = _initial.dtype
 
-    for arr in arrays:
+    for arr in arrays[1:]:
 
         if arr.ndim != _initial.ndim:
             raise DimensionError(0)
@@ -114,21 +111,22 @@ def concat(arrays: Union[Tuple[Array], List[Array]], axis: int = 0) -> Array:
             if i != axis and arr.shape[i] != _initial.shape[i]:
                 raise DimensionError(0)
 
-            target_shape[i] += arr.shape[i]
         _dtype = type(_dtype() + arr.dtype())  # Promote types
+        target_shape[axis] += arr.shape[axis]  # Add the size of the axis
 
+    res.size = __prod(target_shape)
+    res.values = [None] * res.size
     res.dtype = _dtype
-    # TODO: Fix this
-    _index: tuple
-    _size_until_axe = 0
+    tuple_index: tuple
     N = 0  # size until axis, including the axis (append to axe)
     for arr in arrays:
         for i, val in enumerate(arr.values):
-            _index = get_index_(arr.shape, i)
-            get_reversed_index()
-            #_index = index_carry_(_initial.shape, target_shape, _index)
-            #res.values[_size_until_axe + i] = val
+            tuple_index = list(get_index_(arr.shape, i))
+            tuple_index[axis] += N
+            res.values[get_reversed_index(target_shape, tuple_index)] = val
+        N += arr.shape[axis]
 
+    res.shape = tuple(target_shape)
     return res
 
 def expand_dims(x: Array, axis: int = 0) -> Array:
@@ -146,7 +144,32 @@ def expand_dims(x: Array, axis: int = 0) -> Array:
         Returns:
             The expanded Array object.
     """
-    shape = tuple(list(x.shape).insert(axis, 1))  # Might raise index error here
+
+    to_insert = list(x.shape)
+    to_insert.insert(axis, 1)
+    shape = tuple(to_insert)  # Might raise index error here
+    c_x = x.copy()
+    c_x.shape = shape
+    return c_x
+
+def unsqueeze(x: Array, axis: int = 0) -> Array:
+    """
+            Increases the ndim of given array by 1, with inserting
+            a 1 dimensional axis into the given index as *axis*.
+            Does not modify the given array.
+
+            Args:
+                 x (Array): The array to be expanded.
+
+                 axis (int): The index to insert an axis into.
+                    Defaults to 0.
+
+            Returns:
+                The expanded Array object.
+        """
+    to_insert = list(x.shape)
+    to_insert.insert(axis, 1)  # Insert a 1 at the given axis
+    shape = tuple(to_insert)  # Might raise index error here
     c_x = x.copy()
     c_x.shape = shape
     return c_x
@@ -274,8 +297,66 @@ def squeeze(x: Array, axis: Union[int, Tuple[int], List[int]]) -> Array:
 
     return c_x
 
-def stack():
-    pass
+def stack(arrays: Union[Tuple[Array], List[Array]], axis: int = 0) -> Array:
+
+    """
+        Stacks the values within the given list/tuple of arrays, along the
+        specified axis. The shape of all given arrays must match. This
+        operation simply inserts an axis of length "1" at the position
+        defined by "axis", and then concatenates the arrays.
+
+        Args:
+            arrays: The list/tuple of Arrays, cannot be empty
+
+            axis (int): The axis to stack along. Defaults to 0.
+
+        Returns:
+            The stacked Array object.
+
+        Raises:
+            ArgTypeError: If the given array list is empty
+
+            DimensionError: If the given arrays have non-matching shapes.
+    """
+
+    try:
+        _initial = arrays[0]
+    except IndexError:
+        raise ArgTypeError("Array list/tuple cannot be empty.")
+
+    for arr in arrays[1:]:
+        if arr.shape != _initial.shape:
+            raise DimensionError(0)
+
+    arrays = [expand_dims(arr, axis=axis) for arr in arrays]
+
+    target_shape = list(arrays[0].shape)
+    res = Array()
+    res.ndim = _initial.ndim
+    res.device = _initial.device  # Be careful here in the future
+
+    _dtype = _initial.dtype
+
+    for arr in arrays[1:]:
+        _dtype = type(_dtype() + arr.dtype())  # Promote types
+
+    target_shape[axis] = len(arrays)
+
+    res.size = __prod(target_shape)
+    res.values = [None] * res.size
+    res.dtype = _dtype
+    tuple_index: tuple
+    N = 0  # size until axis, including the axis (append to axe)
+    for arr in arrays:
+        for i, val in enumerate(arr.values):
+            tuple_index = list(get_index_(arr.shape, i))
+            tuple_index[axis] += N
+            res.values[get_reversed_index(target_shape, tuple_index)] = val
+        N += arr.shape[axis]
+
+    res.shape = tuple(target_shape)
+    return res
+
 
 def tile():
     pass
@@ -293,5 +374,5 @@ def unstack(x: Array, axis: int = 0) -> Tuple[Array]:
         Returns:
             A tuple of unstacked arrays.
     """
-    return tuple(x[tuple(shape_)] for shape_ in axis_query_(x.shape, axis))
+    return tuple(x[shape_] for shape_ in axis_query_(x.shape, axis))
 
