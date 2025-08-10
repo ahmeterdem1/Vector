@@ -105,6 +105,22 @@ def inverse_permutation_(perm: Union[list, tuple]) -> list:
         inv[p] = i
     return inv
 
+def shift_array_(array: list, offset: int) -> list:
+    """
+        Shifts the elements of the given array by the specified offset.
+
+        Args:
+            array (list): The array to shift.
+
+            offset (int): The number of positions to shift the elements.
+                Positive values shift to the right, negative values shift to the left.
+
+        Returns:
+            list: The shifted array.
+    """
+    offset %= len(array)  # handle negative or too large offsets
+    return array[-offset:] + array[:-offset]
+
 def axis_query_(shape: tuple,
                 axis: Union[int, Tuple[int], None] = None,
                 priority: Union[List[int], Tuple[int]] = None):
@@ -121,7 +137,8 @@ def axis_query_(shape: tuple,
             shape (tuple): The shape to iterate through.
 
             axis: Axis/axes to index through whilst iterating over the other
-                axes. Defaults to None, which means that all axes are indexed.
+                axes. Defaults to None, which means that all axes are sequentially
+                indexed.
 
             priority (list[int]): Optional ordering of axes for iteration priority.
                               Lower indices in this list vary fastest.
@@ -136,6 +153,9 @@ def axis_query_(shape: tuple,
                 - (0, :, 1)
                 - (1, :, 0)
                 - (1, :, 1)
+
+        Yields:
+            list - A list of indexes for the given shape, according to the specified axis and priority.
     """
 
     if priority is None:
@@ -253,6 +273,10 @@ def get_reversed_index(shape: tuple, indices: tuple) -> int:
     return res
 
 def index_carry_(shape1: tuple, shape2: tuple, index: int) -> int:
+    """
+        Carries inner integer index belonging to shape1, to an
+        inner integer index belonging to shape2.
+    """
     indices = []
 
     for dim in reversed(shape1):

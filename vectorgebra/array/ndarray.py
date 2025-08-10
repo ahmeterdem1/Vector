@@ -95,6 +95,13 @@ class Array:
             for k in self.shape:
                 self.size *= k
 
+    @property
+    def data(self):
+        """
+            Returns the data contained in self.
+        """
+        return self.values
+
     @staticmethod
     def flatten(data: BASIC_ITERABLE) -> list:
         """
@@ -1614,7 +1621,7 @@ class Array:
         """
         raise NotImplementedError()
 
-    def reshape(self, shape: BASIC_ITERABLE):
+    def reshape(self, shape: BASIC_ITERABLE) -> None:
         """
             Reshape self to given new shape. Size of new
             shape must equal to the size of current shape.

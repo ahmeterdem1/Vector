@@ -1,7 +1,6 @@
-from ..ndarray import Array
 
-def argsort():
-    pass
+def argsort(*args, **kwargs):
+    raise NotImplementedError()
 
-def sort():
-    pass
+def sort(*args, **kwargs):
+    raise NotImplementedError()

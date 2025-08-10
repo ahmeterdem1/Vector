@@ -165,4 +165,94 @@ def test_stack(get_arrays):
     assert np.allclose(res_api3.values, res_np3.ravel())
     assert np.allclose(res_api3_1.values, res_np3_1.ravel())
 
+def test_roll(get_arrays):
+
+    api2 = get_arrays["api2"]
+    api3 = get_arrays["api3"]
+
+    np2 = get_arrays["np2"]
+    np3 = get_arrays["np3"]
+
+    res_api2 = api.roll(api2, shift=1, axis=1)
+    res_api3 = api.roll(api3, shift=1, axis=1)
+    res_api3_1 = api.roll(api3, shift=(1, -1), axis=(1, 2))
+
+    res_np2 = np.roll(np2, shift=1, axis=1)
+    res_np3 = np.roll(np3, shift=1, axis=1)
+    res_np3_1 = np.roll(np3, shift=(1, -1), axis=(1, 2))
+
+    assert res_api2.shape == res_np2.shape
+    assert res_api3.shape == res_np3.shape
+    assert res_api3_1.shape == res_np3_1.shape
+    assert np.allclose(res_api2.values, res_np2.ravel())
+    assert np.allclose(res_api3.values, res_np3.ravel())
+    assert np.allclose(res_api3_1.values, res_np3_1.ravel())
+
+def test_moveaxis(get_arrays):
+
+    api2 = get_arrays["api2"]
+    api3 = get_arrays["api3"]
+
+    np2 = get_arrays["np2"]
+    np3 = get_arrays["np3"]
+
+    res_api2 = api.moveaxis(api2, source=0, destination=1)
+    res_api3 = api.moveaxis(api3, source=0, destination=1)
+    res_api3_1 = api.moveaxis(api3, source=0, destination=2)
+    res_api3_2 = api.moveaxis(api3, (0, 1), (-2, -1))
+
+    res_np2 = np.moveaxis(np2, 0, 1)
+    res_np3 = np.moveaxis(np3, 0, 1)
+    res_np3_1 = np.moveaxis(np3, 0, 2)
+    res_np3_2 = np.moveaxis(np3, (0, 1), (-2, -1))
+
+    assert res_api2.shape == res_np2.shape
+    assert res_api3.shape == res_np3.shape
+    assert res_api3_1.shape == res_np3_1.shape
+    assert res_api3_2.shape == res_np3_2.shape
+    assert np.allclose(res_api2.values, res_np2.ravel())
+    assert np.allclose(res_api3.values, res_np3.ravel())
+    assert np.allclose(res_api3_1.values, res_np3_1.ravel())
+    assert np.allclose(res_api3_2.values, res_np3_2.ravel())
+
+def test_repeat(get_arrays):
+    api2 = get_arrays["api2"]
+    api3 = get_arrays["api3"]
+
+    np2 = get_arrays["np2"]
+    np3 = get_arrays["np3"]
+
+    res_api2 = api.repeat(api2, repeats=2)
+    res_api3 = api.repeat(api3, repeats=2, axis=1)
+    res_api3_1 = api.repeat(api3, repeats=api.array([1, 2, 3]), axis=1)
+
+    res_np2 = np.repeat(np2, repeats=2)
+    res_np3 = np.repeat(np3, repeats=2, axis=1)
+    res_np3_1 = np.repeat(np3, repeats=np.array([1, 2, 3]), axis=1)
+
+    assert res_api2.shape == res_np2.shape
+    assert res_api3.shape == res_np3.shape
+    assert res_api3_1.shape == res_np3_1.shape
+    assert np.allclose(res_api2.values, res_np2.ravel())
+    assert np.allclose(res_api3.values, res_np3.ravel())
+    assert np.allclose(res_api3_1.values, res_np3_1.ravel())
+
+def test_tile(get_arrays):
+
+    api2 = get_arrays["api2"]
+    api3 = get_arrays["api3"]
+
+    np2 = get_arrays["np2"]
+    np3 = get_arrays["np3"]
+
+    res_api2 = api.tile(api2, repetitions=(2, 1))
+    res_api3 = api.tile(api3, repetitions=(1, 2, 1))
+
+    res_np2 = np.tile(np2, reps=(2, 1))
+    res_np3 = np.tile(np3, reps=(1, 2, 1))
+
+    assert res_api2.shape == res_np2.shape
+    assert res_api3.shape == res_np3.shape
+    assert np.allclose(res_api2.values, res_np2.ravel())
+    assert np.allclose(res_api3.values, res_np3.ravel())
 
